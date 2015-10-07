@@ -1,29 +1,68 @@
 #include "tasks.h"
+#ifdef WDT_SUPPORT
 #include "../xlib/core/watchdog.h"
+#endif
 #include "../fc/conf.h"
 
 
-void (* task_init_array[])() =
-{task_powerdown_init, task_usb_init, task_active_init, task_update_init};
+void (* task_init_array[])() = {
+	task_powerdown_init,
+#ifdef USB_SUPPORT	
+	task_usb_init,
+#endif	
+	task_active_init,
+#ifdef UPDATE_SUPPORT
+	task_update_init
+#endif	
+};
 
-void (* task_stop_array[])() =
-{task_powerdown_stop, task_usb_stop, task_active_stop, task_update_stop};
 
-void (* task_loop_array[])() =
-{task_powerdown_loop, task_usb_loop, task_active_loop, task_update_loop};
+void (* task_stop_array[])() = {
+	task_powerdown_stop,
+#ifdef USB_SUPPORT	
+	task_usb_stop,
+#endif	
+	task_active_stop,
+#ifdef UPDATE_SUPPORT	
+	task_update_stop
+#endif	
+};
 
-void (* task_irqh_array[])(uint8_t type, uint8_t * buff) =
-{task_powerdown_irqh, task_usb_irqh, task_active_irqh, task_update_irqh};
+void (* task_loop_array[])() = {
+	task_powerdown_loop,
+#ifdef USB_SUPPORT	
+	task_usb_loop,
+#endif	
+	task_active_loop,
+#ifdef UPDATE_SUPPORT	
+	task_update_loop
+#endif	
+};
+
+void (* task_irqh_array[])(uint8_t type, uint8_t * buff) = {
+	task_powerdown_irqh,
+#ifdef USB_SUPPORT	
+	task_usb_irqh,
+#endif	
+	task_active_irqh,
+#ifdef UPDATE_SUPPORT	
+	task_update_irqh
+#endif	
+};
 
 //task variables
+#ifndef STM32
 Timer task_timer;
+#endif
 volatile uint32_t task_timer_high;
 volatile uint8_t task_sleep_lock = 0;
 
 volatile uint8_t actual_task = NO_TASK;
 volatile uint8_t new_task = TASK_POWERDOWN;
 
+#ifdef USB_SUPPORT
 uint8_t usb_state;
+#endif
 
 SleepLock powerdown_lock;
 
@@ -55,27 +94,34 @@ bool SleepLock::Active()
 	return this->active;
 }
 
+#ifndef STM32
 ISR(TASK_TIMER_OVF)
 {
 	task_timer_high++;
 }
+#endif
 
+#ifdef USB_SUPPORT
 ISR(USB_CONNECTED_IRQ)
 {
 	//dummy
 	//just wake up the device
 	//usb_in is checked in main loop
 }
+#endif
 
 uint32_t task_get_ms_tick()
 {
+#ifndef STM32
 	uint32_t res = (task_timer_high * 512ul) + (uint32_t)(task_timer.GetValue() / 125);
 
 	return res;
+#endif	
 }
 
 void task_timer_setup(bool full_speed)
 {
+#ifndef STM32	
 	TASK_TIMER_PWR_ON;
 
 	if (full_speed)
@@ -90,20 +136,24 @@ void task_timer_setup(bool full_speed)
 	task_timer_high = 0;
 
 	task_timer.Start();
-
+#endif	
 }
 
 void task_timer_stop()
 {
+#ifndef	STM32
 	task_timer.Stop();
 
 	TASK_TIMER_PWR_OFF;
+#endif	
 }
 
 void task_init()
 {
 	task_timer_setup();
+#ifdef USB_SUPPORT	
 	USB_CONNECTED_IRQ_ON;
+#endif	
 
 	powerdown_lock.Unlock();
 
@@ -111,11 +161,15 @@ void task_init()
 	if (!cfg_factory_passed())
 		task_set(TASK_ACTIVE);
 
+#ifdef USB_SUPPORT
 	//if is USB connected go directly to USB task
 	if ((usb_state = USB_CONNECTED))
 		task_set(TASK_USB);
+#endif		
 
+#ifdef WDT_SUPPORT
 	wdt_init(wdt_2s);
+#endif	
 }
 
 void task_set(uint8_t task)
@@ -125,7 +179,9 @@ void task_set(uint8_t task)
 
 void task_loop()
 {
+#ifdef WDT_SUPPORT
 	wdt_reset();
+#endif	
 	if (actual_task != NO_TASK)
 		task_loop_array[actual_task]();
 }
@@ -134,7 +190,9 @@ uint64_t loop_start = 0;
 
 void task_system_loop()
 {
+#ifdef WDT_SUPPORT
 	wdt_reset();
+#endif	
 
 	//task switching outside interrupt
 	if (new_task != actual_task)
@@ -144,9 +202,11 @@ void task_system_loop()
 		{
 			task_stop_array[actual_task]();
 
+#ifndef STM32
 			//XXX: this will guarantee that task switched from the powerdown task will be vanilla
 			if (new_task == TASK_POWERDOWN)
 				SystemReset();
+#endif				
 		}
 
 		actual_task = new_task;
@@ -154,17 +214,21 @@ void task_system_loop()
 		task_init_array[actual_task]();
 	}
 
+#ifdef USB_SUPPORT
 	//check USB and send IRQ
 	if (usb_state != USB_CONNECTED)
 	{
 		usb_state = USB_CONNECTED;
 		task_irqh(TASK_IRQ_USB, &usb_state);
 	}
+#endif	
 
 	buttons_step();
 	if (powerdown_lock.Active() == false)
 	{
+#ifdef BAT_SUPPORT
 		battery_step();
+#endif		
 	}
 }
 
@@ -173,7 +237,9 @@ void task_sleep()
 	io_write(0, HIGH);
 	if (task_sleep_lock == 0)
 	{
+#ifndef STM32		
 		SystemPowerIdle();
+#endif		
 	}
 	io_write(0, LOW);
 }

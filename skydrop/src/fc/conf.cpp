@@ -1,10 +1,17 @@
 #include "conf.h"
+#ifdef DISPLAY_SUPPORT
 #include "../gui/widgets/layouts/layouts.h"
+#endif
 
+#ifndef STM32
 cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));
+#else
+cfg_ro_t config_ro;
+#endif
 
 volatile cfg_t config;
 
+#ifndef STM32
 EEMEM cfg_t config_ee = {
 	//build_number
 	BUILD_NUMBER,
@@ -163,6 +170,7 @@ EEMEM cfg_t config_ee = {
 	},
 
 };
+#endif
 
 ////calibration
 //{
@@ -178,8 +186,12 @@ EEMEM cfg_t config_ee = {
 
 bool cfg_factory_passed()
 {
+#ifndef STM32
 	eeprom_busy_wait();
 	return eeprom_read_byte(&config_ro.factory_passed) == CFG_FACTORY_PASSED_hex;
+#else
+	return 1;
+#endif	
 }
 
 void cfg_reset_factory_test()
@@ -191,7 +203,9 @@ void cfg_reset_factory_test()
 	eeprom_busy_wait();
 	eeprom_update_block(ff_buffer, &config_ro, sizeof(cfg_ro_t));
 	eeprom_busy_wait();
+#ifndef STM32
 	SystemReset();
+#endif	
 }
 
 void cfg_load()

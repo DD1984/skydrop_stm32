@@ -8,6 +8,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#ifndef STM32
 #include <xlib/core/clock.h>
 #include <xlib/core/usart.h>
 #include <xlib/core/spi.h>
@@ -17,6 +18,40 @@
 #include <xlib/core/adc.h>
 #include <xlib/core/dac.h>
 #include <xlib/core/i2c.h>
+#endif
+
+#ifndef UART_SUPPORT
+#define DEBUG(args...) {}
+#endif
+
+#ifdef STM32
+#include <math.h>
+
+typedef unsigned char		uint8_t;
+typedef char				int8_t;
+typedef unsigned short int	uint16_t;
+typedef short int			int16_t;
+typedef unsigned int		uint32_t;
+typedef int					int32_t;
+typedef unsigned long int	uint64_t;
+typedef long int			int64_t;
+
+#define HIGH	1
+#define LOW		0
+
+#define GpioRead(x) x
+#define _delay_ms(x) {}
+
+#define eeprom_busy_wait() {}
+#define eeprom_update_byte(addr, val) {}
+#define eeprom_update_word(addr, val) {}
+#define eeprom_update_float(addr, val) {}
+//#define eeprom_read_byte(addr) {}
+#define eeprom_read_block(addr, data, size) {}
+#define eeprom_update_block(addr, data, size) {}
+
+float abs(float val);
+#endif
 
 #include "build_defs.h"
 #include "build_number.h"
@@ -70,7 +105,7 @@ extern struct app_info fw_info;
 extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 
 
-
+#ifndef STM32
 //PINOUT
 //---------------- GENERAL -------------------
 #define USB_PWR_ON				PR.PRGEN &= 0b10111111;
@@ -80,9 +115,19 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 
 //---------------- PORTA ---------------------
 #define GPS_EN					porta0
+#endif
+
+#ifndef STM32
 #define SWITCH3					porta1
 #define SWITCH2					porta2
 #define SWITCH1					porta3
+#else
+//#warning  "set buttons GPIO"
+#define SWITCH3					3
+#define SWITCH2					2
+#define SWITCH1					1
+#endif
+#ifndef STM32
 #define GPS_TIMER				porta4
 #define GPS_RESET				porta5
 #define BAT_EN					porta6
@@ -251,6 +296,7 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 //---------------- PORTR ---------------------
 #define IO2						portr0
 #define SD_SS					portr1
+#endif
 
 #define BUILD_VER	"%02d%02d%02d-%02d%02d", BUILD_YEAR, BUILD_MONTH, BUILD_DAY, BUILD_HOUR, BUILD_MIN
 

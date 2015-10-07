@@ -2,31 +2,47 @@
 
 void Setup()
 {
+#ifdef UART_SUPPORT	
 	debug_level = 2;
+#endif	
 
+#ifndef STM32
 	//set clock to max for init 32MHz
 	ClockSetSource(x32MHz);
 	//disable 2MHZ osc
 	OSC.CTRL = 0b00000010;
-
 	//save power
 	turnoff_subsystems();
 
 	EnableInterrupts();
+#endif
 
 	//init basic peripherals
+#ifdef LED_SUPPORT
 	led_init();
+#endif	
+#ifdef UART_SUPPORT	
 	uart_init_buffers();
 	uart_init();
+#endif
+#ifdef RTC_SUPPORT	
 	time_init();
+#endif
+#ifdef BUZZER_SUPPORT	
 	buzzer_init();
+#endif
+#ifdef BAT_SUPPORT	
 	battery_init();
+#endif
 	buttons_init();
 
 	//basic power control
 	mems_power_init();
 	io_init();
+	
+#ifndef STM32	
 	SD_EN_INIT;
+#endif
 
 	//load configuration
 	cfg_load();
@@ -43,6 +59,7 @@ void Post()
 
 	DEBUG("\n *** POST *** \n");
 
+#ifndef STM32
 	//Print reset reason
 	DEBUG("Reset reason ... ");
 
@@ -70,13 +87,16 @@ void Post()
 
 	RST.STATUS = 0b00111111;
 	DEBUG("\n");
+#endif	
 
 	//App name
 	print_fw_info();
 
+#ifdef TIME_SUPPORT
 	//Print actual time
 	DEBUG("Time is ... \n");
 	print_datetime();
+#endif	
 
 	DEBUG("Free RAM at start ... %d\n", free_ram_at_start);
 	test_memory();

@@ -1,8 +1,12 @@
 #include "common.h"
+#ifdef UART_SUPPORT
 #include "drivers/uart.h"
+#endif
 #include "drivers/storage/storage.h"
 #include <string.h>
+#ifdef DISPLAY_SUPPORT
 #include "gui/gui.h"
+#endif
 #include "fc/conf.h"
 
 
@@ -13,6 +17,7 @@ uint8_t hw_revision = HW_REW_1506;
 
 void print_fw_info()
 {
+#ifndef STM32
 	eeprom_busy_wait();
 	eeprom_read_block(&fw_info, &ee_fw_info, sizeof(fw_info));
 
@@ -25,6 +30,7 @@ void print_fw_info()
 		DEBUG("%c", c);
 	}
 	DEBUG("\n");
+#endif	
 }
 
 void test_memory()
@@ -36,6 +42,7 @@ void test_memory()
 
 void turnoff_subsystems()
 {
+#ifndef STM32
 	//PORTA
 	PR.PRPA = 0b00000111;
 	//PORTB
@@ -50,6 +57,7 @@ void turnoff_subsystems()
 	PR.PRPF = 0b01111111;
 	//PRGEN - RTC must stay on
 	PR.PRGEN = 0b01011011;
+#endif	
 }
 
 //----------------------------------------------------------
@@ -134,15 +142,18 @@ volatile uint8_t bat_en_mask = 0;
 void bat_en_high(uint8_t mask)
 {
 	bat_en_mask |= mask;
+#ifndef STM32
 	GpioWrite(BAT_EN, HIGH);
+#endif
 }
 
 void bat_en_low(uint8_t mask)
 {
 	bat_en_mask &= ~mask;
-
+#ifndef STM32
 	if (bat_en_mask == 0)
 		GpioWrite(BAT_EN, LOW);
+#endif		
 }
 
 
@@ -160,21 +171,26 @@ bool cmpn_p(char * s1, const char * s2, uint8_t n)
 {
 	for (uint8_t i = 0; i < n; i++)
 	{
+#ifndef STM32
 		if (s1[i] != pgm_read_byte(&s2[i]))
 			return false;
+#endif			
 	}
 	return true;
 }
 
 int freeRam()
 {
+#ifndef STM32
 	extern int __heap_start, *__brkval;
 	int v;
 	return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+#endif	
 }
 
 bool LoadEEPROM()
 {
+#ifndef STM32
 	FILINFO fno;
 
 	if (f_stat("UPDATE.EE", &fno) == FR_OK)
@@ -215,11 +231,13 @@ bool LoadEEPROM()
 		delete ee_file;
 		return true;
 	}
+#endif	
 	return false;
 }
 
 bool StoreEEPROM()
 {
+#ifndef STM32
 	wdt_reset();
 	DEBUG("Storing settings\n");
 
@@ -271,6 +289,7 @@ bool StoreEEPROM()
 	DEBUG("File closed\n");
 
 	delete ee_file;
+#endif	
 	return true;
 }
 
@@ -287,6 +306,7 @@ uint8_t fast_flip(uint8_t in)
 
 void io_init()
 {
+#ifndef STM32
 	if (hw_revision == HW_REW_1504)
 	{
 		GpioSetDirection(IO1, OUTPUT);
@@ -300,10 +320,12 @@ void io_init()
 		GpioSetDirection(IO3, OUTPUT);
 		GpioSetDirection(IO4, OUTPUT);
 	}
+#endif	
 }
 
 void io_write(uint8_t io, uint8_t level)
 {
+#ifndef STM32
 	if (hw_revision == HW_REW_1504 && io == 1)
 	{
 		GpioWrite(IO1, level);
@@ -330,10 +352,12 @@ void io_write(uint8_t io, uint8_t level)
 			break;
 		}
 	}
+#endif	
 }
 
 void mems_power_init()
 {
+#ifndef STM32
 	eeprom_busy_wait();
 	hw_revision = eeprom_read_byte(&config_ro.hw_revision);
 
@@ -344,10 +368,12 @@ void mems_power_init()
 		GpioSetDirection(REV_1504_MEMS_EN_2, OUTPUT);
 		GpioSetDirection(REV_1504_I2C_EN, OUTPUT);
 	}
+#endif
 }
 
 void mems_power_on()
 {
+#ifndef STM32
 	GpioWrite(MEMS_EN, HIGH);
 
 	if (hw_revision == HW_REW_1504)
@@ -355,10 +381,12 @@ void mems_power_on()
 		GpioWrite(REV_1504_MEMS_EN_2, HIGH);
 		GpioWrite(REV_1504_I2C_EN, HIGH);
 	}
+#endif
 }
 
 void mems_power_off()
 {
+#ifndef STM32
 	GpioWrite(MEMS_EN, LOW);
 
 	if (hw_revision == HW_REW_1504)
@@ -366,4 +394,14 @@ void mems_power_off()
 		GpioWrite(REV_1504_MEMS_EN_2, LOW);
 		GpioWrite(REV_1504_I2C_EN, LOW);
 	}
+#endif
 }
+
+#ifdef STM32
+float abs(float val)
+{
+	if (val < 0)
+		return -val;
+	return val;
+}
+#endif

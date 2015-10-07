@@ -1,7 +1,9 @@
 #include "fc.h"
 
 #include "../drivers/sensors/devices.h"
+#ifdef UART_SUPPORT
 #include "../drivers/uart.h"
+#endif
 #include "../drivers/audio/audio.h"
 
 #include "kalman.h"
@@ -11,7 +13,9 @@
 
 volatile flight_data_t fc;
 
+#ifdef FC_TIMER
 Timer fc_meas_timer;
+#endif
 
 extern KalmanFilter * kalmanFilter;
 
@@ -20,11 +24,15 @@ void fc_init()
 	DEBUG(" *** Flight computer init ***\n");
 
 	//start values
+#ifdef DISPLAY_SUPPORT	
 	active_page = config.gui.last_page;
 	if (active_page >= config.gui.number_of_pages)
 		active_page = 0;
+#endif		
 
+#ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
+#endif
 	fc.autostart_state = AUTOSTART_WAIT;
 
 	fc.temp_step = 0;
@@ -32,19 +40,26 @@ void fc_init()
 
 	//init calculators
 	vario_init();
+#ifdef AUDIO_SUPPORT	
 	audio_init();
+#endif	
 
+#ifdef GPS_SUPPORT
 	gps_init();
 	if (config.system.use_gps)
 		gps_start();
+#endif		
 
+#ifdef BT_SUPPORT
 	bt_init();
 	if (config.system.use_bt)
 		bt_module_init();
+#endif
 
 	//VCC to baro, acc/mag gyro + i2c pull-ups
 	mems_power_on();
 
+#if defined(LSM303D_SUPPORT) || defined(MS5611_SUPPORT) || defined(L3GD20_SUPPORT)  || defined(SHT21_SUPPORT) 
 	//init and test i2c
 	if (!mems_i2c_init())
 	{
@@ -79,12 +94,14 @@ void fc_init()
 			mems_i2c_init();
 		}
 	}
+#endif
 
-
+#ifdef MS5611_SUPPORT
 	//Barometer
 	ms5611.Init(&mems_i2c, MS5611_ADDRESS_CSB_LO);
+#endif
 
-
+#ifdef LSM303D_SUPPORT
 	//Magnetometer + Accelerometer
 	lsm303d_settings lsm_cfg;
 
@@ -97,27 +114,39 @@ void fc_init()
 	lsm_cfg.magHiRes = true;
 
 	lsm_cfg.tempEnable = false;
+#endif	
 
+#ifdef L3GD20_SUPPORT
 	//Gyro
 	l3gd20_settings l3g_cfg;
 	l3g_cfg.enabled = true;
 	l3g_cfg.bw = l3g_50Hz;
 	l3g_cfg.odr = l3g_760Hz;
 	l3g_cfg.scale = l3g_2000dps;
+#endif	
 
+#ifdef SHT21_SUPPORT
 	sht21_settings sht_cfg;
 	sht_cfg.rh_enabled = true;
 	sht_cfg.temp_enabled = true;
+#endif	
 
+#ifdef LSM303D_SUPPORT
 	//XXX: do self-test?
 	lsm303d.Init(&mems_i2c, lsm_cfg);
 	lsm303d.Start();
+#endif
 
+#ifdef L3GD20_SUPPORT
 	l3gd20.Init(&mems_i2c, l3g_cfg);
 	l3gd20.Start();
+#endif	
 
+#ifdef SHT21_SUPPORT
 	sht21.Init(&mems_i2c, sht_cfg);
+#endif	
 
+#ifdef FC_TIMER
 	//Measurement timer
 	FC_MEAS_TIMER_PWR_ON;
 
@@ -129,6 +158,7 @@ void fc_init()
 	fc_meas_timer.SetCompare(timer_B, 430); // == 2.7ms
 	fc_meas_timer.SetCompare(timer_C, 555); // == 3.7ms
 	fc_meas_timer.Start();
+#endif
 
 	DEBUG(" *** FC init done ***\n");
 
@@ -152,15 +182,19 @@ void fc_deinit()
 
 void fc_pause()
 {
+#ifdef FC_TIMER	
 	fc_meas_timer.Stop();
+#endif	
 }
 
 void fc_continue()
 {
+#ifdef FC_TIMER
 	fc_meas_timer.Start();
+#endif	
 }
 
-
+#ifdef FC_TIMER
 //First fc meas period
 // * Read pressure from ms5611
 // * Start temperature conversion ms5611
@@ -171,11 +205,17 @@ ISR(FC_MEAS_TIMER_OVF)
 	BT_SUPRESS_TX
 	io_write(1, HIGH);
 
+#ifdef MS5611_SUPPORT
 	ms5611.ReadPressure();
 	ms5611.StartTemperature();
+#endif	
+#ifdef LSM303D_SUPPORT
 	lsm303d.StartReadMag(); //it takes 152us to transfer
+#endif	
 
+#ifdef MS5611_SUPPORT
 	ms5611.CompensatePressure();
+#endif
 
 	io_write(1, LOW);
 	BT_ALLOW_TX
@@ -194,17 +234,27 @@ ISR(FC_MEAS_TIMER_CMPA)
 	BT_SUPRESS_TX
 	io_write(1, HIGH);
 
+#ifdef LSM303D_SUPPORT
 	lsm303d.ReadMag(&fc.mag_data.x, &fc.mag_data.y, &fc.mag_data.z);
+#endif	
+#ifdef MS5611_SUPPORT	
 	ms5611.ReadTemperature();
 	ms5611.StartPressure();
+#endif
+#ifdef LSM303D_SUPPORT	
 	lsm303d.StartReadAccStream(16); //it take 1600us to transfer
+#endif	
 
+#ifdef MS5611_SUPPORT
 	vario_calc(ms5611.pressure);
+#endif
 
 	//audio loop
 	audio_step();
 
+#ifdef MS5611_SUPPORT
 	ms5611.CompensateTemperature();
+#endif	
 
 	io_write(1, LOW);
 	BT_ALLOW_TX
@@ -218,9 +268,12 @@ ISR(FC_MEAS_TIMER_CMPB)
 	BT_SUPRESS_TX
 	io_write(1, HIGH);
 
+#ifdef LSM303D_SUPPORT
 	lsm303d.ReadAccStreamAvg(&fc.acc_data.x, &fc.acc_data.y, &fc.acc_data.z, 16);
+#endif
+#ifdef L3GD20_SUPPORT	
 	l3gd20.StartReadGyroStream(7); //it take 1000us to transfer
-
+#endif
 	io_write(1, LOW);
 	BT_ALLOW_TX
 }
@@ -233,12 +286,15 @@ ISR(FC_MEAS_TIMER_CMPC)
 	BT_SUPRESS_TX
 	io_write(1, HIGH);
 
+#ifdef L3GD20_SUPPORT
 	l3gd20.ReadGyroStreamAvg(&fc.gyro_data.x, &fc.gyro_data.y, &fc.gyro_data.z, 7); //it take 1000us to transfer
+#endif	
 
 	if (fc.temp_next < task_get_ms_tick())
 	{
 		switch (fc.temp_step)
 		{
+#ifdef SHT21_SUPPORT			
 			case(0):
 				sht21.StartHumidity();
 			break;
@@ -259,6 +315,7 @@ ISR(FC_MEAS_TIMER_CMPC)
 				sht21.CompensateTemperature();
 				fc.temperature = sht21.temperature;
 			break;
+#endif			
 		}
 		fc.temp_next = task_get_ms_tick() + FC_TEMP_PERIOD;
 		fc.temp_step = (fc.temp_step + 1) % 6;
@@ -272,13 +329,18 @@ ISR(FC_MEAS_TIMER_CMPC)
 
 	BT_ALLOW_TX
 }
+#endif
 
 void fc_takeoff()
 {
+#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("Take off"));
+#endif	
 
 	fc.autostart_state = AUTOSTART_FLIGHT;
+#ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
+#endif
 
 	//zero altimeters at take off
 	for (uint8_t i = 0; i < NUMBER_OF_ALTIMETERS; i++)
@@ -290,14 +352,19 @@ void fc_takeoff()
 
 void fc_landing()
 {
+#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("Landing"));
+#endif
 
 	fc.autostart_state = AUTOSTART_LAND;
+#ifdef RTC_SUPPORT	
 	fc.epoch_flight_timer = time_get_actual() - fc.epoch_flight_timer;
+#endif	
 
 	audio_off();
 }
 
+#ifdef GPS_SUPPORT
 void fc_sync_gps_time()
 {
 	uint32_t diff = 0;
@@ -312,16 +379,25 @@ void fc_sync_gps_time()
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		fc.epoch_flight_timer = time_get_actual() - diff;
 
+#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("GPS Time set"));
+#endif	
 }
+#endif
 
 void fc_step()
 {
+#ifdef GPS_SUPPORT	
 	gps_step();
+#endif	
 
+#ifdef BT_SUPPORT
 	bt_step();
+#endif	
 
+#ifdef EXT_CONNECTION_SUPPORT
 	protocol_step();
+#endif	
 
 	//auto start
 	if (fc.baro_valid && fc.autostart_state == AUTOSTART_WAIT)
@@ -332,20 +408,24 @@ void fc_step()
 		}
 		else
 		{
+#ifdef RTC_SUPPORT			
 			//reset wait timer
 			if (time_get_actual() - fc.epoch_flight_timer > FC_AUTOSTART_RESET)
 			{
 				fc.epoch_flight_timer = time_get_actual();
 				fc.start_altitude = fc.altitude1;
 			}
+#endif			
 		}
 	}
 
+#ifdef GPS_SUPPORT
 	//gps time sync
 	if ((config.system.time_flags & TIME_SYNC) && fc.gps_data.fix_cnt == GPS_FIX_TIME_SYNC)
 	{
 		fc_sync_gps_time();
 	}
+#endif	
 
 	//glide ratio
 	//when you hav GPS, baro and speed is higher than 2km/h and you are sinking

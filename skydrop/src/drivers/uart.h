@@ -9,7 +9,9 @@
 #define UART_H_
 
 #include "../common.h"
+#ifndef STM32
 #include <xlib/core/usart.h>
+#endif
 
 //DEBUG
 extern uint8_t debug_level;

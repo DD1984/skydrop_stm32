@@ -8,8 +8,10 @@
 #ifndef MS5611_H_
 #define MS5611_H_
 
+#ifndef STM32
 #include "xlib/core/i2c.h"
 #include "xlib/core/usart.h"
+#endif
 #include "common.h"
 
 #define MS5611_ADDRESS_CSB_HI	0b1110110

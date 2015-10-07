@@ -1,23 +1,30 @@
 #include "task_powerdown.h"
 
 extern SleepLock powerdown_lock;
+#ifdef UART_SUPPORT
 extern Usart uart;
+#endif
 
 volatile bool powerdown_loop_break = false;
 
 void task_powerdown_init()
 {
+#ifndef STM32
 	//Lower F_CPU
 	ClockSetSource(x2MHz);
 	//disable other oscilators
 	OSC.CTRL = 0b00000001;
-
+#endif
+#ifdef UART_SUPPORT
 	uart_stop();
+#endif	
 	_delay_ms(10);
 
 	turnoff_subsystems();
 
+#ifdef UART_SUPPORT
 	uart_low_speed();
+#endif	
 	_delay_ms(10);
 
 	DEBUG(" *** POWER DOWN INIT ***\n");
@@ -30,8 +37,9 @@ void task_powerdown_init()
 
 	task_timer_setup(false);
 
+#ifndef STM32
 	SD_EN_OFF;
-
+#endif
 
 	DEBUG("Using low speed uart\n");
 }
@@ -42,7 +50,9 @@ void task_powerdown_stop()
 	//Reinit all devices
 	DEBUG("Restarting all devices\n");
 
+#ifdef UART_SUPPORT
 	uart_stop();
+#endif	
 	Setup();
 	task_timer_setup();
 	DEBUG("Restoring full speed uart\n");
@@ -57,6 +67,7 @@ extern bool time_rtc_irq;
 void powerdown_sleep()
 {
 	_delay_ms(31);
+#ifdef RTC_SUPPORT	
 	do
 	{
 		task_timer_stop();
@@ -64,16 +75,20 @@ void powerdown_sleep()
 		//allow rtc irq handler but do not wake up
 		time_rtc_irq = false;
 
+#ifndef STM32
 		//rtc irq set time_rtc_irq to true if executed
 		SystemPowerSave();
+#endif		
 
+#ifdef WDT_SUPPORT
 		if (time_rtc_irq)
 			wdt_reset();
-
+#endif
 
 		//start task timer in low speed mode
 		task_timer_setup(false);
 	} while (time_rtc_irq == true);
+#endif	
 }
 
 extern uint8_t task_sleep_lock;
@@ -84,11 +99,17 @@ void task_powerdown_loop()
 	if ((task_sleep_lock == 1 && powerdown_lock.Active()) && powerdown_loop_break == false)
 	{
 		DEBUG("PD sleep\n");
+		
+
+#ifdef UART_SUPPORT
 		uart_stop();
+#endif
 
 		powerdown_sleep();
 
+#ifdef UART_SUPPORT
 		uart_low_speed();
+#endif
 	}
 }
 

@@ -10,7 +10,10 @@
 
 #include "../skydrop.h"
 
+#ifdef USB_SUPPORT
 #include "task_usb/task_usb.h"
+#endif
+
 #include "task_powerdown.h"
 #include "task_active.h"
 #include "task_update.h"
