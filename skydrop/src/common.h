@@ -9,6 +9,7 @@
 #define COMMON_H_
 
 #ifndef STM32
+
 #include <xlib/core/clock.h>
 #include <xlib/core/usart.h>
 #include <xlib/core/spi.h>
@@ -18,6 +19,13 @@
 #include <xlib/core/adc.h>
 #include <xlib/core/dac.h>
 #include <xlib/core/i2c.h>
+
+#else
+
+#include <hal/clock.h>
+#include <hal/stm32f1xx_hal.h>
+#include <math.h>
+
 #endif
 
 #ifndef UART_SUPPORT
@@ -25,22 +33,12 @@
 #endif
 
 #ifdef STM32
-#include <math.h>
-
-typedef unsigned char		uint8_t;
-typedef char				int8_t;
-typedef unsigned short int	uint16_t;
-typedef short int			int16_t;
-typedef unsigned int		uint32_t;
-typedef int					int32_t;
-typedef unsigned long int	uint64_t;
-typedef long int			int64_t;
 
 #define HIGH	1
 #define LOW		0
 
 #define GpioRead(x) x
-#define _delay_ms(x) {}
+#define _delay_ms(x) HAL_Delay(x)
 
 #define eeprom_busy_wait() {}
 #define eeprom_update_byte(addr, val) {}

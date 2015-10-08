@@ -33,10 +33,14 @@ CPP_SOURCES :=
 
 #hal
 C_SOURCES += src/hal/system_stm32f1xx.c
-#c
+C_SOURCES += stm32f1xx_hal.c
+C_SOURCES += stm32f1xx_hal_cortex.c
+C_SOURCES += stm32f1xx_hal_rcc.c
+C_SOURCES += stm32f1xx_hal_rcc_ex.c
+C_SOURCES += stm32f1xx_hal_uart.c
 
-#new/delete
-#CPP_SOURCES += src/xlib/oofix.cpp
+C_SOURCES += src/hal/clock.c
+#c
 
 #cpp
 CPP_SOURCES += src/skydrop.cpp
@@ -88,6 +92,7 @@ endif
 CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
+#CFLAGS += -DUART_SUPPORT
 
 #######################################
 # LDFLAGS
@@ -96,10 +101,9 @@ CFLAGS += -DSTM32
 LDSCRIPT = src/hal/STM32F100XB_FLASH.ld
 # libraries
 LIBS = -lc -lm -lnosys -lstdc++
-#LIBS = -lm -lnosys
 LIBDIR =
-#LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 # --specs=nano.specs
+# --specs=nosys.specs
 LDFLAGS = $(MCU) --specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all

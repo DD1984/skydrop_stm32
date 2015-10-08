@@ -15,6 +15,9 @@ void Setup()
 	turnoff_subsystems();
 
 	EnableInterrupts();
+#else
+	HAL_Init();
+	SystemClock_Config();
 #endif
 
 	//init basic peripherals
@@ -92,7 +95,7 @@ void Post()
 	//App name
 	print_fw_info();
 
-#ifdef TIME_SUPPORT
+#ifdef RTC_SUPPORT
 	//Print actual time
 	DEBUG("Time is ... \n");
 	print_datetime();

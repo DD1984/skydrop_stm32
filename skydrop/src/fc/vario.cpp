@@ -3,10 +3,6 @@
 #include "fc.h"
 #include "kalman.h"
 
-#ifdef STM32
-#include "../xlib/oofix.h"
-#endif
-
 KalmanFilter * kalmanFilter;
 
 void vario_init()
