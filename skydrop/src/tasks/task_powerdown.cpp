@@ -1,7 +1,7 @@
 #include "task_powerdown.h"
 
 extern SleepLock powerdown_lock;
-#ifdef UART_SUPPORT
+#ifndef STM32
 extern Usart uart;
 #endif
 
@@ -127,6 +127,7 @@ void task_powerdown_irqh(uint8_t type, uint8_t * buff)
 		}
 	break;
 
+#ifdef USB_SUPPORT
 	case(TASK_IRQ_USB):
 		uint8_t state = *buff;
 
@@ -136,5 +137,6 @@ void task_powerdown_irqh(uint8_t type, uint8_t * buff)
 			task_set(TASK_USB);
 		}
 	break;
+#endif
 	}
 }

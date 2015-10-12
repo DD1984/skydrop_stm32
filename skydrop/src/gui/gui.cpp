@@ -34,46 +34,186 @@
 
 
 n5110display disp;
+#ifndef STM32
 CreateStdOut(lcd_out, disp.Write);
+#else
+	FILE *lcd_out;
+#endif
 
 volatile uint8_t gui_task = GUI_NONE;
 volatile uint8_t gui_new_task = GUI_SPLASH;
 
-void (* gui_init_array[])() =
-	{gui_pages_init, gui_settings_init, gui_splash_init, gui_set_vario_init, gui_value_init,
-	gui_set_audio_init, gui_set_widgets_init, gui_layouts_init, gui_set_layout_init,
-	gui_set_display_init, gui_usb_init, gui_factory_test_init, gui_set_system_init,
-	gui_set_autostart_init, gui_set_gps_init, gui_set_gps_detail_init, gui_set_debug_init,
-	gui_set_altimeters_init, gui_set_altimeter_init, gui_set_time_init, gui_set_logger_init,
-	gui_dialog_init, gui_set_bluetooth_init, gui_update_init, gui_set_weaklift_init,
-	gui_set_menu_audio_init};
+void (* gui_init_array[])() = {
+	gui_pages_init,
+	gui_settings_init,
+	gui_splash_init,
+	gui_set_vario_init,
+	gui_value_init,
+#ifdef AUDIO_SUPPORT
+	gui_set_audio_init,
+#endif
+	gui_set_widgets_init,
+	gui_layouts_init,
+	gui_set_layout_init,
+	gui_set_display_init,
+#ifdef USB_SUPPORT
+	gui_usb_init,
+#endif
+	gui_factory_test_init,
+	gui_set_system_init,
+	gui_set_autostart_init,
+#ifdef GPS_SUPPORT
+	gui_set_gps_init,
+	gui_set_gps_detail_init,
+#endif
+	gui_set_debug_init,
+	gui_set_altimeters_init,
+	gui_set_altimeter_init,
+#ifdef RTC_SUPPORT
+	gui_set_time_init,
+#endif
+	gui_set_logger_init,
+	gui_dialog_init,
+#ifdef BT_SUPPORT
+	gui_set_bluetooth_init,
+#endif
+#ifdef UPDATE_SUPPORT
+	gui_update_init,
+#endif
+	gui_set_weaklift_init,
+#ifdef AUDIO_SUPPORT
+	gui_set_menu_audio_init
+#endif
+};
 
-void (* gui_stop_array[])() =
-	{gui_pages_stop, gui_settings_stop, gui_splash_stop, gui_set_vario_stop, gui_value_stop,
-	gui_set_audio_stop, gui_set_widgets_stop, gui_layouts_stop, gui_set_layout_stop,
-	gui_set_display_stop, gui_usb_stop, gui_factory_test_stop, gui_set_system_stop,
-	gui_set_autostart_stop, gui_set_gps_stop, gui_set_gps_detail_stop, gui_set_debug_stop,
-	gui_set_altimeters_stop, gui_set_altimeter_stop, gui_set_time_stop, gui_set_logger_stop,
-	gui_dialog_stop, gui_set_bluetooth_stop, gui_update_stop, gui_set_weaklift_stop,
-	gui_set_menu_audio_stop};
+void (* gui_stop_array[])() = {
+	gui_pages_stop,
+	gui_settings_stop,
+	gui_splash_stop,
+	gui_set_vario_stop,
+	gui_value_stop,
+#ifdef AUDIO_SUPPORT
+	gui_set_audio_stop,
+#endif
+	gui_set_widgets_stop,
+	gui_layouts_stop,
+	gui_set_layout_stop,
+	gui_set_display_stop,
+#ifdef USB_SUPPORT
+	gui_usb_stop,
+#endif
+	gui_factory_test_stop,
+	gui_set_system_stop,
+	gui_set_autostart_stop,
+#ifdef GPS_SUPPORT
+	gui_set_gps_stop,
+	gui_set_gps_detail_stop,
+#endif
+	gui_set_debug_stop,
+	gui_set_altimeters_stop,
+	gui_set_altimeter_stop,
+#ifdef RTC_SUPPORT
+	gui_set_time_stop,
+#endif
+	gui_set_logger_stop,
+	gui_dialog_stop,
+#ifdef BT_SUPPORT
+	gui_set_bluetooth_stop,
+#endif
+#ifdef UPDATE_SUPPORT
+	gui_update_stop,
+#endif
+	gui_set_weaklift_stop,
+#ifdef AUDIO_SUPPORT
+	gui_set_menu_audio_stop
+#endif
+};
 
-void (* gui_loop_array[])() =
-	{gui_pages_loop, gui_settings_loop, gui_splash_loop, gui_set_vario_loop, gui_value_loop,
-	gui_set_audio_loop, gui_set_widgets_loop, gui_layouts_loop, gui_set_layout_loop,
-	gui_set_display_loop, gui_usb_loop, gui_factory_test_loop, gui_set_system_loop,
-	gui_set_autostart_loop, gui_set_gps_loop, gui_set_gps_detail_loop, gui_set_debug_loop,
-	gui_set_altimeters_loop, gui_set_altimeter_loop, gui_set_time_loop, gui_set_logger_loop,
-	gui_dialog_loop, gui_set_bluetooth_loop, gui_update_loop, gui_set_weaklift_loop,
-	gui_set_menu_audio_loop};
+void (* gui_loop_array[])() = {
+	gui_pages_loop,
+	gui_settings_loop,
+	gui_splash_loop,
+	gui_set_vario_loop,
+	gui_value_loop,
+#ifdef AUDIO_SUPPORT
+	gui_set_audio_loop,
+#endif
+	gui_set_widgets_loop,
+	gui_layouts_loop,
+	gui_set_layout_loop,
+	gui_set_display_loop,
+#ifdef USB_SUPPORT
+	gui_usb_loop,
+#endif
+	gui_factory_test_loop,
+	gui_set_system_loop,
+	gui_set_autostart_loop,
+#ifdef GPS_SUPPORT
+	gui_set_gps_loop,
+	gui_set_gps_detail_loop,
+#endif
+	gui_set_debug_loop,
+	gui_set_altimeters_loop,
+	gui_set_altimeter_loop,
+#ifdef RTC_SUPPORT
+	gui_set_time_loop,
+#endif
+	gui_set_logger_loop,
+	gui_dialog_loop,
+#ifdef BT_SUPPORT
+	gui_set_bluetooth_loop,
+#endif
+#ifdef UPDATE_SUPPORT
+	gui_update_loop,
+#endif
+	gui_set_weaklift_loop,
+#ifdef AUDIO_SUPPORT
+	gui_set_menu_audio_loop
+#endif
+};
 
-void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) =
-	{gui_pages_irqh, gui_settings_irqh, gui_splash_irqh, gui_set_vario_irqh, gui_value_irqh,
-	gui_set_audio_irqh, gui_set_widgets_irqh, gui_layouts_irqh, gui_set_layout_irqh,
-	gui_set_display_irqh, gui_usb_irqh, gui_factory_test_irqh, gui_set_system_irqh,
-	gui_set_autostart_irqh, gui_set_gps_irqh, gui_set_gps_detail_irqh, gui_set_debug_irqh,
-	gui_set_altimeters_irqh, gui_set_altimeter_irqh, gui_set_time_irqh, gui_set_logger_irqh,
-	gui_dialog_irqh, gui_set_bluetooth_irqh, gui_update_irqh, gui_set_weaklift_irqh,
-	gui_set_menu_audio_irqh};
+void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
+	gui_pages_irqh,
+	gui_settings_irqh,
+	gui_splash_irqh,
+	gui_set_vario_irqh,
+	gui_value_irqh,
+#ifdef AUDIO_SUPPORT
+	gui_set_audio_irqh,
+#endif
+	gui_set_widgets_irqh,
+	gui_layouts_irqh,
+	gui_set_layout_irqh,
+	gui_set_display_irqh,
+#ifdef USB_SUPPORT
+	gui_usb_irqh,
+#endif
+	gui_factory_test_irqh,
+	gui_set_system_irqh,
+	gui_set_autostart_irqh,
+#ifdef GPS_SUPPORT
+	gui_set_gps_irqh,
+	gui_set_gps_detail_irqh,
+#endif
+	gui_set_debug_irqh,
+	gui_set_altimeters_irqh,
+	gui_set_altimeter_irqh,
+#ifdef RTC_SUPPORT
+	gui_set_time_irqh,
+#endif
+	gui_set_logger_irqh,
+	gui_dialog_irqh,
+#ifdef BT_SUPPORT
+	gui_set_bluetooth_irqh,
+#endif
+#ifdef UPDATE_SUPPORT
+	gui_update_irqh,
+#endif
+	gui_set_weaklift_irqh,
+#ifdef AUDIO_SUPPORT
+	gui_set_menu_audio_irqh
+#endif
+};
 
 #define GUI_ANIM_STEPS	20
 
@@ -97,6 +237,7 @@ volatile bool lcd_new_cfg = false;
 
 void gui_trigger_backlight()
 {
+#ifdef LED_SUPPORT
 	if (config.gui.brightness == 0 || config.gui.brightness_timeout == 0)
 		lcd_bckl(0);
 	else
@@ -104,6 +245,7 @@ void gui_trigger_backlight()
 		lcd_bckl(config.gui.brightness);
 		lcd_brightness_end = task_get_ms_tick() + config.gui.brightness_timeout * 1000;
 	}
+#endif
 }
 
 void gui_change_disp_cfg()
@@ -343,9 +485,10 @@ void gui_loop()
 	if (gui_task != GUI_SPLASH)
 		if (buttons_read(B_LEFT) || buttons_read(B_RIGHT) || buttons_read(B_MIDDLE))
 			gui_trigger_backlight();
-
+#ifdef LED_SUPPORT
 	if (lcd_brightness_end < task_get_ms_tick())
 		lcd_bckl(0);
+#endif
 }
 
 void gui_force_loop()
@@ -373,10 +516,12 @@ void gui_irqh(uint8_t type, uint8_t * buff)
 	{
 		if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_BUTTONS && gui_buttons_override == false)
 		{
+#ifdef AUDIO_SUPPORT
 			if (*buff == BE_CLICK)
 				seq_start(&snd_but_short, config.gui.menu_volume);
 			if (*buff == BE_LONG)
 				seq_start(&snd_but_long, config.gui.menu_volume);
+#endif
 		}
 
 		if (gui_message_end > task_get_ms_tick())
@@ -417,6 +562,7 @@ void gui_statusbar()
 		}
 	}
 
+#ifdef BT_SUPPORT
 	//BT indicator
 	if (config.system.use_bt)
 	{
@@ -434,13 +580,17 @@ void gui_statusbar()
 				gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 10);
 		}
 	}
+#endif
 
-
+#ifdef BAT_SUPPORT
 	//battery indicator
 	uint8_t a = battery_per / 10;
+#endif
 
 	disp.DrawLine(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 13, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 13, 1);
 	disp.DrawRectangle(GUI_DISP_WIDTH - 6, GUI_DISP_HEIGHT - 12, GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 1, 1, 0);
+#ifdef BAT_SUPPORT
 	disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
+#endif
 
 }

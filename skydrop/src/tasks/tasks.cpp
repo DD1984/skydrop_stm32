@@ -57,8 +57,10 @@ Timer task_timer;
 volatile uint32_t task_timer_high;
 volatile uint8_t task_sleep_lock = 0;
 
+//volatile uint8_t actual_task = NO_TASK;
+//volatile uint8_t new_task = TASK_POWERDOWN;
 volatile uint8_t actual_task = NO_TASK;
-volatile uint8_t new_task = TASK_POWERDOWN;
+volatile uint8_t new_task = TASK_ACTIVE;
 
 #ifdef USB_SUPPORT
 uint8_t usb_state;
@@ -116,7 +118,9 @@ uint32_t task_get_ms_tick()
 	uint32_t res = (task_timer_high * 512ul) + (uint32_t)(task_timer.GetValue() / 125);
 
 	return res;
-#endif	
+#else
+	return HAL_GetTick();
+#endif
 }
 
 void task_timer_setup(bool full_speed)

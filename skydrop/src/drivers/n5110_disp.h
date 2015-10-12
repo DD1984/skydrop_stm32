@@ -13,7 +13,9 @@
 
 class n5110display{
 private:
+#ifndef STM32
 	Spi * spi;
+#endif
 	uint8_t * active_buffer;
 
 	uint8_t layers[DISP_LAYERS][(n5110_height / 8) * n5110_width];

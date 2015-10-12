@@ -25,6 +25,8 @@
 #include <hal/clock.h>
 #include <hal/stm32f1xx_hal.h>
 #include <math.h>
+#include "drivers/uart.h"
+#include <string.h>
 
 #endif
 
@@ -38,15 +40,25 @@
 #define LOW		0
 
 #define GpioRead(x) x
+#define GpioWrite(x,y) {}
+#define GpioSetDirection(x,y) {}
 #define _delay_ms(x) HAL_Delay(x)
 
 #define eeprom_busy_wait() {}
 #define eeprom_update_byte(addr, val) {}
 #define eeprom_update_word(addr, val) {}
 #define eeprom_update_float(addr, val) {}
-//#define eeprom_read_byte(addr) {}
+#define eeprom_read_byte(addr) 5
+#define pgm_read_byte(addr) 5
+#define pgm_read_word(addr) 5
 #define eeprom_read_block(addr, data, size) {}
 #define eeprom_update_block(addr, data, size) {}
+#define eeprom_write_float {}
+
+#define PSTR(x) x
+#define sprintf_P sprintf
+#define fprintf_P fprintf
+#define strcpy_P strcpy
 
 float abs(float val);
 #endif
@@ -177,8 +189,11 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 
 #define DAC_PWR_ON				PR.PRPB &= 0b11111011;
 #define DDC_PWR_OFF				PR.PRPB |= 0b00000100;
+#endif
 
 //---------------- PORTC ---------------------
+#ifndef STM32
+
 #define LCD_RST					portc0
 #define LCD_CE					portc1
 #define DEBUG_RXD				portc2
@@ -188,6 +203,20 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define CHARGING				portc6
 #define LCD_CLK					portc7
 
+#else
+
+#define LCD_RST					0
+#define LCD_CE					1
+#define DEBUG_RXD				2
+#define DEBUG_TXD				3
+#define LCD_DC					4
+#define LCD_DIN					5
+#define CHARGING				6
+#define LCD_CLK					7
+
+#endif
+
+#ifndef STM32
 #define DEBUG_UART				usartc0
 #define DEBUG_UART_PWR_ON		PR.PRPC &= 0b11101111;
 #define DEBUG_UART_PWR_OFF		PR.PRPC |= 0b00010000;

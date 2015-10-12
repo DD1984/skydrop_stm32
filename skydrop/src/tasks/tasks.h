@@ -18,10 +18,23 @@
 #include "task_active.h"
 #include "task_update.h"
 
+#ifndef STM32
 #define TASK_POWERDOWN	0
 #define TASK_USB		1
 #define TASK_ACTIVE		2
 #define TASK_UPDATE		3
+#else
+enum {
+	TASK_POWERDOWN,
+#ifdef USB_SUPPORT
+	TASK_USB,
+#endif
+	TASK_ACTIVE,
+#ifdef UPDATE_SUPPORT
+	TASK_UPDATE,
+#endif
+};
+#endif
 
 #define NO_TASK			0xFF
 

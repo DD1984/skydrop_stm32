@@ -57,7 +57,9 @@ void gui_set_system_item(uint8_t index, char * text, uint8_t * flags, char * sub
 	uint8_t month;
 	uint16_t year;
 
+#ifdef RTC_SUPPORT
 	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 	switch (index)
 	{

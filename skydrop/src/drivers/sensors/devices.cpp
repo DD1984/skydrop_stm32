@@ -8,16 +8,28 @@
 #include "devices.h"
 #include "../../fc/fc.h"
 
+#if defined(LSM303D_SUPPORT) || defined(MS5611_SUPPORT) || defined(L3GD20_SUPPORT)  || defined(SHT21_SUPPORT)
 I2c mems_i2c;
+#endif
+
+#ifdef LSM303D_SUPPORT
 Lsm303d lsm303d;
+#endif
+#ifdef MS5611_SUPPORT
 MS5611 ms5611;
+#endif
+#ifdef L3GD20_SUPPORT
 L3gd20 l3gd20;
+#endif
+#ifdef SHT21_SUPPORT
 SHT21 sht21;
+#endif
 
 bool mems_i2c_ok = false;
 
 bool mems_i2c_init()
 {
+#ifndef STM32
 	//Enable I2C peripheral
 	MEMS_I2C_PWR_ON;
 
@@ -31,6 +43,7 @@ bool mems_i2c_init()
 		return false;
 
 	mems_i2c_ok = true;
+#endif
 	return true;
 }
 

@@ -6,14 +6,28 @@ uint8_t widget_menu_param1;
 float widget_menu_fvalue1;
 
 widget widget_array[NUMBER_OF_WIDGETS] = {
-		w_dummy, w_debug_etc, w_debug_imu,
-		w_vario, w_avg_vario, w_vario_bar,
+		w_dummy,
+		w_debug_etc,
+		w_debug_imu,
+		w_vario,
+		w_avg_vario, w_vario_bar,
 		w_alt1, w_alt2, w_alt3, w_alt4, w_alt5,
+#ifdef ACC_SUPPORT
 		w_accx,
-		w_time, w_ftime,
+#endif
+#ifdef RTC_SUPPORT
+		w_time,
+		w_ftime,
+#endif
 		w_temperature,
-		w_ghdg, w_gspd, w_gpos,
+#ifdef GPS_SUPPORT
+		w_ghdg,
+		w_gspd,
+		w_gpos,
+#endif
+#ifdef BAT_SUPPORT
 		w_battery,
+#endif
 		w_glide_ratio,
 };
 

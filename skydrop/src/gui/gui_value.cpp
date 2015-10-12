@@ -47,9 +47,11 @@ void gui_value_draw_bar()
 	disp.DrawRectangle(GUI_DIALOG_LEFT + pad - 1, GUI_DIALOG_TOP + 11, GUI_DIALOG_LEFT + pad + pos - 1, GUI_DIALOG_TOP + 19, 1, 1);
 }
 
+#ifdef AUDIO_SUPPORT
 extern volatile float audio_vario_freq;
 extern volatile uint16_t audio_vario_pause;
 extern volatile uint16_t audio_vario_length;
+#endif
 
 void gui_value_loop()
 {
@@ -83,17 +85,21 @@ void gui_value_loop()
 			disp.LoadFont(F_TEXT_S);
 			f_h = disp.GetTextHeight();
 			disp.GotoXY(GUI_DIALOG_LEFT + 1, GUI_DIALOG_TOP + 2);
+#ifdef AUDIO_SUPPORT
 			fprintf(lcd_out, "f=%0.0f", audio_vario_freq);
 			disp.GotoXY(GUI_DIALOG_LEFT + 1, GUI_DIALOG_TOP + 4 + f_h);
 			fprintf(lcd_out, "l=%4u", audio_vario_length / 31);
 			disp.GotoXY(GUI_DIALOG_LEFT + 1, GUI_DIALOG_TOP + 6 + f_h * 2);
 			fprintf(lcd_out, "p=%4u", audio_vario_pause / 31);
+#endif
 		break;
 
 
 
 		case(GUI_VAL_TIME):
+#ifdef RTC_SUPPORT
 			time_from_epoch(time_get_actual(), &sec, &min, &hour);
+#endif
 
 			sprintf_P(tmp, PSTR("%02d : %02d . %02d"), hour, min, sec);
 			gui_caligh_text(tmp, GUI_DISP_WIDTH / 2, GUI_DIALOG_TOP + (GUI_DIALOG_BOTTOM - GUI_DIALOG_TOP) / 2 - f_h / 2);
@@ -106,7 +112,9 @@ void gui_value_loop()
 		break;
 
 		case(GUI_VAL_DATE):
+#ifdef RTC_SUPPORT
 			datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 			sprintf_P(tmp, PSTR("%02d / %02d / %04d"), day, month, year);
 			gui_caligh_text(tmp, GUI_DISP_WIDTH / 2, GUI_DIALOG_TOP + (GUI_DIALOG_BOTTOM - GUI_DIALOG_TOP) / 2 - f_h / 2);
@@ -210,6 +218,7 @@ void gui_value_time_irqh(uint8_t type, uint8_t * buff)
 	break;
 	}
 
+#ifdef RTC_SUPPORT
 	switch (gui_value_index)
 	{
 		case(0):
@@ -222,6 +231,7 @@ void gui_value_time_irqh(uint8_t type, uint8_t * buff)
 			time_set_actual(time_get_actual() + inc);
 		break;
 	}
+#endif
 }
 
 void gui_value_date_irqh(uint8_t type, uint8_t * buff)
@@ -263,7 +273,9 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 	uint8_t month;
 	uint16_t year;
 
+#ifdef RTC_SUPPORT
 	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 	switch (gui_value_index)
 	{
@@ -303,6 +315,7 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 
 	uint32_t diff = 0;
 
+#ifdef RTC_SUPPORT
 	//do not change flight time during update
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		diff = time_get_actual() - fc.epoch_flight_timer;
@@ -312,6 +325,7 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 	//do not change flight time during update
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		fc.epoch_flight_timer = time_get_actual() - diff;
+#endif
 }
 
 void gui_value_irqh(uint8_t type, uint8_t * buff)
@@ -347,7 +361,9 @@ void gui_value_irqh(uint8_t type, uint8_t * buff)
 		gui_value_number_irqh(type, buff);
 		gui_value_tmp = round(gui_value_tmp * 10) / 10;
 
+#ifdef AUDIO_SUPPORT
 		audio_demo_val = gui_value_tmp;
+#endif
 	break;
 
 	case(GUI_VAL_VOLUME):
@@ -358,7 +374,9 @@ void gui_value_irqh(uint8_t type, uint8_t * buff)
 		if (gui_value_tmp != tmp)
 		{
 			uint8_t vol = gui_value_tmp;
+#ifdef AUDIO_SUPPORT
 			seq_start(&audio_feedback, vol);
+#endif
 		}
 	break;
 	}

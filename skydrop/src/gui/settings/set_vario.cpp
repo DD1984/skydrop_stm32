@@ -79,9 +79,11 @@ void gui_set_vario_sink_cb(float val)
 void gui_set_vario_demo_cb(float val)
 {
 	gui_buttons_override = false;
+#ifdef AUDIO_SUPPORT
 	audio_demo = false;
 	audio_demo_val = 0;
 	audio_off();
+#endif
 	gui_switch_task(GUI_SET_VARIO);
 }
 
@@ -129,8 +131,10 @@ void gui_set_vario_action(uint8_t index)
 		case(7):
 			gui_value_conf_P(PSTR("Vario demo"), GUI_VAL_VARIO_TEST, PSTR("%+0.1f m/s"), 0.0, -10.0, +10.0, 0.1, gui_set_vario_demo_cb);
 			gui_switch_task(GUI_SET_VAL);
+#ifdef AUDIO_SUPPORT
 			audio_demo_val = 0;
 			audio_demo = true;
+#endif
 			gui_buttons_override = true;
 		break;
 	}

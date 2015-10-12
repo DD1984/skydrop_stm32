@@ -11,11 +11,14 @@
 #include "../common.h"
 #ifndef STM32
 #include <xlib/core/usart.h>
+#else
+#include <stdio.h>
 #endif
 
 //DEBUG
 extern uint8_t debug_level;
 
+#ifndef STM32
 #define DEBUG(format, ...) \
 	do \
 	if (debug_level > 0) \
@@ -23,7 +26,13 @@ extern uint8_t debug_level;
 		printf_P(PSTR(format), ##__VA_ARGS__); \
 		uart.FlushTxBuffer(); \
 	} \
-	while(0) \
+	while(0)
+#else
+#define DEBUG(format, ...) {\
+		printf("%s:%s[%d] - ", __FILE__, __func__,__LINE__);\
+		printf(format, ##__VA_ARGS__);\
+	}
+#endif
 
 //#define DEBUG1
 
@@ -47,6 +56,17 @@ void uart_stop();
 
 void DUMP_REG(uint8_t val);
 
+#ifndef STM32
 extern Usart uart;
+#else
+extern UART_HandleTypeDef Uart;
+#ifdef __cplusplus
+extern "C" {
+#endif
+int __io_putchar(int ch);
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 #endif /* UART_H_ */

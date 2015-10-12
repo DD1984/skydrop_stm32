@@ -122,9 +122,11 @@ void n5110display::sendcommand(unsigned char cmd)
 {
 	GpioWrite(LCD_DC, LOW);
 
+#ifndef STM32
 	this->spi->SetSlave(LCD_CE);
 	this->spi->SendRaw(cmd);
 	this->spi->UnsetSlave();
+#endif
 }
 
 /**
@@ -134,6 +136,7 @@ void n5110display::sendcommand(unsigned char cmd)
  */
 void n5110display::Init()
 {
+#ifndef STM32
 	LCD_SPI_PWR_ON;
 
 	this->spi = new Spi;
@@ -141,6 +144,7 @@ void n5110display::Init()
 	this->spi->InitMaster(LCD_SPI);
 	this->spi->SetDivider(spi_div_64);
 	this->spi->SetDataOrder(MSB);
+#endif
 
 	CreateSinTable();
 
@@ -205,15 +209,19 @@ void n5110display::SetBias(uint8_t bias) // 0x13 / 0x14
 
 void n5110display::Stop()
 {
+#ifndef STM32
 	this->spi->Stop();
 	delete this->spi;
+#endif
 
 	GpioSetDirection(LCD_RST, INPUT);
 	GpioSetDirection(LCD_DC, INPUT);
 	GpioSetDirection(LCD_CE, INPUT);
 	GpioSetDirection(LCD_VCC, INPUT);
 
+#ifndef STM32
 	LCD_SPI_PWR_OFF;
+#endif
 }
 
 /**
@@ -460,12 +468,18 @@ void n5110display::Draw()
 			SetRowCol(5 - j, 0);
 
 			GpioWrite(LCD_DC, HIGH);
+#ifndef STM32
 			this->spi->SetSlave(LCD_CE);
+#endif
 			for (uint8_t a=0; a < n5110_width; a++)
 			{
+#ifndef STM32
 				this->spi->SendRaw(fast_flip(active_buffer[n5110_width - 1 - a + (j * n5110_width)]));
+#endif
 			}
+#ifndef STM32
 			this->spi->UnsetSlave();
+#endif
 		}
 	}
 	else
@@ -475,12 +489,18 @@ void n5110display::Draw()
 		for (uint8_t j=0;j<6;j++)
 		{
 			GpioWrite(LCD_DC, HIGH);
+#ifndef STM32
 			this->spi->SetSlave(LCD_CE);
+#endif
 			for (uint8_t a=0; a < n5110_width; a++)
 			{
+#ifndef STM32
 				this->spi->SendRaw(active_buffer[a+(j * n5110_width)]);
+#endif
 			}
+#ifndef STM32
 			this->spi->UnsetSlave();
+#endif
 		}
 	}
 }

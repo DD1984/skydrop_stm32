@@ -28,6 +28,7 @@ struct widget
 	uint8_t flags;
 };
 
+#ifndef STM32
 #define register_widget3(name, label, draw, loop, irqh, flags) \
 	const char name ## _label[] PROGMEM = label;\
 	widget name = { \
@@ -36,7 +37,7 @@ struct widget
 		loop, \
 		irqh, \
 		flags, \
-	}; \
+	};
 
 #define register_widget2(name, label, draw, loop, irqh) \
 	const char name ## _label[] PROGMEM = label;\
@@ -56,8 +57,38 @@ struct widget
 		NULL, \
 		NULL, \
 		0, \
+	};
+#else
+#define register_widget3(name, label, draw, loop, irqh, flags) \
+	const char name ## _label[] = label;\
+	widget name = { \
+		name ## _label, \
+		draw, \
+		loop, \
+		irqh, \
+		flags, \
+	};
+
+#define register_widget2(name, label, draw, loop, irqh) \
+	const char name ## _label[] = label;\
+	widget name = { \
+		name ## _label, \
+		draw, \
+		loop, \
+		irqh, \
+		0, \
 	}; \
 
+#define register_widget1(name, label, draw) \
+	const char name ## _label[] = label;\
+	widget name = { \
+		name ## _label, \
+		draw, \
+		NULL, \
+		NULL, \
+		0, \
+	};
+#endif
 
 extern uint8_t widget_menu_state;
 extern uint8_t widget_menu_param1;
@@ -104,7 +135,6 @@ extern float widget_menu_fvalue1;
 
 #define NUMBER_OF_WIDGETS	20
 
-
 void widgets_draw(uint8_t page);
 
 uint8_t widget_label_P(const char * label, uint8_t x, uint8_t y);
@@ -121,6 +151,7 @@ void layout_get_widget_rect(uint8_t type, uint8_t widget, uint8_t * x, uint8_t *
 
 uint8_t widget_get_type(uint8_t page, uint8_t widget);
 
-extern widget widget_array[NUMBER_OF_WIDGETS];
+//extern widget widget_array[NUMBER_OF_WIDGETS];
+extern widget widget_array[];
 
 #endif /* WIDGETS_H_ */

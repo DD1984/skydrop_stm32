@@ -22,8 +22,6 @@ OPT = -Os
 # pathes
 #######################################
 # source path
-# Build path
-BUILD_DIR = build
 
 ######################################
 # source
@@ -89,12 +87,16 @@ CPP_SOURCES += src/gui/settings/set_widgets.cpp
 CPP_SOURCES += src/gui/settings/settings.cpp
 CPP_SOURCES += src/gui/settings/set_system.cpp
 CPP_SOURCES += src/gui/settings/set_autostart.cpp
+CPP_SOURCES += src/gui/settings/layouts.cpp
 CPP_SOURCES += src/gui/settings/set_layout.cpp
 CPP_SOURCES += src/gui/settings/set_audio.cpp
 CPP_SOURCES += src/gui/settings/set_altimeter.cpp
 CPP_SOURCES += src/gui/settings/set_weaklift.cpp
 CPP_SOURCES += src/gui/settings/set_vario.cpp
-
+CPP_SOURCES += src/gui/settings/set_display.cpp
+CPP_SOURCES += src/gui/settings/set_debug.cpp
+CPP_SOURCES += src/gui/settings/set_altimeters.cpp
+CPP_SOURCES += src/gui/settings/set_logger.cpp
 
 
 #asm
@@ -143,58 +145,49 @@ LIBS = -lc -lm -lstdc++
 LIBDIR =
 # --specs=nano.specs
 # --specs=nosys.specs
-LDFLAGS = $(MCU) --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+all: $(TARGET).elf $(TARGET).hex $(TARGET).bin
 
 #######################################
 # build the application
 #######################################
 # list of objects
 #c
-#OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 OBJECTS = $(C_SOURCES:.c=.o)
 vpath %.c $(sort $(dir $(C_SOURCES)))
 #cpp
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
+OBJECTS += $(CPP_SOURCES:.cpp=.o)
 vpath %.cpp $(sort $(dir $(CPP_SOURCES)))
 # list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+OBJECTS += $(ASM_SOURCES:.s=.o)
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR)
-	zxfg
-	$(CC) -c $(CFLAGS) -x c++ -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+%.o: %.cpp
+	$(CC) -c $(CFLAGS) -x c++ $< -o $@
 
-$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)
-#	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+%.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
-
-$(BUILD_DIR)/%.o: %.s $(BUILD_DIR)
-	sakjdhf
+%.o: %.s
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)
-	dsgfh
+$(TARGET).elf: $(OBJECTS)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+%.hex: %.elf
 	$(HEX) $< $@
 	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+%.bin: %.elf
 	$(BIN) $< $@	
 	
-$(BUILD_DIR):
-	mkdir -p $@		
-
 #######################################
 # clean up
 #######################################
 clean:
-	-rm -fR .dep $(BUILD_DIR)
+	-rm -fR .dep $(OBJECTS) $(TARGET).elf $(TARGET).bin $(TARGET).map $(TARGET).hex
   
 #######################################
 # dependencies

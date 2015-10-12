@@ -23,21 +23,27 @@ void gui_factory_test_init()
 	DEBUG(" *** Factory test ***\n");
 	fc_pause();
 
+#ifdef BT_SUPPORT
 	//We need to test gps and bt module
 	if (!bt_selftest())
 	{
 		DEBUG("Force enable BT\n");
 		bt_module_init();
 	}
+#endif
 
+#ifdef GPS_SUPPORT
 	if (!gps_selftest())
 	{
 		DEBUG("Force enable GPS\n");
 		gps_start();
 	}
+#endif
 
+#ifdef BUZZER_SUPPORT
 	buzzer_set_vol(0);
 	buzzer_set_freq(0);
+#endif
 	f_test_button_test = 0;
 
 	f_test_lcd = FTEST_LCD_MIN_AUTO;
@@ -51,8 +57,12 @@ void gui_factory_test_stop()
 	DEBUG("FACTORY TEST OK\n");
 	fc_continue();
 
+#ifdef LED_SUPPORT
 	led_set(0x00, 0x00, 0x00);
+#endif
+#ifdef BUZZER_SUPPORT
 	buzzer_set_vol(0);
+#endif
 }
 
 void gui_factory_test_loop()
@@ -150,6 +160,7 @@ void gui_factory_test_loop()
 	}
 	else
 	{
+#ifdef MS5611_SUPPORT
 		res = ms5611.SelfTest();
 		if (!res) err = true;
 		if (res || blik)
@@ -157,7 +168,9 @@ void gui_factory_test_loop()
 			disp.GotoXY(4, f_h * 2 + 3);
 			fprintf_P(lcd_out, PSTR("MS5611:%s"), (res) ? "OK" : "ERR");
 		}
+#endif
 
+#ifdef LSM303D_SUPPORT
 		res = lsm303d.SelfTest();
 		if (!res) err = true;
 		if (res || blik)
@@ -165,7 +178,9 @@ void gui_factory_test_loop()
 			disp.GotoXY(4, f_h * 3 + 3);
 			fprintf_P(lcd_out, PSTR("LSM303:%s"), (res) ? "OK" : "ERR");
 		}
+#endif
 
+#ifdef L3GD20_SUPPORT
 		res = l3gd20.SelfTest();
 		if (!res) err = true;
 		if (res || blik)
@@ -173,7 +188,9 @@ void gui_factory_test_loop()
 			disp.GotoXY(4, f_h * 4 + 3);
 			fprintf_P(lcd_out, PSTR("L3GD20:%s"), (res) ? "OK" : "ERR");
 		}
+#endif
 
+#ifdef SHT21_SUPPORT
 		res = sht21.SelfTest();
 		if (!res) err = true;
 		if (res || blik)
@@ -181,8 +198,10 @@ void gui_factory_test_loop()
 			disp.GotoXY(4, f_h * 5 + 3);
 			fprintf_P(lcd_out, PSTR("SHT21:%s"), (res) ? "OK" : "ERR");
 		}
+#endif
 	}
 
+#ifdef BT_SUPPORT
 	res = bt_selftest();
 	if (!res) err = true;
 	if (res || blik)
@@ -200,7 +219,9 @@ void gui_factory_test_loop()
 				fprintf_P(lcd_out, PSTR("BT:1026"));
 		}
 	}
+#endif
 
+#ifdef STORAGE_SUPPORT
 	res = storage_selftest();
 	if (!res) err = true;
 	if (res || blik)
@@ -208,7 +229,9 @@ void gui_factory_test_loop()
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 2 + 3);
 		fprintf_P(lcd_out, PSTR("SD:%s"), (res) ? "OK" : "ERR");
 	}
+#endif
 
+#ifdef GPS_SUPPORT
 	res = gps_selftest();
 	if (!res) err = true;
 	if (res || blik)
@@ -216,6 +239,7 @@ void gui_factory_test_loop()
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 3 + 3);
 		fprintf_P(lcd_out, PSTR("GPS:%s"), (res) ? "OK" : "ERR");
 	}
+#endif
 
 	res = f_test_button_test == 0b00000111;
 	if (!res) err = true;
@@ -225,7 +249,7 @@ void gui_factory_test_loop()
 		fprintf_P(lcd_out, PSTR("BUT:%d %d %d"), f_test_button_test & (1 << 0), (f_test_button_test & (1 << 1)) >> 1, (f_test_button_test & (1 << 2)) >> 2);
 	}
 
-
+#ifdef BAT_SUPPORT
 	res = battery_adc_raw != 0;
 	if (!res) err = true;
 	if (res || blik)
@@ -241,7 +265,7 @@ void gui_factory_test_loop()
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 6 + 3);
 		fprintf_P(lcd_out, PSTR("BAT:%d%%"), battery_per);
 	}
-
+#endif
 
 	if (!err)
 	{
@@ -255,7 +279,9 @@ void gui_factory_test_loop()
 		eeprom_update_byte(&config_ee.gui.contrast, f_test_lcd_cont);
 		eeprom_busy_wait();
 
+#ifndef STM32
 		SystemReset();
+#endif
 	}
 
 }
@@ -320,20 +346,32 @@ void gui_factory_test_irqh(uint8_t type, uint8_t * buff)
 		{
 			case (TASK_IRQ_BUTTON_L):
 				f_test_button_test |= (1 << 0);
+#ifdef LED_SUPPORT
 				led_set(0xFF, 0x00, 0x00);
+#endif
+#ifdef BUZZER_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(200);
+#endif
 			break;
 			case (TASK_IRQ_BUTTON_M):
 				f_test_button_test |= (1 << 1);
+#ifdef LED_SUPPORT
 				led_set(0x00, 0xFF, 0x00);
+#endif
+#ifdef BUZZER_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(300);
+#endif
 			break;
 			case (TASK_IRQ_BUTTON_R):
 				f_test_button_test |= (1 << 2);
+#ifdef LED_SUPPORT
 				led_set(0x00, 0x00, 0xFF);
+#endif
+#ifdef BUZZER_SUPPORT
 				buzzer_set_vol(0);
+#endif
 			break;
 		}
 	}

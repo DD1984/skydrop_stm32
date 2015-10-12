@@ -19,10 +19,17 @@ struct sequence_t
 
 #define ARR(...) __VA_ARGS__
 
+#ifndef STM32
 #define MK_SEQ(name, tone, length) \
 	const uint16_t name ## _tone[] PROGMEM = tone; \
 	const uint16_t name ## _length[] PROGMEM = length; \
-	const sequence_t name PROGMEM = {name ## _tone, name ## _length, sizeof(name ## _tone) / 2}; \
+	const sequence_t name PROGMEM = {name ## _tone, name ## _length, sizeof(name ## _tone) / 2};
+#else
+#define MK_SEQ(name, tone, length) \
+	const uint16_t name ## _tone[] = tone; \
+	const uint16_t name ## _length[] = length; \
+	const sequence_t name = {name ## _tone, name ## _length, sizeof(name ## _tone) / 2};
+#endif
 
 void seq_start(const sequence_t * seq, uint8_t volume);
 void seq_loop();
