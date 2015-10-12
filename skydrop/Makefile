@@ -3,7 +3,7 @@ TOPDIR := $(shell pwd)
 ######################################
 # target
 ######################################
-TARGET = test
+TARGET = SkyDrop
 
 ######################################
 # MCU
@@ -33,11 +33,17 @@ CPP_SOURCES :=
 
 #hal
 C_SOURCES += src/hal/system_stm32f1xx.c
-C_SOURCES += stm32f1xx_hal.c
-C_SOURCES += stm32f1xx_hal_cortex.c
-C_SOURCES += stm32f1xx_hal_rcc.c
-C_SOURCES += stm32f1xx_hal_rcc_ex.c
-C_SOURCES += stm32f1xx_hal_uart.c
+C_SOURCES += src/hal/stm32f1xx_hal.c
+C_SOURCES += src/hal/stm32f1xx_hal_cortex.c
+C_SOURCES += src/hal/stm32f1xx_hal_rcc.c
+C_SOURCES += src/hal/stm32f1xx_hal_rcc_ex.c
+C_SOURCES += src/hal/stm32f1xx_hal_uart.c
+C_SOURCES += src/hal/stm32f1xx_hal_msp.c
+C_SOURCES += src/hal/stm32f1xx_hal_gpio.c
+C_SOURCES += src/hal/stm32f1xx_hal_gpio_ex.c
+C_SOURCES += src/hal/stm32f1xx_it.c
+C_SOURCES += src/hal/syscalls.c
+
 
 C_SOURCES += src/hal/clock.c
 #c
@@ -55,7 +61,39 @@ CPP_SOURCES += src/tasks/tasks.cpp
 CPP_SOURCES += src/tasks/task_active.cpp
 CPP_SOURCES += src/tasks/task_powerdown.cpp
 
+CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
+CPP_SOURCES += src/drivers/uart.cpp
+CPP_SOURCES += src/drivers/n5110_disp.cpp
+
+CPP_SOURCES += src/data/fonts.cpp
+
+CPP_SOURCES += src/gui/gui.cpp
+CPP_SOURCES += src/gui/pages.cpp
+CPP_SOURCES += src/gui/gui_dialog.cpp
+CPP_SOURCES += src/gui/gui_value.cpp
+CPP_SOURCES += src/gui/splash.cpp
+CPP_SOURCES += src/gui/factory_test.cpp
+CPP_SOURCES += src/gui/gui_list.cpp
+
+CPP_SOURCES += src/gui/widgets/widgets.cpp
+CPP_SOURCES += src/gui/widgets/dummy.cpp
+CPP_SOURCES += src/gui/widgets/flight.cpp
+CPP_SOURCES += src/gui/widgets/temperature.cpp
+#CPP_SOURCES += src/gui/widgets/battery.cpp
+CPP_SOURCES += src/gui/widgets/vario.cpp
+CPP_SOURCES += src/gui/widgets/altitude.cpp
+
+
+CPP_SOURCES += src/gui/settings/set_widgets.cpp
+CPP_SOURCES += src/gui/settings/settings.cpp
+CPP_SOURCES += src/gui/settings/set_system.cpp
+CPP_SOURCES += src/gui/settings/set_autostart.cpp
+CPP_SOURCES += src/gui/settings/set_layout.cpp
+CPP_SOURCES += src/gui/settings/set_audio.cpp
+CPP_SOURCES += src/gui/settings/set_altimeter.cpp
+CPP_SOURCES += src/gui/settings/set_weaklift.cpp
+CPP_SOURCES += src/gui/settings/set_vario.cpp
 
 
 
@@ -92,7 +130,8 @@ endif
 CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
-#CFLAGS += -DUART_SUPPORT
+CFLAGS += -DUART_SUPPORT
+CFLAGS += -DDISPLAY_SUPPORT
 
 #######################################
 # LDFLAGS
@@ -100,11 +139,11 @@ CFLAGS += -DSTM32
 # link script
 LDSCRIPT = src/hal/STM32F100XB_FLASH.ld
 # libraries
-LIBS = -lc -lm -lnosys -lstdc++
+LIBS = -lc -lm -lstdc++
 LIBDIR =
 # --specs=nano.specs
 # --specs=nosys.specs
-LDFLAGS = $(MCU) --specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
@@ -114,7 +153,8 @@ all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET
 #######################################
 # list of objects
 #c
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+#OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+OBJECTS = $(C_SOURCES:.c=.o)
 vpath %.c $(sort $(dir $(C_SOURCES)))
 #cpp
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
@@ -124,15 +164,20 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.cpp $(BUILD_DIR)
+	zxfg
 	$(CC) -c $(CFLAGS) -x c++ -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.c $(BUILD_DIR)
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+#	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 $(BUILD_DIR)/%.o: %.s $(BUILD_DIR)
+	sakjdhf
 	$(AS) -c $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)
+	dsgfh
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
 
