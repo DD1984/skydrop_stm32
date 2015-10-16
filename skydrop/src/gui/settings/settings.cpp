@@ -37,13 +37,17 @@ void gui_settings_action(uint8_t index)
 		gui_switch_task(GUI_SET_LOGGER);
 	break;
 
+#ifdef GPS_SUPPORT
 	case(3):
 		gui_switch_task(GUI_SET_GPS);
 	break;
+#endif
 
+#ifdef BT_SUPPORT
 	case(4):
 		gui_switch_task(GUI_SET_BLUETOOTH);
 	break;
+#endif
 
 	case(5):
 		gui_switch_task(GUI_SET_SYSTEM);
