@@ -13,13 +13,10 @@
 #define SWITCH_GPIO_PORT		GPIOA
 #define SWITCH3					GPIO_PIN_1
 #define SWITCH2					GPIO_PIN_0
-#define SWITCH1					GPIO_PIN_2
+#define SWITCH1					GPIO_PIN_11
 
-//#define GpioRead(x) x
 volatile uint8_t GpioRead(uint16_t button)
 {
-	if (button != SWITCH2)
-		return 0;
 	return ((uint8_t)HAL_GPIO_ReadPin(SWITCH_GPIO_PORT, button));
 }
 
@@ -56,7 +53,7 @@ void buttons_init()
 	GPIO_InitTypeDef  GPIO_InitStruct;
 	GPIO_InitStruct.Pin       = SWITCH1 | SWITCH2 | SWITCH3;
 	GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull      = GPIO_NOPULL;
+	GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
 
 	HAL_GPIO_Init(SWITCH_GPIO_PORT, &GPIO_InitStruct);

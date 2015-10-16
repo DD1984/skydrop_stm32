@@ -100,6 +100,8 @@ int _write(int file, char *ptr, int len)
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
 		switch (file) {
+		case 0:
+		case 1:
 		case 2:
 			if (*ptr == '\n')
 				__io_putchar('\r');
