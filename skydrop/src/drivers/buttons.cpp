@@ -8,6 +8,22 @@
 #include "buttons.h"
 #include "../tasks/tasks.h"
 #include "../fc/conf.h"
+#ifdef STM32
+#include "stm32f1xx_hal.h"
+#define SWITCH_GPIO_PORT		GPIOA
+#define SWITCH3					GPIO_PIN_1
+#define SWITCH2					GPIO_PIN_0
+#define SWITCH1					GPIO_PIN_2
+
+//#define GpioRead(x) x
+volatile uint8_t GpioRead(uint16_t button)
+{
+	if (button != SWITCH2)
+		return 0;
+	return ((uint8_t)HAL_GPIO_ReadPin(SWITCH_GPIO_PORT, button));
+}
+
+#endif
 
 uint8_t buttons_state[] = {BS_IDLE, BS_IDLE, BS_IDLE};
 uint32_t buttons_counter[] = {0, 0, 0};
@@ -36,6 +52,15 @@ void buttons_init()
 	GpioSetInterrupt(SWITCH1, gpio_interrupt0, gpio_bothedges);
 	GpioSetInterrupt(SWITCH2, gpio_interrupt0, gpio_bothedges);
 	GpioSetInterrupt(SWITCH3, gpio_interrupt0, gpio_bothedges);
+#else
+	GPIO_InitTypeDef  GPIO_InitStruct;
+	GPIO_InitStruct.Pin       = SWITCH1 | SWITCH2 | SWITCH3;
+	GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull      = GPIO_NOPULL;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+
+	HAL_GPIO_Init(SWITCH_GPIO_PORT, &GPIO_InitStruct);
+
 #endif	
 }
 
