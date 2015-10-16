@@ -37,7 +37,12 @@ n5110display disp;
 #ifndef STM32
 CreateStdOut(lcd_out, disp.Write);
 #else
-	FILE *lcd_out;
+FILE *lcd_out;
+#include "drivers/lcd_write.h"
+void lcd_write(uint8_t ch)
+{
+	disp.Write(ch);
+}
 #endif
 
 volatile uint8_t gui_task = GUI_NONE;
@@ -312,6 +317,11 @@ void gui_caligh_text(char * text, uint8_t x, uint8_t y)
 void gui_init()
 {
 	disp.Init();
+#ifdef STM32
+	extern FILE *lcd_out;
+	lcd_out = fopen("lcd", "w+");
+	setvbuf(lcd_out, NULL, _IONBF, 0);
+#endif
 	gui_load_eeprom();
 }
 
