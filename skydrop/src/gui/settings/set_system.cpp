@@ -26,24 +26,29 @@ void gui_set_system_action(uint8_t index)
 {
 	switch(index)
 	{
+#ifdef RTC_SUPPORT
 	case(0):
 		gui_switch_task(GUI_SET_TIME);
 	break;
+#endif
 
 	case(1):
 		gui_switch_task(GUI_SET_DISPLAY);
 	break;
 
+#ifdef AUDIO_SUPPORT
 	case(2):
 		gui_switch_task(GUI_SET_AUDIO);
 	break;
+#endif
 
+#ifdef USB_SUPPORT
 	case(3):
 		config.system.usb_mode = !config.system.usb_mode ;
 		eeprom_busy_wait();
 		eeprom_update_byte(&config_ee.system.usb_mode, config.system.usb_mode );
 	break;
-
+#endif
 	}
 }
 
