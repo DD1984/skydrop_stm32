@@ -16,7 +16,7 @@ MCU = -mthumb -mcpu=cortex-m3
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -O1
+OPT = -Os
 
 #######################################
 # pathes
