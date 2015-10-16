@@ -16,11 +16,11 @@ MCU = -mthumb -mcpu=cortex-m3
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Os
+OPT = -O1
 
 #######################################
 # pathes
-#######################################
+#############################/src##########
 # source path
 
 ######################################
@@ -30,18 +30,20 @@ C_SOURCES :=
 CPP_SOURCES :=
 
 #hal
-C_SOURCES += src/hal/system_stm32f1xx.c
-C_SOURCES += src/hal/stm32f1xx_hal.c
-C_SOURCES += src/hal/stm32f1xx_hal_cortex.c
-C_SOURCES += src/hal/stm32f1xx_hal_rcc.c
-C_SOURCES += src/hal/stm32f1xx_hal_rcc_ex.c
-C_SOURCES += src/hal/stm32f1xx_hal_uart.c
-C_SOURCES += src/hal/stm32f1xx_hal_msp.c
-C_SOURCES += src/hal/stm32f1xx_hal_gpio.c
-C_SOURCES += src/hal/stm32f1xx_hal_gpio_ex.c
+C_SOURCES += src/hal/Src/system_stm32f1xx.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_cortex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_rcc.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_rcc_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_uart.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_msp.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_spi.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_spi_ex.c
+
 C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
-
 
 C_SOURCES += src/hal/clock.c
 #c
@@ -59,9 +61,10 @@ CPP_SOURCES += src/tasks/tasks.cpp
 CPP_SOURCES += src/tasks/task_active.cpp
 CPP_SOURCES += src/tasks/task_powerdown.cpp
 
+CPP_SOURCES += src/drivers/uart.cpp
+
 CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
-CPP_SOURCES += src/drivers/uart.cpp
 CPP_SOURCES += src/drivers/n5110_disp.cpp
 
 CPP_SOURCES += src/data/fonts.cpp
@@ -89,7 +92,7 @@ CPP_SOURCES += src/gui/settings/set_system.cpp
 CPP_SOURCES += src/gui/settings/set_autostart.cpp
 CPP_SOURCES += src/gui/settings/layouts.cpp
 CPP_SOURCES += src/gui/settings/set_layout.cpp
-CPP_SOURCES += src/gui/settings/set_audio.cpp
+#CPP_SOURCES += src/gui/settings/set_audio.cpp
 CPP_SOURCES += src/gui/settings/set_altimeter.cpp
 CPP_SOURCES += src/gui/settings/set_weaklift.cpp
 CPP_SOURCES += src/gui/settings/set_vario.cpp
@@ -121,7 +124,7 @@ AS_DEFS =
 C_DEFS = -DSTM32F100xB
 # includes for gcc
 AS_INCLUDES = 
-C_INCLUDES = -I src/ -I src/hal
+C_INCLUDES = -I src/ -I src/hal/Inc -I src/hal
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -fdata-sections -ffunction-sections
