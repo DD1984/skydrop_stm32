@@ -36,12 +36,13 @@
 #include <sys/times.h>
 
 #include "stm32f1xx_hal.h"
+#include "drivers/lcd_write.h"
 
 /* Variables */
 #undef errno
 extern int errno;
 //extern int __io_putchar(int ch) __attribute__((weak));
-extern int __io_getchar(void) __attribute__((weak));
+//extern int __io_getchar(void) __attribute__((weak));
 
 extern UART_HandleTypeDef Uart;
 
@@ -86,7 +87,7 @@ int _read (int file, char *ptr, int len)
 
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
-	  *ptr++ = __io_getchar();
+	  //*ptr++ = __io_getchar();
 	}
 
 return len;
@@ -98,9 +99,16 @@ int _write(int file, char *ptr, int len)
 
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
-		if (*ptr == '\n')
-			__io_putchar('\r');
-	   __io_putchar( *ptr++ );
+		switch (file) {
+		case 2:
+			if (*ptr == '\n')
+				__io_putchar('\r');
+		   __io_putchar( *ptr++ );
+		break;
+		case 0xAA:
+			lcd_write(*ptr);
+		break;
+		}
 	}
 	return len;
 }
@@ -152,6 +160,8 @@ int _lseek(int file, int ptr, int dir)
 
 int _open(char *path, int flags, ...)
 {
+	if (!strcmp(path, "lcd"))
+		return 0xAA;
 	/* Pretend like we always fail */
 	return -1;
 }
