@@ -57,6 +57,7 @@ void gui_caligh_text(char * text, uint8_t x, uint8_t y);
 
 void gui_statusbar();
 
+#if 0
 #define GUI_NONE			0xFF
 #define GUI_PAGES			0
 #define GUI_SETTINGS		1
@@ -84,10 +85,56 @@ void gui_statusbar();
 #define GUI_UPDATE			23
 #define GUI_SET_WEEKLIFT	24
 #define GUI_SET_AUDIO_MENU	25
+#endif
 
-#define NUMBER_OF_GUI_TASKS	26
+enum {
+	GUI_PAGES = 0,
+	GUI_SETTINGS,
+	GUI_SPLASH,
+	GUI_SET_VARIO,
+	GUI_SET_VAL,
+#ifdef AUDIO_SUPPORT
+	GUI_SET_AUDIO,
+#endif
+	GUI_SET_WIDGETS,
+	GUI_LAYOUTS,
+	GUI_SET_LAYOUT,
+	GUI_SET_DISPLAY,
+#ifdef USB_SUPPORT
+	GUI_USB,
+#endif
+	GUI_FTEST,
+	GUI_SET_SYSTEM,
+	GUI_SET_AUTOSTART,
+#ifdef GPS_SUPPORT
+	GUI_SET_GPS,
+	GUI_SET_GPS_DETAIL,
+#endif
+	GUI_SET_DEBUG,
+	GUI_SET_ALTIMETERS,
+	GUI_SET_ALTIMETER,
+#ifdef RTC_SUPPORT
+	GUI_SET_TIME,
+#endif
+	GUI_SET_LOGGER,
+	GUI_DIALOG,
+#ifdef BT_SUPPORT
+	GUI_SET_BLUETOOTH,
+#endif
+#ifdef UPDATE_SUPPORT
+	GUI_UPDATE,
+#endif
+	GUI_SET_WEEKLIFT,
+	GUI_SET_AUDIO_MENU,
+	//***
+	GUI_END,
+	//***
+	GUI_NONE = 0xFF
+};
 
-#define GUI_LAST_TASK		0xFF
+#define NUMBER_OF_GUI_TASKS	GUI_END
+
+#define GUI_LAST_TASK		GUI_NONE
 
 extern uint8_t lcd_contrast_min;
 extern uint8_t lcd_contrast_max;
