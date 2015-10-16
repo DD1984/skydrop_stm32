@@ -91,8 +91,8 @@ void n5110display::Write(uint8_t ascii=0)
 		uint16_t start = pgm_read_word(&this->font_data[adr]);
 		uint16_t width = pgm_read_word(&this->font_data[adr + 2]) - start;
 #else
-		uint16_t start = this->font_data[adr];
-		uint16_t width = this->font_data[adr + 2] - start;
+		uint16_t start = *(uint16_t *)((uint8_t *)font_data + adr);
+		uint16_t width = *(uint16_t *)((uint8_t *)font_data + adr + 2) - start;
 #endif
 
 		adr = this->font_adr_start + start * this->font_lines;
