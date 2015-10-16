@@ -22,9 +22,9 @@
 
 #else
 
-#include <hal/clock.h>
-#include <hal/stm32f1xx_hal.h>
 #include <math.h>
+#include "clock.h"
+#include "stm32f1xx_hal.h"
 #include "drivers/uart.h"
 #include <string.h>
 
@@ -39,7 +39,7 @@
 #define HIGH	1
 #define LOW		0
 
-#define GpioRead(x) x
+//#define GpioRead(x) x
 #define GpioWrite(x,y) {}
 #define GpioSetDirection(x,y) {}
 #define _delay_ms(x) HAL_Delay(x)
@@ -125,19 +125,9 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 
 //---------------- PORTA ---------------------
 #define GPS_EN					porta0
-#endif
-
-#ifndef STM32
 #define SWITCH3					porta1
 #define SWITCH2					porta2
 #define SWITCH1					porta3
-#else
-//#warning  "set buttons GPIO"
-#define SWITCH3					3
-#define SWITCH2					2
-#define SWITCH1					1
-#endif
-#ifndef STM32
 #define GPS_TIMER				porta4
 #define GPS_RESET				porta5
 #define BAT_EN					porta6
@@ -189,11 +179,8 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 
 #define DAC_PWR_ON				PR.PRPB &= 0b11111011;
 #define DDC_PWR_OFF				PR.PRPB |= 0b00000100;
-#endif
 
 //---------------- PORTC ---------------------
-#ifndef STM32
-
 #define LCD_RST					portc0
 #define LCD_CE					portc1
 #define DEBUG_RXD				portc2
@@ -203,20 +190,6 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define CHARGING				portc6
 #define LCD_CLK					portc7
 
-#else
-
-#define LCD_RST					0
-#define LCD_CE					1
-#define DEBUG_RXD				2
-#define DEBUG_TXD				3
-#define LCD_DC					4
-#define LCD_DIN					5
-#define CHARGING				6
-#define LCD_CLK					7
-
-#endif
-
-#ifndef STM32
 #define DEBUG_UART				usartc0
 #define DEBUG_UART_PWR_ON		PR.PRPC &= 0b11101111;
 #define DEBUG_UART_PWR_OFF		PR.PRPC |= 0b00010000;
