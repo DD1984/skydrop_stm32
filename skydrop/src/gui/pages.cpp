@@ -41,15 +41,9 @@ uint32_t page_state_timer; //timer based timeout
 
 uint8_t page_change_dir;
 
-#ifndef STM32
 const uint8_t PROGMEM img_pwr[26]={12,16,224,248,28,12,0,63,63,0,12,28,248,224,1,7,14,12,24,24,24,24,12,14,7,1};
 const uint8_t PROGMEM img_menu[22]={10,16,51,51,51,51,51,51,51,51,51,51,3,3,3,3,3,3,3,3,3,3};
 const uint8_t PROGMEM img_layout[16]={14,8,252,132,132,191,161,225,33,33,225,161,191,132,132,252};
-#else
-const uint8_t img_pwr[26]={12,16,224,248,28,12,0,63,63,0,12,28,248,224,1,7,14,12,24,24,24,24,12,14,7,1};
-const uint8_t img_menu[22]={10,16,51,51,51,51,51,51,51,51,51,51,3,3,3,3,3,3,3,3,3,3};
-const uint8_t img_layout[16]={14,8,252,132,132,191,161,225,33,33,225,161,191,132,132,252};
-#endif
 
 MK_SEQ(snd_page_0, ARR({800}), ARR({100}));
 MK_SEQ(snd_page_1, ARR({800, 1000}), ARR({100, 100}));
