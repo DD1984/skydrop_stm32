@@ -9,10 +9,13 @@ cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));
 cfg_ro_t config_ro;
 #endif
 
+#ifndef STM32
 volatile cfg_t config;
 
-#ifndef STM32
 EEMEM cfg_t config_ee = {
+#else
+volatile cfg_t config = {
+#endif
 	//build_number
 	BUILD_NUMBER,
 	//gui
@@ -43,31 +46,98 @@ EEMEM cfg_t config_ee = {
 			{
 				//type
 				LAYOUT_12,
-				{WIDGET_VARIO_BAR, WIDGET_VARIO, WIDGET_AVG_VARIO, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY}
+				{
+					WIDGET_VARIO_BAR,
+					WIDGET_VARIO,
+					WIDGET_AVG_VARIO,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY
+				}
 			},
 			//1
 			{
 				//type
 				LAYOUT_12,
-				{WIDGET_VARIO_BAR, WIDGET_TIME, WIDGET_FTIME, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY}
+				{
+					WIDGET_VARIO_BAR,
+#ifdef RTC_SUPPORT
+					WIDGET_TIME,
+					WIDGET_FTIME,
+#else
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+#endif
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY
+				}
+
 			},
 			//2
 			{
 				//type
 				LAYOUT_122,
-				{WIDGET_VARIO_BAR, WIDGET_VARIO, WIDGET_AVG_VARIO, WIDGET_ALT1, WIDGET_ALT2, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY}
+				{
+					WIDGET_VARIO_BAR,
+					WIDGET_VARIO,
+					WIDGET_AVG_VARIO,
+					WIDGET_ALT1,
+					WIDGET_ALT2,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY
+				}
 			},
 			//3
 			{
 				//type
 				LAYOUT_123,
-				{WIDGET_VARIO_BAR, WIDGET_VARIO, WIDGET_ALT2, WIDGET_GHEADING, WIDGET_GROUND_SPD, WIDGET_GLIDE_RATIO, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY}
+				{
+					WIDGET_VARIO_BAR,
+					WIDGET_VARIO,
+					WIDGET_ALT2,
+#ifdef GPS_SUPPORT
+					WIDGET_GHEADING,
+					WIDGET_GROUND_SPD,
+					WIDGET_GLIDE_RATIO,
+#else
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+#endif
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY
+				}
 			},
 			//4
 			{
 				//type
 				LAYOUT_12,
-				{WIDGET_VARIO_BAR, WIDGET_GHEADING, WIDGET_GROUND_SPD, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY, WIDGET_EMPTY}
+				{
+					WIDGET_VARIO_BAR,
+#ifdef GPS_SUPPORT
+					WIDGET_GHEADING,
+					WIDGET_GROUND_SPD,
+#else
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+#endif
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY,
+					WIDGET_EMPTY
+				}
 			},
 		},
 
@@ -170,7 +240,6 @@ EEMEM cfg_t config_ee = {
 	},
 
 };
-#endif
 
 ////calibration
 //{
