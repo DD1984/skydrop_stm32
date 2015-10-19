@@ -230,9 +230,7 @@ void task_system_loop()
 	buttons_step();
 	if (powerdown_lock.Active() == false)
 	{
-#ifdef BAT_SUPPORT
 		battery_step();
-#endif		
 	}
 }
 

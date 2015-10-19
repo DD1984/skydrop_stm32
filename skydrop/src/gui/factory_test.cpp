@@ -40,7 +40,7 @@ void gui_factory_test_init()
 	}
 #endif
 
-#ifdef BUZZER_SUPPORT
+#ifdef AUDIO_SUPPORT
 	buzzer_set_vol(0);
 	buzzer_set_freq(0);
 #endif
@@ -60,7 +60,7 @@ void gui_factory_test_stop()
 #ifdef LED_SUPPORT
 	led_set(0x00, 0x00, 0x00);
 #endif
-#ifdef BUZZER_SUPPORT
+#ifdef AUDIO_SUPPORT
 	buzzer_set_vol(0);
 #endif
 }
@@ -249,7 +249,6 @@ void gui_factory_test_loop()
 		fprintf_P(lcd_out, PSTR("BUT:%d %d %d"), f_test_button_test & (1 << 0), (f_test_button_test & (1 << 1)) >> 1, (f_test_button_test & (1 << 2)) >> 2);
 	}
 
-#ifdef BAT_SUPPORT
 	res = battery_adc_raw != 0;
 	if (!res) err = true;
 	if (res || blik)
@@ -265,7 +264,6 @@ void gui_factory_test_loop()
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 6 + 3);
 		fprintf_P(lcd_out, PSTR("BAT:%d%%"), battery_per);
 	}
-#endif
 
 	if (!err)
 	{
@@ -349,7 +347,7 @@ void gui_factory_test_irqh(uint8_t type, uint8_t * buff)
 #ifdef LED_SUPPORT
 				led_set(0xFF, 0x00, 0x00);
 #endif
-#ifdef BUZZER_SUPPORT
+#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(200);
 #endif
@@ -359,7 +357,7 @@ void gui_factory_test_irqh(uint8_t type, uint8_t * buff)
 #ifdef LED_SUPPORT
 				led_set(0x00, 0xFF, 0x00);
 #endif
-#ifdef BUZZER_SUPPORT
+#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(300);
 #endif
@@ -369,7 +367,7 @@ void gui_factory_test_irqh(uint8_t type, uint8_t * buff)
 #ifdef LED_SUPPORT
 				led_set(0x00, 0x00, 0xFF);
 #endif
-#ifdef BUZZER_SUPPORT
+#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(0);
 #endif
 			break;

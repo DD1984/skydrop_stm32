@@ -1,9 +1,13 @@
 #include "battery.h"
 #include "../tasks/tasks.h"
 
+#ifdef STM32
+#define BAT_EN_ADC 1
+#endif
 
 void battery_init()
 {
+#ifndef STM32
 	BATTERY_ADC_PWR_ON;
 	BATTERY_ADC_ENABLE;
 
@@ -13,6 +17,7 @@ void battery_init()
 	AdcPipeSetSource(pipea0, BAT_SNS_ADC);
 
 	GpioSetDirection(BAT_EN, OUTPUT);
+#endif
 	bat_en_low(BAT_EN_ADC);
 }
 
@@ -80,29 +85,32 @@ bool battery_step()
 
 	case(BATTERY_STATE_PREPARE):
 		battery_meas_state = BATTERY_STATE_START;
-
+#ifndef STM32
 		BATTERY_ADC_PWR_ON;
 		BATTERY_ADC_ENABLE;
+#endif
 		bat_en_high(BAT_EN_ADC);
 		battery_next_meas = task_get_ms_tick() + BATTERY_STABILISE;
 	break;
 
 	case(BATTERY_STATE_START):
+#ifndef STM32
 		AdcPipeStart(pipea0);
-
+#endif
 		battery_meas_state = BATTERY_STATE_RESULT;
 	break;
 
 	case(BATTERY_STATE_RESULT):
+#ifndef STM32
 		if (!AdcPipeReady(pipea0))
 		{
 			DEBUG("adc not ready\n");
 			return false;
 		}
-
-
-
 		uint16_t tmp = AdcPipeValue(pipea0);
+#else
+		uint16_t tmp = 20;
+#endif
 		battery_meas_acc += tmp;
 
 		battery_meas_cnt++;
@@ -112,8 +120,10 @@ bool battery_step()
 			battery_meas_state = BATTERY_STATE_IDLE;
 
 			bat_en_low(BAT_EN_ADC);
+#ifndef STM32
 			BATTERY_ADC_DISABLE;
 			BATTERY_ADC_PWR_OFF;
+#endif
 		}
 		else
 			battery_meas_state = BATTERY_STATE_START;

@@ -554,6 +554,7 @@ void gui_irqh(uint8_t type, uint8_t * buff)
 
 void gui_statusbar()
 {
+#ifdef GPS_SUPPORT
 	//GPS indicator
 	if (config.system.use_gps)
 	{
@@ -571,6 +572,7 @@ void gui_statusbar()
 				gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 1);
 		}
 	}
+#endif
 
 #ifdef BT_SUPPORT
 	//BT indicator
@@ -592,15 +594,11 @@ void gui_statusbar()
 	}
 #endif
 
-#ifdef BAT_SUPPORT
 	//battery indicator
 	uint8_t a = battery_per / 10;
-#endif
 
 	disp.DrawLine(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 13, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 13, 1);
 	disp.DrawRectangle(GUI_DISP_WIDTH - 6, GUI_DISP_HEIGHT - 12, GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 1, 1, 0);
-#ifdef BAT_SUPPORT
 	disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
-#endif
 
 }

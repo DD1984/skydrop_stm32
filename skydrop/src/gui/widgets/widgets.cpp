@@ -25,9 +25,7 @@ widget widget_array[NUMBER_OF_WIDGETS] = {
 		w_gspd,
 		w_gpos,
 #endif
-#ifdef BAT_SUPPORT
 		w_battery,
-#endif
 		w_glide_ratio,
 };
 

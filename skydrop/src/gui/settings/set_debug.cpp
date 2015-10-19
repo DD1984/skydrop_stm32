@@ -76,9 +76,7 @@ void gui_set_debug_item(uint8_t index, char * text, uint8_t * flags, char * sub_
 		case (2):
 			sprintf_P(text, PSTR("ADC raw value"));
 			*flags |= GUI_LIST_SUB_TEXT;
-#ifdef BAT_SUPPORT
 			sprintf_P(sub_text, PSTR("%d"), battery_adc_raw);
-#endif
 		break;
 
 		case (3):
