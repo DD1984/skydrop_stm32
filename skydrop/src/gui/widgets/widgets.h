@@ -28,7 +28,6 @@ struct widget
 	uint8_t flags;
 };
 
-#ifndef STM32
 #define register_widget3(name, label, draw, loop, irqh, flags) \
 	const char name ## _label[] PROGMEM = label;\
 	widget name = { \
@@ -58,42 +57,12 @@ struct widget
 		NULL, \
 		0, \
 	};
-#else
-#define register_widget3(name, label, draw, loop, irqh, flags) \
-	const char name ## _label[] = label;\
-	widget name = { \
-		name ## _label, \
-		draw, \
-		loop, \
-		irqh, \
-		flags, \
-	};
-
-#define register_widget2(name, label, draw, loop, irqh) \
-	const char name ## _label[] = label;\
-	widget name = { \
-		name ## _label, \
-		draw, \
-		loop, \
-		irqh, \
-		0, \
-	}; \
-
-#define register_widget1(name, label, draw) \
-	const char name ## _label[] = label;\
-	widget name = { \
-		name ## _label, \
-		draw, \
-		NULL, \
-		NULL, \
-		0, \
-	};
-#endif
 
 extern uint8_t widget_menu_state;
 extern uint8_t widget_menu_param1;
 extern float widget_menu_fvalue1;
 
+#ifndef STM32
 #define WIDGET_OFF			0xFF
 #define WIDGET_EMPTY		0
 #define WIDGET_DEBUG_ETC	1
@@ -135,6 +104,73 @@ extern float widget_menu_fvalue1;
 
 #define NUMBER_OF_WIDGETS	20
 
+#else
+
+#include "dummy.h"
+#include "vario.h"
+#include "altitude.h"
+#ifdef ACC_SUPPORT
+#include "acc.h"
+#endif
+#include "time.h"
+#include "temperature.h"
+#ifdef GPS_SUPPORT
+#include "gps.h"
+#endif
+#include "battery.h"
+#include "flight.h"
+
+enum {
+	//dummpy.h
+	WIDGET_EMPTY,
+	WIDGET_DEBUG_ETC,
+	WIDGET_DEBUG_IMU,
+
+	//vario.h
+	WIDGET_VARIO,
+	WIDGET_AVG_VARIO,
+	WIDGET_VARIO_BAR,
+
+	//altitude.h
+	WIDGET_ALT1,
+	WIDGET_ALT2,
+	WIDGET_ALT3,
+	WIDGET_ALT4,
+	WIDGET_ALT5,
+
+#ifdef ACC_SUPPORT
+	//acc.h
+	WIDGET_ACCX,
+#endif
+
+#ifdef RTC_SUPPORT
+	//time.h
+	WIDGET_TIME,
+	WIDGET_FTIME,
+#endif
+
+	//temperature.h
+	WIDGET_TEMPERATURE,
+
+#ifdef GPS_SUPPORT
+	//gps.h
+	WIDGET_GHEADING,
+	WIDGET_GROUND_SPD,
+	WIDGET_POSITION,
+#endif
+
+	//battery.h
+	WIDGET_BATTERY,
+	//flight.h
+	WIDGET_GLIDE_RATIO,
+	//
+	WIDGET_END,
+	//
+	WIDGET_OFF = 0xFF
+};
+#define NUMBER_OF_WIDGETS	WIDGET_END
+#endif
+
 void widgets_draw(uint8_t page);
 
 uint8_t widget_label_P(const char * label, uint8_t x, uint8_t y);
@@ -151,7 +187,6 @@ void layout_get_widget_rect(uint8_t type, uint8_t widget, uint8_t * x, uint8_t *
 
 uint8_t widget_get_type(uint8_t page, uint8_t widget);
 
-//extern widget widget_array[NUMBER_OF_WIDGETS];
-extern widget widget_array[];
+extern widget widget_array[NUMBER_OF_WIDGETS];
 
 #endif /* WIDGETS_H_ */
