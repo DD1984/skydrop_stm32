@@ -11,7 +11,7 @@
 #ifdef STM32
 #include "stm32f1xx_hal.h"
 #define SWITCH_GPIO_PORT		GPIOA
-#define SWITCH3					GPIO_PIN_1
+#define SWITCH3					GPIO_PIN_12
 #define SWITCH2					GPIO_PIN_0
 #define SWITCH1					GPIO_PIN_11
 
