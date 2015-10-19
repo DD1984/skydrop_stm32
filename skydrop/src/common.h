@@ -39,9 +39,6 @@
 #define HIGH	1
 #define LOW		0
 
-//#define GpioRead(x) x
-#define GpioWrite(x,y) {}
-#define GpioSetDirection(x,y) {}
 #define _delay_ms(x) HAL_Delay(x)
 
 #define eeprom_busy_wait() {}
@@ -49,12 +46,13 @@
 #define eeprom_update_word(addr, val) {}
 #define eeprom_update_float(addr, val) {}
 #define eeprom_read_byte(addr) 5
-#define pgm_read_byte(addr) 5
-#define pgm_read_word(addr) 5
 #define eeprom_read_block(addr, data, size) {}
 #define eeprom_update_block(addr, data, size) {}
 #define eeprom_write_float {}
 
+#define PROGMEM
+#define pgm_read_byte(addr) (*(addr))
+#define pgm_read_word(addr) (*(addr))
 #define PSTR(x) x
 #define sprintf_P sprintf
 #define fprintf_P fprintf
