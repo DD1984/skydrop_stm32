@@ -31,12 +31,10 @@ void Setup()
 #ifdef RTC_SUPPORT	
 	time_init();
 #endif
-#ifdef BUZZER_SUPPORT	
+#ifdef AUDIO_SUPPORT
 	buzzer_init();
 #endif
-#ifdef BAT_SUPPORT	
 	battery_init();
-#endif
 	buttons_init();
 
 	//basic power control
