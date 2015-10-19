@@ -102,11 +102,7 @@ void n5110display::Write(uint8_t ascii=0)
 			uint16_t index = adr + x * font_lines;
 			for (uint8_t n = 0; n < font_lines; n++)
 			{
-#ifndef STM32
 				uint8_t data = pgm_read_byte(&this->font_data[index + n]);
-#else
-				uint8_t data = this->font_data[index + n];
-#endif
 				for (uint8_t a = 0; a < 8; a++)
 				{
 					if (data & (1 << a))
@@ -145,13 +141,8 @@ uint8_t n5110display::GetTextWidth(char * text)
 		{
 			uint16_t adr = 6 + (*text - font_begin) * 2;
 
-#ifndef STM32
 			uint16_t start = pgm_read_word(&this->font_data[adr]);
 			uint8_t width = pgm_read_word(&this->font_data[adr + 2]) - start;
-#else
-			uint16_t start = this->font_data[adr];
-			uint8_t width = this->font_data[adr + 2] - start;
-#endif
 
 			ret += font_spacing + width;
 		}
@@ -175,21 +166,12 @@ uint8_t n5110display::GetAHeight()
 void n5110display::LoadFont(const uint8_t * font)
 {
 	this->font_data = font;
-#ifndef STM32
 	this->font_height = pgm_read_byte(&font[0]);
 	this->font_A_height = pgm_read_byte(&font[1]);
 	this->font_spacing = pgm_read_byte(&font[2]);
 	this->font_lines = pgm_read_byte(&font[3]);
 	this->font_begin = pgm_read_byte(&font[4]);
 	this->font_end = pgm_read_byte(&font[5]);
-#else
-	this->font_height = font[0];
-	this->font_A_height = font[1];
-	this->font_spacing = font[2];
-	this->font_lines = font[3];
-	this->font_begin = font[4];
-	this->font_end = font[5];
-#endif
 
 	this->font_adr_start = 6; //header
 	this->font_adr_start += (this->font_end - this->font_begin + 2) * 2; //char adr table
@@ -410,21 +392,13 @@ void n5110display::InvertPixel(uint8_t x ,uint8_t  y)
 void n5110display::DrawImage(const uint8_t *data,uint8_t x,uint8_t y)
 {
 	uint8_t cbuf;
-#ifndef STM32
 	cbuf = pgm_read_byte(&data[0]);
-#else
-	cbuf = data[0];
-#endif
 
 	uint8_t imgwidth = (cbuf+x < n5110_width)?cbuf:n5110_width-x;
 	int16_t xCutOff  = (cbuf+x < n5110_width)?0:(cbuf+x-n5110_width);
 	uint8_t yOffset  = (y/8 < 1)?0:y/8;
 
-#ifndef STM32
 	cbuf = pgm_read_byte(&data[1]);
-#else
-	cbuf = data[1];
-#endif
 
 	uint8_t imgheight = (cbuf/8);
 	uint8_t _x = x;
@@ -436,11 +410,7 @@ void n5110display::DrawImage(const uint8_t *data,uint8_t x,uint8_t y)
 	for (_y=0;_y < imgheight; _y++){
 		for(_x=0;_x < imgwidth; _x++){
 
-#ifndef STM32
 			cbuf = pgm_read_byte(&data[index]);
-#else
-			cbuf = data[index];
-#endif
 
 			if (y % 8 != 0) {
 				uint16_t tmp = 0;
@@ -645,7 +615,6 @@ void n5110display::Draw()
 					writedata16(0);
 		}
 	}
-	printf("!\n");
 }
 
 #endif
