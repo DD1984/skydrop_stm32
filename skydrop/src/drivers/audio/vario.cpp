@@ -18,8 +18,9 @@ volatile uint16_t audio_vario_pause;
 volatile uint16_t audio_vario_length;
 volatile float audio_vario_freq = 0;
 
+#ifndef STM32
 extern Timer audio_timer;
-
+#endif
 
 //linear aproximation between two points
 uint16_t get_near(float vario, volatile uint16_t * src)
@@ -49,6 +50,7 @@ uint16_t get_near(float vario, volatile uint16_t * src)
 	return start;
 }
 
+#ifndef STM32
 ISR(AUDIO_TIMER_OVF)
 {
 	if (audio_vario_mode == VARIO_BEEP)
@@ -85,6 +87,7 @@ ISR(AUDIO_TIMER_OVF)
 		return;
 	}
 }
+#endif
 
 void audio_vario_apply()
 {
@@ -97,10 +100,11 @@ void audio_vario_apply()
 				buzzer_set_vol(config.gui.vario_volume);
 				buzzer_set_freq(audio_vario_freq);
 
+#ifndef STM32
 				audio_timer.SetValue(0);
 				audio_timer.SetTop(audio_vario_length);
 				audio_timer.Start();
-
+#endif
 				audio_vario_mode = VARIO_BEEP;
 				break;
 			}
@@ -119,7 +123,9 @@ void audio_vario_apply()
 		case(VARIO_BEEP):
 			if (audio_vario_length == 0 || audio_vario_pause == 0)
 			{
+#ifndef STM32
 				audio_timer.Stop();
+#endif
 				buzzer_set_vol(config.gui.vario_volume);
 				buzzer_set_freq(audio_vario_freq);
 
@@ -139,10 +145,11 @@ void audio_vario_apply()
 			{
 				buzzer_set_freq(audio_vario_freq);
 
+#ifndef STM32
 				audio_timer.SetValue(0);
 				audio_timer.SetTop(audio_vario_length);
 				audio_timer.Start();
-
+#endif
 				audio_vario_mode = VARIO_BEEP;
 				break;
 			}
@@ -217,3 +224,4 @@ void audio_vario_reset()
 	audio_vario_mode = VARIO_OFF;
 
 }
+

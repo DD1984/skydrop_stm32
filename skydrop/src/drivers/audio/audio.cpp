@@ -5,8 +5,9 @@
 #include "sequencer.h"
 #include "vario.h"
 
+#ifndef STM32
 Timer audio_timer;
-
+#endif
 
 //demo
 volatile bool audio_demo = false;
@@ -14,9 +15,11 @@ volatile float audio_demo_val = 0;
 
 void audio_init()
 {
+#ifndef STM32
 	AUDIO_TIMER_PWR_ON;
 	audio_timer.Init(AUDIO_TIMER, timer_div1024);
 	audio_timer.EnableInterrupts(timer_overflow);
+#endif
 }
 
 void audio_step()
@@ -55,8 +58,10 @@ void audio_step()
 
 void audio_off()
 {
+#ifndef STM32
 	//stop unused timer
 	audio_timer.Stop();
+#endif
 	//reset state of audio vario
 	audio_vario_reset();
 	//silence!
@@ -64,3 +69,9 @@ void audio_off()
 }
 
 
+#ifdef STM32
+#include "audio_c.h"
+void audio_step_c(void) {
+	audio_step();
+}
+#endif
