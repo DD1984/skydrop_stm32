@@ -171,10 +171,8 @@ bool cmpn_p(char * s1, const char * s2, uint8_t n)
 {
 	for (uint8_t i = 0; i < n; i++)
 	{
-#ifndef STM32
 		if (s1[i] != pgm_read_byte(&s2[i]))
 			return false;
-#endif			
 	}
 	return true;
 }
