@@ -281,8 +281,10 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 	{
 		case(0):
 			day += inc;
+#ifdef RTC_SUPPORT
 			if (day < 1)
 				day = monthDays[month - 1];
+#endif
 
 			if ((((!(year % 4)) && (year % 100) ) || (!(year % 400))) && month == 2)
 			{
@@ -291,8 +293,10 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 			}
 			else
 			{
+#ifdef RTC_SUPPORT
 				if (day > monthDays[month - 1])
 					day = monthDays[month - 1];
+#endif
 			}
 		break;
 
