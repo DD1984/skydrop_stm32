@@ -6,6 +6,12 @@ TOPDIR := $(shell pwd)
 TARGET = SkyDrop
 
 ######################################
+# Posibilities
+######################################
+GPS_SUPPORT=n
+
+
+######################################
 # MCU
 ######################################
 MCU = -mthumb -mcpu=cortex-m3
@@ -41,6 +47,8 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_spi.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_spi_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_tim.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_tim_ex.c
 
 C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
@@ -66,6 +74,11 @@ CPP_SOURCES += src/drivers/uart.cpp
 CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/n5110_disp.cpp
+CPP_SOURCES += src/drivers/battery.cpp
+CPP_SOURCES += src/drivers/audio/audio.cpp
+CPP_SOURCES += src/drivers/audio/buzzer.cpp
+CPP_SOURCES += src/drivers/audio/sequencer.cpp
+CPP_SOURCES += src/drivers/audio/vario.cpp
 
 CPP_SOURCES += src/data/fonts.cpp
 
@@ -77,11 +90,12 @@ CPP_SOURCES += src/gui/splash.cpp
 CPP_SOURCES += src/gui/factory_test.cpp
 CPP_SOURCES += src/gui/gui_list.cpp
 
+CPP_SOURCES += src/gui/widgets/layouts/layouts.cpp
 CPP_SOURCES += src/gui/widgets/widgets.cpp
 CPP_SOURCES += src/gui/widgets/dummy.cpp
 CPP_SOURCES += src/gui/widgets/flight.cpp
 CPP_SOURCES += src/gui/widgets/temperature.cpp
-#CPP_SOURCES += src/gui/widgets/battery.cpp
+CPP_SOURCES += src/gui/widgets/battery.cpp
 CPP_SOURCES += src/gui/widgets/vario.cpp
 CPP_SOURCES += src/gui/widgets/altitude.cpp
 
@@ -92,7 +106,8 @@ CPP_SOURCES += src/gui/settings/set_system.cpp
 CPP_SOURCES += src/gui/settings/set_autostart.cpp
 CPP_SOURCES += src/gui/settings/layouts.cpp
 CPP_SOURCES += src/gui/settings/set_layout.cpp
-#CPP_SOURCES += src/gui/settings/set_audio.cpp
+CPP_SOURCES += src/gui/settings/set_audio.cpp
+CPP_SOURCES += src/gui/settings/set_menu_audio.cpp
 CPP_SOURCES += src/gui/settings/set_altimeter.cpp
 CPP_SOURCES += src/gui/settings/set_weaklift.cpp
 CPP_SOURCES += src/gui/settings/set_vario.cpp
@@ -137,6 +152,7 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 CFLAGS += -DSTM32
 CFLAGS += -DUART_SUPPORT
 CFLAGS += -DDISPLAY_SUPPORT
+CFLAGS += -DAUDIO_SUPPORT
 
 #######################################
 # LDFLAGS
@@ -148,7 +164,7 @@ LIBS = -lc -lm -lstdc++
 LIBDIR =
 # --specs=nano.specs
 # --specs=nosys.specs
-LDFLAGS = $(MCU) --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -u _printf_float --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
 all: $(TARGET).elf $(TARGET).hex $(TARGET).bin
