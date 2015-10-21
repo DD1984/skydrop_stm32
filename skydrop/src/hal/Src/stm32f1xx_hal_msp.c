@@ -67,13 +67,21 @@
 
 
 /* Definition for TIMx clock resources */
-#define TIMx_CLK_ENABLE()              __HAL_RCC_TIM2_CLK_ENABLE()
+#define TIM2_CLK_ENABLE()              __HAL_RCC_TIM2_CLK_ENABLE()
 
 /* Definition for TIMx Channel Pins */
 #define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOA_CLK_ENABLE()
 #define TIMx_GPIO_PORT_CHANNEL2        GPIOA
 #define TIMx_GPIO_PIN_CHANNEL2         GPIO_PIN_1
 #define TIMx_GPIO_AF_CHANNEL2          /
+
+/* Definition for TIMx clock resources */
+#define TIM3_CLK_ENABLE()              __HAL_RCC_TIM3_CLK_ENABLE()
+
+/* Definition for TIMx's NVIC */
+#define TIMx_IRQn                      TIM3_IRQn
+#define TIMx_IRQHandler                TIM3_IRQHandler
+
 
 /**
   * @brief UART MSP Initialization
@@ -85,31 +93,30 @@
   */
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
-  GPIO_InitTypeDef  GPIO_InitStruct;
+	GPIO_InitTypeDef  GPIO_InitStruct;
+
+	/*##-1- Enable peripherals and GPIO Clocks #################################*/
+	/* Enable GPIO TX/RX clock */
+	USARTx_TX_GPIO_CLK_ENABLE();
+	USARTx_RX_GPIO_CLK_ENABLE();
 
 
-  /*##-1- Enable peripherals and GPIO Clocks #################################*/
-  /* Enable GPIO TX/RX clock */
-  USARTx_TX_GPIO_CLK_ENABLE();
-  USARTx_RX_GPIO_CLK_ENABLE();
+	/* Enable USARTx clock */
+	USARTx_CLK_ENABLE();
 
+	/*##-2- Configure peripheral GPIO ##########################################*/
+	/* UART TX GPIO pin configuration  */
+	GPIO_InitStruct.Pin       = USARTx_TX_PIN;
+	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull      = GPIO_PULLUP;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
 
-  /* Enable USARTx clock */
-  USARTx_CLK_ENABLE();
+	HAL_GPIO_Init(USARTx_TX_GPIO_PORT, &GPIO_InitStruct);
 
-  /*##-2- Configure peripheral GPIO ##########################################*/
-  /* UART TX GPIO pin configuration  */
-  GPIO_InitStruct.Pin       = USARTx_TX_PIN;
-  GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull      = GPIO_PULLUP;
-  GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+	/* UART RX GPIO pin configuration  */
+	GPIO_InitStruct.Pin = USARTx_RX_PIN;
 
-  HAL_GPIO_Init(USARTx_TX_GPIO_PORT, &GPIO_InitStruct);
-
-  /* UART RX GPIO pin configuration  */
-  GPIO_InitStruct.Pin = USARTx_RX_PIN;
-
-  HAL_GPIO_Init(USARTx_RX_GPIO_PORT, &GPIO_InitStruct);
+	HAL_GPIO_Init(USARTx_RX_GPIO_PORT, &GPIO_InitStruct);
 }
 
 /**
@@ -122,21 +129,16 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
   */
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
-  /*##-1- Reset peripherals ##################################################*/
-  USARTx_FORCE_RESET();
-  USARTx_RELEASE_RESET();
+	/*##-1- Reset peripherals ##################################################*/
+	USARTx_FORCE_RESET();
+	USARTx_RELEASE_RESET();
 
-  /*##-2- Disable peripherals and GPIO Clocks #################################*/
-  /* Configure UART Tx as alternate function  */
-  HAL_GPIO_DeInit(USARTx_TX_GPIO_PORT, USARTx_TX_PIN);
-  /* Configure UART Rx as alternate function  */
-  HAL_GPIO_DeInit(USARTx_RX_GPIO_PORT, USARTx_RX_PIN);
-
+	/*##-2- Disable peripherals and GPIO Clocks #################################*/
+	/* Configure UART Tx as alternate function  */
+	HAL_GPIO_DeInit(USARTx_TX_GPIO_PORT, USARTx_TX_PIN);
+	/* Configure UART Rx as alternate function  */
+	HAL_GPIO_DeInit(USARTx_RX_GPIO_PORT, USARTx_RX_PIN);
 }
-
-/** @defgroup HAL_MSP_Private_Functions
-  * @{
-  */
 
 /**
   * @brief SPI MSP Initialization
@@ -148,34 +150,34 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
   */
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 {
-GPIO_InitTypeDef  GPIO_InitStruct;
+	GPIO_InitTypeDef  GPIO_InitStruct;
 
-  if(hspi->Instance == SPI1)
-  {
-    /*##-1- Enable peripherals and GPIO Clocks #################################*/
-    /* Enable GPIO TX/RX clock */
-    SPIx_SCK_GPIO_CLK_ENABLE();
-    SPIx_MISO_GPIO_CLK_ENABLE();
-    SPIx_MOSI_GPIO_CLK_ENABLE();
-    /* Enable SPI clock */
-    SPIx_CLK_ENABLE();
+	if(hspi->Instance == SPI1)
+	{
+		/*##-1- Enable peripherals and GPIO Clocks #################################*/
+		/* Enable GPIO TX/RX clock */
+		SPIx_SCK_GPIO_CLK_ENABLE();
+		SPIx_MISO_GPIO_CLK_ENABLE();
+		SPIx_MOSI_GPIO_CLK_ENABLE();
+		/* Enable SPI clock */
+		SPIx_CLK_ENABLE();
 
-    /*##-2- Configure peripheral GPIO ##########################################*/
-    /* SPI SCK GPIO pin configuration  */
-    GPIO_InitStruct.Pin       = SPIx_SCK_PIN;
-    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
-    HAL_GPIO_Init(SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
+		/*##-2- Configure peripheral GPIO ##########################################*/
+		/* SPI SCK GPIO pin configuration  */
+		GPIO_InitStruct.Pin       = SPIx_SCK_PIN;
+		GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
+		GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
+		HAL_GPIO_Init(SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
 
-    /* SPI MISO GPIO pin configuration  */
-    GPIO_InitStruct.Pin = SPIx_MISO_PIN;
-    HAL_GPIO_Init(SPIx_MISO_GPIO_PORT, &GPIO_InitStruct);
+		/* SPI MISO GPIO pin configuration  */
+		GPIO_InitStruct.Pin = SPIx_MISO_PIN;
+		HAL_GPIO_Init(SPIx_MISO_GPIO_PORT, &GPIO_InitStruct);
 
-    /* SPI MOSI GPIO pin configuration  */
-    GPIO_InitStruct.Pin = SPIx_MOSI_PIN;
-    HAL_GPIO_Init(SPIx_MOSI_GPIO_PORT, &GPIO_InitStruct);
-  }
+		/* SPI MOSI GPIO pin configuration  */
+		GPIO_InitStruct.Pin = SPIx_MOSI_PIN;
+		HAL_GPIO_Init(SPIx_MOSI_GPIO_PORT, &GPIO_InitStruct);
+	}
 }
 
 /**
@@ -188,16 +190,16 @@ GPIO_InitTypeDef  GPIO_InitStruct;
   */
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 {
-  if(hspi->Instance == SPI1)
-  {
-    /*##-1- Disable peripherals and GPIO Clocks ################################*/
-    /* Configure SPI SCK as alternate function  */
-    HAL_GPIO_DeInit(SPIx_SCK_GPIO_PORT, SPIx_SCK_PIN);
-    /* Configure SPI MISO as alternate function  */
-    HAL_GPIO_DeInit(SPIx_MISO_GPIO_PORT, SPIx_MISO_PIN);
-    /* Configure SPI MOSI as alternate function  */
-    HAL_GPIO_DeInit(SPIx_MOSI_GPIO_PORT, SPIx_MOSI_PIN);
-  }
+	if(hspi->Instance == SPI1)
+	{
+		/*##-1- Disable peripherals and GPIO Clocks ################################*/
+		/* Configure SPI SCK as alternate function  */
+		HAL_GPIO_DeInit(SPIx_SCK_GPIO_PORT, SPIx_SCK_PIN);
+		/* Configure SPI MISO as alternate function  */
+		HAL_GPIO_DeInit(SPIx_MISO_GPIO_PORT, SPIx_MISO_PIN);
+		/* Configure SPI MOSI as alternate function  */
+		HAL_GPIO_DeInit(SPIx_MOSI_GPIO_PORT, SPIx_MOSI_PIN);
+	}
 }
 
 /**
@@ -210,23 +212,45 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
   */
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 {
-  GPIO_InitTypeDef   GPIO_InitStruct;
-  /*##-1- Enable peripherals and GPIO Clocks #################################*/
-  /* TIMx Peripheral clock enable */
-  TIMx_CLK_ENABLE();
+	GPIO_InitTypeDef   GPIO_InitStruct;
 
-  /* Enable all GPIO Channels Clock requested */
-  TIMx_CHANNEL_GPIO_PORT();
+	/*##-1- Enable peripherals and GPIO Clocks #################################*/
+	/* TIMx Peripheral clock enable */
+	TIM2_CLK_ENABLE();
 
-  /* Configure  PA.1  (On Eval Board, pin 33 on CN1  for example) (TIM2_Channel2) in output, push-pull, alternate function mode
+	/* Enable all GPIO Channels Clock requested */
+	TIMx_CHANNEL_GPIO_PORT();
+
+	/* Configure  PA.1  (On Eval Board, pin 33 on CN1  for example) (TIM2_Channel2) in output, push-pull, alternate function mode
+	 */
+	/* Common configuration for all channels */
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+
+	GPIO_InitStruct.Pin = TIMx_GPIO_PIN_CHANNEL2;
+	HAL_GPIO_Init(TIMx_GPIO_PORT_CHANNEL2, &GPIO_InitStruct);
+}
+
+/**
+  * @brief TIM MSP Initialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  * @param htim: TIM handle pointer
+  * @retval None
   */
-  /* Common configuration for all channels */
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
+{
+  /*##-1- Enable peripheral clock #################################*/
+  /* TIMx Peripheral clock enable */
+  TIM3_CLK_ENABLE();
 
-  GPIO_InitStruct.Pin = TIMx_GPIO_PIN_CHANNEL2;
-  HAL_GPIO_Init(TIMx_GPIO_PORT_CHANNEL2, &GPIO_InitStruct);
+  /*##-2- Configure the NVIC for TIMx ########################################*/
+  /* Set the TIMx priority */
+  HAL_NVIC_SetPriority(TIMx_IRQn, 3, 0);
+
+  /* Enable the TIMx global Interrupt */
+  HAL_NVIC_EnableIRQ(TIMx_IRQn);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

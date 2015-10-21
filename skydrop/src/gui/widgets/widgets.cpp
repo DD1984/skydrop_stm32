@@ -33,7 +33,7 @@ uint8_t widget_label_P(const char * label, uint8_t x, uint8_t y)
 {
 	disp.LoadFont(F_LABEL);
 	disp.GotoXY(x + 1, y);
-	fprintf_P(lcd_out, PSTR("%S"), label);
+	fprintf_P(lcd_out, PSTR("%s"), label);
 	return disp.GetAHeight() + 1;
 }
 

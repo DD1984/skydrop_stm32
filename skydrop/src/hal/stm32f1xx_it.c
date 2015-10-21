@@ -38,6 +38,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f1xx_hal.h"
 #include "stm32f1xx_it.h"
    
 /** @addtogroup STM32F1xx_HAL_Examples
@@ -153,8 +154,16 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
+#include "../drivers/audio/audio_c.h"
+unsigned int audio_step_timer = 0;
+
 void SysTick_Handler(void)
 {
+	if ((HAL_GetTick() - audio_step_timer) >= 10) {
+		audio_step_c();
+		audio_step_timer = HAL_GetTick();
+	}
+
   HAL_IncTick();
 }
 
@@ -174,13 +183,15 @@ void SysTick_Handler(void)
 {
 }*/
 
-
 /**
-  * @}
-  */ 
-
-/**
-  * @}
+  * @brief  This function handles TIM interrupt request.
+  * @param  None
+  * @retval None
   */
+extern TIM_HandleTypeDef audio_timer;
+void TIM3_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&audio_timer);
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

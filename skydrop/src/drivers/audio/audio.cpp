@@ -7,6 +7,9 @@
 
 #ifndef STM32
 Timer audio_timer;
+#else
+#include "audio_c.h"
+TIM_HandleTypeDef audio_timer;
 #endif
 
 //demo
@@ -19,6 +22,14 @@ void audio_init()
 	AUDIO_TIMER_PWR_ON;
 	audio_timer.Init(AUDIO_TIMER, timer_div1024);
 	audio_timer.EnableInterrupts(timer_overflow);
+#else
+#define TIM3CLK 31250
+	audio_timer.Instance = TIM3;
+	audio_timer.Init.Prescaler = (uint32_t)(SystemCoreClock / TIM3CLK) - 1;;
+	audio_timer.Init.ClockDivision = 0;
+	audio_timer.Init.CounterMode = TIM_COUNTERMODE_UP;
+	audio_timer.Init.RepetitionCounter = 0;
+	HAL_TIM_Base_Init(&audio_timer);
 #endif
 }
 
@@ -61,6 +72,9 @@ void audio_off()
 #ifndef STM32
 	//stop unused timer
 	audio_timer.Stop();
+#else
+	if (audio_timer.Instance != NULL)
+		HAL_TIM_Base_Stop_IT(&audio_timer);
 #endif
 	//reset state of audio vario
 	audio_vario_reset();

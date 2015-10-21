@@ -20,6 +20,8 @@ volatile float audio_vario_freq = 0;
 
 #ifndef STM32
 extern Timer audio_timer;
+#else
+extern TIM_HandleTypeDef audio_timer;
 #endif
 
 //linear aproximation between two points
@@ -52,6 +54,9 @@ uint16_t get_near(float vario, volatile uint16_t * src)
 
 #ifndef STM32
 ISR(AUDIO_TIMER_OVF)
+#else
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+#endif
 {
 	if (audio_vario_mode == VARIO_BEEP)
 	//pause start
@@ -61,7 +66,11 @@ ISR(AUDIO_TIMER_OVF)
 
 		if (audio_vario_pause > 0)
 		{
+#ifndef STM32
 			audio_timer.SetTop(audio_vario_pause);
+#else
+			audio_timer.Instance->ARR = audio_vario_pause;
+#endif
 			audio_vario_mode = VARIO_PAUSE;
 		}
 		else
@@ -78,7 +87,11 @@ ISR(AUDIO_TIMER_OVF)
 
 		if (audio_vario_length > 0)
 		{
+#ifndef STM32
 			audio_timer.SetTop(audio_vario_length);
+#else
+			audio_timer.Instance->ARR = audio_vario_pause;
+#endif
 			audio_vario_mode = VARIO_BEEP;
 		}
 		else
@@ -87,7 +100,6 @@ ISR(AUDIO_TIMER_OVF)
 		return;
 	}
 }
-#endif
 
 void audio_vario_apply()
 {
@@ -104,6 +116,11 @@ void audio_vario_apply()
 				audio_timer.SetValue(0);
 				audio_timer.SetTop(audio_vario_length);
 				audio_timer.Start();
+#else
+				audio_timer.Instance->CNT = 0;
+				audio_timer.Init.Period = audio_vario_length;
+				HAL_TIM_Base_Init(&audio_timer);
+				HAL_TIM_Base_Start_IT(&audio_timer);
 #endif
 				audio_vario_mode = VARIO_BEEP;
 				break;
@@ -125,6 +142,8 @@ void audio_vario_apply()
 			{
 #ifndef STM32
 				audio_timer.Stop();
+#else
+				HAL_TIM_Base_Stop_IT(&audio_timer);
 #endif
 				buzzer_set_vol(config.gui.vario_volume);
 				buzzer_set_freq(audio_vario_freq);
@@ -149,6 +168,11 @@ void audio_vario_apply()
 				audio_timer.SetValue(0);
 				audio_timer.SetTop(audio_vario_length);
 				audio_timer.Start();
+#else
+				audio_timer.Instance->CNT = 0;
+				audio_timer.Init.Period = audio_vario_length;
+				HAL_TIM_Base_Init(&audio_timer);
+				HAL_TIM_Base_Start_IT(&audio_timer);
 #endif
 				audio_vario_mode = VARIO_BEEP;
 				break;
@@ -222,6 +246,5 @@ void audio_vario_reset()
 	audio_vario_freq = 0;
 	//next vario sound will go from OFF state
 	audio_vario_mode = VARIO_OFF;
-
 }
 
