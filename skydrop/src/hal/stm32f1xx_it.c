@@ -154,16 +154,10 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
-#include "../drivers/audio/audio_c.h"
 unsigned int audio_step_timer = 0;
 
 void SysTick_Handler(void)
 {
-	if ((HAL_GetTick() - audio_step_timer) >= 10) {
-		audio_step_c();
-		audio_step_timer = HAL_GetTick();
-	}
-
   HAL_IncTick();
 }
 
@@ -192,6 +186,12 @@ extern TIM_HandleTypeDef audio_timer;
 void TIM3_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&audio_timer);
+}
+
+extern TIM_HandleTypeDef fc_meas_timer;
+void TIM4_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&fc_meas_timer);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
