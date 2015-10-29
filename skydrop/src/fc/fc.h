@@ -138,4 +138,8 @@ void fc_landing();
 
 extern volatile flight_data_t fc;
 
+#ifdef STM32
+void fc_meas_timer_ovf(void);
+#endif
+
 #endif /* FC_H_ */

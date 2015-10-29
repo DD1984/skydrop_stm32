@@ -8,19 +8,28 @@
 #include "devices.h"
 #include "../../fc/fc.h"
 
-#if defined(LSM303D_SUPPORT) || defined(MS5611_SUPPORT) || defined(L3GD20_SUPPORT)  || defined(SHT21_SUPPORT)
+#ifndef STM32
 I2c mems_i2c;
+#else
+I2C_HandleTypeDef mems_i2c;
 #endif
 
 #ifdef LSM303D_SUPPORT
 Lsm303d lsm303d;
 #endif
+
 #ifdef MS5611_SUPPORT
 MS5611 ms5611;
 #endif
+
+#ifdef BMP180_SUPPORT
+BMP180 bmp180;
+#endif
+
 #ifdef L3GD20_SUPPORT
 L3gd20 l3gd20;
 #endif
+
 #ifdef SHT21_SUPPORT
 SHT21 sht21;
 #endif
@@ -43,6 +52,16 @@ bool mems_i2c_init()
 		return false;
 
 	mems_i2c_ok = true;
+#else
+	mems_i2c.Instance = I2C1;
+	mems_i2c.Init.ClockSpeed = 400000;
+	mems_i2c.Init.DutyCycle = I2C_DUTYCYCLE_2;
+	mems_i2c.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+	mems_i2c.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
+	mems_i2c.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
+	mems_i2c.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
+
+	HAL_I2C_Init(&mems_i2c);
 #endif
 	return true;
 }

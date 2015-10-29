@@ -8,6 +8,7 @@ KalmanFilter * kalmanFilter;
 void vario_init()
 {
 	kalmanFilter = new KalmanFilter(1.0);
+
 	fc.baro_valid = false;
 	fc.avg_vario = 0;
 	fc.digital_vario = 0;
@@ -43,11 +44,19 @@ int16_t	vario_get_altitude(uint8_t flags, uint8_t index)
 uint16_t vario_drop = 0;
 #define VARIO_DROP	1200ul
 
+uint32_t kalman_last_update_time = 0;
+
 void vario_calc(float pressure)
 {
 	float rawAltitude = fc_press_to_alt(pressure, config.altitude.QNH1);
 
-	kalmanFilter->update(rawAltitude);
+#if 1
+	uint32_t cur_time = HAL_GetTick();
+	uint32_t idt = cur_time - kalman_update_time;
+	kalman_last_update_time = cur_time;
+#endif
+
+	kalmanFilter->update(rawAltitude, 0.2, idt / 1000.0f);
 
 	float vario = kalmanFilter->getXVel();
 	float altitude = kalmanFilter->getXAbs();

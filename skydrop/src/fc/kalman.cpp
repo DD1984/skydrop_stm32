@@ -52,29 +52,31 @@ void KalmanFilter::setAccelerationVariance(float var_accel)
 // the variance of that measurement, and the interval since the last
 // measurement in seconds. This interval must be greater than 0; for the
 // first measurement after a reset(), it's safe to use 1.0.
-void KalmanFilter::update(float z_abs)
+void KalmanFilter::update(float z_abs,float var_z_abs, float dt)
 {
-	#define	var_z_abs	0.2
-	#define	dt			0.01
+	//#define	var_z_abs	0.2
+	//#define	dt			0.01
 
 	// Note: math is not optimized by hand. Let the compiler sort it out.
 	// Predict step.
 	// Update state estimate.
 	x_abs += x_vel * dt;
+
 	// Update state covariance. The last term mixes in acceleration noise.
-	p_abs_abs += 2.0 * dt * p_abs_vel + dt * dt * p_vel_vel
-			+ var_accel * dt * dt * dt * dt / 4.0;
-	p_abs_vel += dt * p_vel_vel + var_accel * dt * dt * dt / 2.0;
-	p_vel_vel += var_accel * dt * dt;
+	p_abs_abs += 2.0 * dt * p_abs_vel + dt * dt * p_vel_vel	+ var_accel * dt * dt * dt * dt / 4.0;
+	p_abs_vel +=                             dt * p_vel_vel + var_accel * dt * dt * dt / 2.0;
+	p_vel_vel +=                                              var_accel * dt * dt;
 
 	// Update step.
 	y = z_abs - x_abs;  // Innovation.
-	s_inv = 1. / (p_abs_abs + var_z_abs);  // Innovation precision.
+	s_inv = 1.0 / (p_abs_abs + var_z_abs);  // Innovation precision.
 	k_abs = p_abs_abs * s_inv;  // Kalman gain
 	k_vel = p_abs_vel * s_inv;
+
 	// Update state estimate.
 	x_abs += k_abs * y;
 	x_vel += k_vel * y;
+
 	// Update state covariance.
 	p_vel_vel -= p_abs_vel * k_vel;
 	p_abs_vel -= p_abs_vel * k_abs;

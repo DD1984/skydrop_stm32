@@ -49,6 +49,7 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_spi.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_spi_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_tim.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_tim_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_i2c.c
 
 C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
@@ -57,6 +58,8 @@ C_SOURCES += src/hal/clock.c
 #c
 
 #cpp
+CPP_SOURCES += src/hal/timers_irq_handlers.cpp
+
 CPP_SOURCES += src/skydrop.cpp
 CPP_SOURCES += src/common.cpp
 
@@ -72,6 +75,7 @@ CPP_SOURCES += src/tasks/task_powerdown.cpp
 CPP_SOURCES += src/drivers/uart.cpp
 
 CPP_SOURCES += src/drivers/sensors/devices.cpp
+CPP_SOURCES += src/drivers/sensors/bmp180.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/n5110_disp.cpp
 CPP_SOURCES += src/drivers/battery.cpp
@@ -153,6 +157,7 @@ CFLAGS += -DSTM32
 CFLAGS += -DUART_SUPPORT
 CFLAGS += -DDISPLAY_SUPPORT
 CFLAGS += -DAUDIO_SUPPORT
+CFLAGS += -DBMP180_SUPPORT
 
 #######################################
 # LDFLAGS

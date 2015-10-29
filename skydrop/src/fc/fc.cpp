@@ -15,6 +15,20 @@ volatile flight_data_t fc;
 
 #ifdef FC_TIMER
 Timer fc_meas_timer;
+#else
+
+TIM_HandleTypeDef fc_meas_timer;
+
+#define TIM4CLK 125000 //125 == 1ms
+
+#define MEAS_TEMP_TIME ((TIM4CLK / 1000) * 2) //typical time
+#define MEAS_PRES_TIME ((TIM4CLK / 1000) * 16) //typical time
+#define MEAS_POLL_TIME ((TIM4CLK / 1000) * 1) //polling time for detect EOC
+
+enum {FCT_MEAS_TEMP, FCT_MEAS_PRES, FCT_MEAS_END};
+
+uint8_t fc_meas_timer_state = FCT_MEAS_TEMP;
+
 #endif
 
 extern KalmanFilter * kalmanFilter;
@@ -59,13 +73,14 @@ void fc_init()
 	//VCC to baro, acc/mag gyro + i2c pull-ups
 	mems_power_on();
 
-#if defined(LSM303D_SUPPORT) || defined(MS5611_SUPPORT) || defined(L3GD20_SUPPORT)  || defined(SHT21_SUPPORT) 
 	//init and test i2c
 	if (!mems_i2c_init())
 	{
 		DEBUG("ERROR I2C\n");
+#ifdef LED_SUPPORT
 		led_set(0xFF, 0, 0);
-
+#endif
+#ifndef STM32
 		if (hw_revision == HW_REW_UNKNOWN)
 		{
 			hw_revision = HW_REW_1504;
@@ -78,9 +93,11 @@ void fc_init()
 			mems_power_on();
 			mems_i2c_init();
 		}
+#endif
 	}
 	else
 	{
+#ifndef STM32
 		if (hw_revision == HW_REW_UNKNOWN)
 		{
 			hw_revision = HW_REW_1506;
@@ -93,12 +110,17 @@ void fc_init()
 			mems_power_on();
 			mems_i2c_init();
 		}
-	}
 #endif
+	}
 
 #ifdef MS5611_SUPPORT
 	//Barometer
 	ms5611.Init(&mems_i2c, MS5611_ADDRESS_CSB_LO);
+#endif
+
+#if defined(BMP180_SUPPORT) && defined(STM32)
+	//Barometer
+	bmp180.Init(&mems_i2c, 0);
 #endif
 
 #ifdef LSM303D_SUPPORT
@@ -158,6 +180,15 @@ void fc_init()
 	fc_meas_timer.SetCompare(timer_B, 430); // == 2.7ms
 	fc_meas_timer.SetCompare(timer_C, 555); // == 3.7ms
 	fc_meas_timer.Start();
+#else
+	fc_meas_timer.Instance = TIM4;
+	fc_meas_timer.Init.Prescaler = (uint32_t)(SystemCoreClock / TIM4CLK) - 1;;
+	fc_meas_timer.Init.ClockDivision = 0;
+	fc_meas_timer.Init.CounterMode = TIM_COUNTERMODE_UP;
+	fc_meas_timer.Init.RepetitionCounter = 0;
+	fc_meas_timer.Init.Period = MEAS_POLL_TIME;
+	HAL_TIM_Base_Init(&fc_meas_timer);
+	HAL_TIM_Base_Start_IT(&fc_meas_timer);
 #endif
 
 	DEBUG(" *** FC init done ***\n");
@@ -194,6 +225,51 @@ void fc_continue()
 #endif	
 }
 
+#ifdef STM32
+static BMP180 *bmp180_ptr = &bmp180;
+void fc_meas_timer_ovf(void)
+{
+#if 1
+	if (bmp180_ptr->EOC() == false) {
+		fc_meas_timer.Instance->CNT = 0;
+		fc_meas_timer.Instance->ARR = MEAS_POLL_TIME;
+		return;
+	}
+#endif
+	if (fc_meas_timer_state == FCT_MEAS_TEMP) {
+		bmp180_ptr->ReadTemperature();
+		bmp180_ptr->StartPressure();
+
+		fc_meas_timer.Instance->CNT = 0;
+		fc_meas_timer.Instance->ARR = MEAS_PRES_TIME;
+
+		fc_meas_timer_state = FCT_MEAS_PRES;
+
+
+		vario_calc(bmp180_ptr->pressure);
+
+		//audio loop
+		audio_step();
+
+		bmp180_ptr->CompensateTemperature();
+		return;
+	}
+	if (fc_meas_timer_state == FCT_MEAS_PRES) {
+		bmp180_ptr->ReadPressure();
+
+		bmp180_ptr->StartTemperature();
+
+		fc_meas_timer.Instance->CNT = 0;
+		fc_meas_timer.Instance->ARR = MEAS_TEMP_TIME;
+
+		fc_meas_timer_state = FCT_MEAS_TEMP;
+
+		bmp180_ptr->CompensatePressure();
+		return;
+	}
+}
+#endif
+
 #ifdef FC_TIMER
 //First fc meas period
 // * Read pressure from ms5611
@@ -208,7 +284,12 @@ ISR(FC_MEAS_TIMER_OVF)
 #ifdef MS5611_SUPPORT
 	ms5611.ReadPressure();
 	ms5611.StartTemperature();
+#endif
+#ifdef BMP180_SUPPORT
+	bmp180.ReadPressure();
+	bmp180.StartTemperature();
 #endif	
+
 #ifdef LSM303D_SUPPORT
 	lsm303d.StartReadMag(); //it takes 152us to transfer
 #endif	
@@ -216,7 +297,9 @@ ISR(FC_MEAS_TIMER_OVF)
 #ifdef MS5611_SUPPORT
 	ms5611.CompensatePressure();
 #endif
-
+#ifdef BMP180_SUPPORT
+	bmp180.CompensatePressure();
+#endif
 	io_write(1, LOW);
 	BT_ALLOW_TX
 }
@@ -236,16 +319,25 @@ ISR(FC_MEAS_TIMER_CMPA)
 
 #ifdef LSM303D_SUPPORT
 	lsm303d.ReadMag(&fc.mag_data.x, &fc.mag_data.y, &fc.mag_data.z);
-#endif	
+#endif
+
 #ifdef MS5611_SUPPORT	
 	ms5611.ReadTemperature();
 	ms5611.StartPressure();
 #endif
+#ifdef BMP180_SUPPORT
+	bmp180.ReadTemperature();
+	bmp180.StartPressure();
+#endif
+
 #ifdef LSM303D_SUPPORT	
 	lsm303d.StartReadAccStream(16); //it take 1600us to transfer
 #endif	
 
 #ifdef MS5611_SUPPORT
+	vario_calc(ms5611.pressure);
+#endif
+#ifdef BMP180_SUPPORT
 	vario_calc(ms5611.pressure);
 #endif
 
@@ -255,6 +347,9 @@ ISR(FC_MEAS_TIMER_CMPA)
 #ifdef MS5611_SUPPORT
 	ms5611.CompensateTemperature();
 #endif	
+#ifdef BMP180_SUPPORT
+	bmp180.CompensateTemperature();
+#endif
 
 	io_write(1, LOW);
 	BT_ALLOW_TX
@@ -425,7 +520,6 @@ void fc_step()
 	{
 		fc_sync_gps_time();
 	}
-#endif	
 
 	//glide ratio
 	//when you hav GPS, baro and speed is higher than 2km/h and you are sinking
@@ -440,6 +534,7 @@ void fc_step()
 	{
 		fc.glide_ratio_valid = false;
 	}
+#endif
 }
 
 float fc_alt_to_qnh(float alt, float pressure)

@@ -13,32 +13,49 @@
 #ifdef LSM303D_SUPPORT
 #include "lsm303d.h"
 #endif
+
 #ifdef MS5611_SUPPORT
 #include "ms5611.h"
 #endif
+
+#ifdef BMP180_SUPPORT
+#include "bmp180.h"
+#endif
+
 #ifdef L3GD20_SUPPORT
 #include "l3gd20.h"
 #endif
+
 #ifdef SHT21_SUPPORT
 #include "sht21.h"
 #endif
+
 #ifdef GPS_L80_SUPPORT
 #include "gps_l80.h"
 #endif
 
-#if defined(LSM303D_SUPPORT) || defined(MS5611_SUPPORT) || defined(L3GD20_SUPPORT)  || defined(SHT21_SUPPORT)  
+#ifndef STM32
 extern I2c mems_i2c;
+#else
+extern I2C_HandleTypeDef mems_i2c;
 #endif
 
 #ifdef LSM303D_SUPPORT
 extern Lsm303d lsm303d;
 #endif
+
 #ifdef MS5611_SUPPORT
 extern MS5611 ms5611;
 #endif
+
+#ifdef BMP180_SUPPORT
+extern BMP180 bmp180;
+#endif
+
 #ifdef L3GD20_SUPPORT
 extern L3gd20 l3gd20;
 #endif
+
 #ifdef SHT21_SUPPORT
 extern SHT21 sht21;
 #endif
