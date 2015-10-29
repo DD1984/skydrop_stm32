@@ -55,7 +55,7 @@ uint16_t get_near(float vario, volatile uint16_t * src)
 #ifndef STM32
 ISR(AUDIO_TIMER_OVF)
 #else
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+void audio_timer_ovf(void)
 #endif
 {
 	if (audio_vario_mode == VARIO_BEEP)

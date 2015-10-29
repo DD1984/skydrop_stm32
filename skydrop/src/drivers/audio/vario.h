@@ -13,4 +13,8 @@
 void audio_vario_step(float vario);
 void audio_vario_reset();
 
+#ifdef STM32
+void audio_timer_ovf(void);
+#endif
+
 #endif /* VARIO_H_ */
