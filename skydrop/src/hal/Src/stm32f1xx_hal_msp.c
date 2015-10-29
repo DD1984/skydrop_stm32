@@ -75,14 +75,6 @@
 #define TIMx_GPIO_PIN_CHANNEL2         GPIO_PIN_1
 #define TIMx_GPIO_AF_CHANNEL2          /
 
-/* Definition for TIMx clock resources */
-#define TIM3_CLK_ENABLE()              __HAL_RCC_TIM3_CLK_ENABLE()
-
-/* Definition for TIMx's NVIC */
-#define TIMx_IRQn                      TIM3_IRQn
-#define TIMx_IRQHandler                TIM3_IRQHandler
-
-
 /**
   * @brief UART MSP Initialization
   *        This function configures the hardware resources used in this example:
@@ -239,18 +231,73 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   * @param htim: TIM handle pointer
   * @retval None
   */
+/* Definition for TIMx's NVIC */
+#define TIMx_IRQn                      TIM3_IRQn
+#define TIMx_IRQHandler                TIM3_IRQHandler
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
-  /*##-1- Enable peripheral clock #################################*/
-  /* TIMx Peripheral clock enable */
-  TIM3_CLK_ENABLE();
+	/*##-1- Enable peripheral clock #################################*/
+	/* TIMx Peripheral clock enable */
+	__HAL_RCC_TIM3_CLK_ENABLE();
+	__HAL_RCC_TIM4_CLK_ENABLE();
 
-  /*##-2- Configure the NVIC for TIMx ########################################*/
-  /* Set the TIMx priority */
-  HAL_NVIC_SetPriority(TIMx_IRQn, 3, 0);
+	/*##-2- Configure the NVIC for TIMx ########################################*/
+	/* Set the TIMx priority */
+	HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
+	HAL_NVIC_SetPriority(TIM4_IRQn, 3, 0);
 
-  /* Enable the TIMx global Interrupt */
-  HAL_NVIC_EnableIRQ(TIMx_IRQn);
+	/* Enable the TIMx global Interrupt */
+	HAL_NVIC_EnableIRQ(TIM3_IRQn);
+	HAL_NVIC_EnableIRQ(TIM4_IRQn);
+}
+
+/**
+  * @brief I2C MSP Initialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  *           - Peripheral's GPIO Configuration
+  *           - DMA configuration for transmission request by peripheral
+  *           - NVIC configuration for DMA interrupt request enable
+  * @param hi2c: I2C handle pointer
+  * @retval None
+  */
+void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
+{
+	/*##-1- Enable peripherals and GPIO Clocks #################################*/
+	/* Enable GPIO TX/RX clock */
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_I2C1_CLK_ENABLE();
+	__HAL_RCC_I2C2_CLK_ENABLE();
+
+	GPIO_InitTypeDef  GPIO_InitStruct;
+
+	/*##-2- Configure peripheral GPIO ##########################################*/
+	/* I2C TX GPIO pin configuration  */
+	GPIO_InitStruct.Pin       = GPIO_PIN_6 | GPIO_PIN_10  //scl
+							  | GPIO_PIN_7 | GPIO_PIN_11; //sda
+	GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+	GPIO_InitStruct.Pull      = GPIO_PULLUP;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+/**
+  * @brief I2C MSP De-Initialization
+  *        This function frees the hardware resources used in this example:
+  *          - Disable the Peripheral's clock
+  *          - Revert GPIO, DMA and NVIC configuration to their default state
+  * @param hi2c: I2C handle pointer
+  * @retval None
+  */
+void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
+{
+	/*##-1- Reset peripherals ##################################################*/
+	__HAL_RCC_I2C1_FORCE_RESET();
+	__HAL_RCC_I2C1_RELEASE_RESET();
+
+	/*##-2- Disable peripherals and GPIO Clocks #################################*/
+	/* Configure I2C Tx as alternate function  */
+	HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_10 | GPIO_PIN_11);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
