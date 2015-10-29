@@ -267,14 +267,13 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 	/* Enable GPIO TX/RX clock */
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_I2C1_CLK_ENABLE();
-	__HAL_RCC_I2C2_CLK_ENABLE();
 
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	/*##-2- Configure peripheral GPIO ##########################################*/
 	/* I2C TX GPIO pin configuration  */
-	GPIO_InitStruct.Pin       = GPIO_PIN_6 | GPIO_PIN_10  //scl
-							  | GPIO_PIN_7 | GPIO_PIN_11; //sda
+	GPIO_InitStruct.Pin       = GPIO_PIN_6 //scl
+							  | GPIO_PIN_7; //sda
 	GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
 	GPIO_InitStruct.Pull      = GPIO_PULLUP;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
@@ -297,7 +296,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 
 	/*##-2- Disable peripherals and GPIO Clocks #################################*/
 	/* Configure I2C Tx as alternate function  */
-	HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_10 | GPIO_PIN_11);
+	HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6 | GPIO_PIN_7);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
