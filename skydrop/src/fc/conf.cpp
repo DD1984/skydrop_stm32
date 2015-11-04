@@ -9,13 +9,9 @@ cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));
 cfg_ro_t config_ro;
 #endif
 
-#ifndef STM32
 volatile cfg_t config;
 
 EEMEM cfg_t config_ee = {
-#else
-volatile cfg_t config = {
-#endif
 	//build_number
 	BUILD_NUMBER,
 	//gui

@@ -36,7 +36,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 128K
+FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 126K
+EEPROM (rx)		: ORIGIN = 0x0801F800, LENGTH = 2K
 RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 8K
 }
 /* Define output sections */
@@ -135,6 +136,15 @@ SECTIONS
     . = ALIGN(4);
   } >RAM
   
+  .eeprom :
+  {
+  	_eeprom_start = .;
+    . = ALIGN(4);
+    KEEP(*(.eeprom))
+    . = ALIGN(4);
+    _eeprom_end = .;
+  } >EEPROM
+
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {

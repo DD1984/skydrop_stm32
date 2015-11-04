@@ -42,7 +42,6 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_cortex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_rcc.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_rcc_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_uart.c
-C_SOURCES += src/hal/Src/stm32f1xx_hal_msp.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_gpio_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_spi.c
@@ -50,15 +49,18 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_spi_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_tim.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_tim_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_i2c.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_flash.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_flash_ex.c
 
+C_SOURCES += src/hal/stm32f1xx_hal_msp.c
 C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
 
 C_SOURCES += src/hal/clock.c
-#c
 
 #cpp
 CPP_SOURCES += src/hal/timers_irq_handlers.cpp
+CPP_SOURCES += src/hal/eeprom.cpp
 
 CPP_SOURCES += src/skydrop.cpp
 CPP_SOURCES += src/common.cpp
@@ -167,8 +169,6 @@ LDSCRIPT = src/hal/STM32F100XB_FLASH.ld
 # libraries
 LIBS = -lc -lm -lstdc++
 LIBDIR =
-# --specs=nano.specs
-# --specs=nosys.specs
 LDFLAGS = $(MCU) -u _printf_float --specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all

@@ -272,7 +272,9 @@ void gui_factory_test_loop()
 
 		eeprom_update_byte(&config_ro.lcd_contrast_max, f_test_lcd_cont_max);
 		eeprom_update_byte(&config_ro.lcd_contrast_min, f_test_lcd_cont_min);
+#ifdef BT_SUPPORT
 		eeprom_update_byte(&config_ro.bt_module_type, bt_get_module_type());
+#endif
 
 		eeprom_update_byte(&config_ee.gui.contrast, f_test_lcd_cont);
 		eeprom_busy_wait();

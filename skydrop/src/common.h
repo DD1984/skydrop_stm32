@@ -27,6 +27,7 @@
 #include "stm32f1xx_hal.h"
 #include "drivers/uart.h"
 #include <string.h>
+#include "eeprom.h"
 
 #endif
 
@@ -40,15 +41,6 @@
 #define LOW		0
 
 #define _delay_ms(x) HAL_Delay(x)
-
-#define eeprom_busy_wait() {}
-#define eeprom_update_byte(addr, val) {}
-#define eeprom_update_word(addr, val) {}
-#define eeprom_update_float(addr, val) {}
-#define eeprom_read_byte(addr) 5
-#define eeprom_read_block(addr, data, size) {}
-#define eeprom_update_block(addr, data, size) {}
-#define eeprom_write_float {}
 
 #define PROGMEM
 #define pgm_read_byte(addr) (*(addr))
