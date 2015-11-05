@@ -50,6 +50,7 @@ void task_powerdown_stop()
 	//Reinit all devices
 	DEBUG("Restarting all devices\n");
 
+#ifndef STM32
 #ifdef UART_SUPPORT
 	uart_stop();
 #endif	
@@ -57,7 +58,7 @@ void task_powerdown_stop()
 	task_timer_setup();
 	DEBUG("Restoring full speed uart\n");
 //	Post();
-
+#endif
 	powerdown_lock.Unlock();
 }
 
@@ -75,10 +76,8 @@ void powerdown_sleep()
 		//allow rtc irq handler but do not wake up
 		time_rtc_irq = false;
 
-#ifndef STM32
 		//rtc irq set time_rtc_irq to true if executed
 		SystemPowerSave();
-#endif		
 
 #ifdef WDT_SUPPORT
 		if (time_rtc_irq)

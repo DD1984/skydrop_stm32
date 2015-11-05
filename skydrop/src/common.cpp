@@ -394,12 +394,3 @@ void mems_power_off()
 	}
 #endif
 }
-
-#ifdef STM32
-float abs(float val)
-{
-	if (val < 0)
-		return -val;
-	return val;
-}
-#endif

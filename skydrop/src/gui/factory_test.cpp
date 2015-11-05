@@ -279,11 +279,8 @@ void gui_factory_test_loop()
 		eeprom_update_byte(&config_ee.gui.contrast, f_test_lcd_cont);
 		eeprom_busy_wait();
 
-#ifndef STM32
 		SystemReset();
-#endif
 	}
-
 }
 
 void gui_factory_test_irqh(uint8_t type, uint8_t * buff)

@@ -52,7 +52,7 @@ void vario_calc(float pressure)
 
 #if 1
 	uint32_t cur_time = HAL_GetTick();
-	uint32_t idt = cur_time - kalman_update_time;
+	uint32_t idt = cur_time - kalman_last_update_time;
 	kalman_last_update_time = cur_time;
 #endif
 

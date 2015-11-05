@@ -299,4 +299,54 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c)
 	HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6 | GPIO_PIN_7);
 }
 
+void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
+{
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
+
+	/*##-1- Enables the PWR Clock and Enables access to the backup domain ###################################*/
+	/* To change the source clock of the RTC feature (LSE, LSI), You have to:
+     - Enable the power clock using __HAL_RCC_PWR_CLK_ENABLE()
+     - Enable write access using HAL_PWR_EnableBkUpAccess() function before to
+       configure the RTC clock source (to be done once after reset).
+     - Reset the Back up Domain using __HAL_RCC_BACKUPRESET_FORCE() and
+       __HAL_RCC_BACKUPRESET_RELEASE().
+     - Configure the needed RTC clock source */
+	__HAL_RCC_PWR_CLK_ENABLE();
+	HAL_PWR_EnableBkUpAccess();
+
+	/* Enable BKP CLK enable for backup registers */
+	__HAL_RCC_BKP_CLK_ENABLE();
+
+	RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+	RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
+
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+
+	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+
+	/*##-2- Enable the RTC & BKP peripheral Clock ##############################*/
+	/* Enable RTC Clock */
+	__HAL_RCC_RTC_ENABLE();
+
+}
+
+/**
+ * @brief RTC MSP De-Initialization
+ *        This function freeze the hardware resources used in this example:
+ *          - Disable the Peripheral's clock
+ * @param hrtc: RTC handle pointer
+ * @retval None
+ */
+void HAL_RTC_MspDeInit(RTC_HandleTypeDef *hrtc)
+{
+	/*##-1- Reset peripherals ##################################################*/
+	__HAL_RCC_RTC_DISABLE();
+}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

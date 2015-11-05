@@ -42,6 +42,10 @@
 
 #define _delay_ms(x) HAL_Delay(x)
 
+#define SystemReset() HAL_NVIC_SystemReset()
+#define SystemPowerIdle()
+#define SystemPowerSave()
+
 #define PROGMEM
 #define pgm_read_byte(addr) (*(addr))
 #define pgm_read_word(addr) (*(addr))
@@ -50,7 +54,7 @@
 #define fprintf_P fprintf
 #define strcpy_P strcpy
 
-float abs(float val);
+#define abs(x) ((x)>0?(x):-(x))
 #endif
 
 #include "build_defs.h"

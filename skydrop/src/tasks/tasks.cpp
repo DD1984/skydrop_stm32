@@ -57,9 +57,8 @@ Timer task_timer;
 volatile uint32_t task_timer_high;
 volatile uint8_t task_sleep_lock = 0;
 
-//volatile uint8_t actual_task = NO_TASK;
-//volatile uint8_t new_task = TASK_POWERDOWN;
 volatile uint8_t actual_task = NO_TASK;
+//volatile uint8_t new_task = TASK_POWERDOWN;
 volatile uint8_t new_task = TASK_ACTIVE;
 
 #ifdef USB_SUPPORT
@@ -206,11 +205,9 @@ void task_system_loop()
 		{
 			task_stop_array[actual_task]();
 
-#ifndef STM32
 			//XXX: this will guarantee that task switched from the powerdown task will be vanilla
 			if (new_task == TASK_POWERDOWN)
 				SystemReset();
-#endif				
 		}
 
 		actual_task = new_task;
@@ -239,9 +236,7 @@ void task_sleep()
 	io_write(0, HIGH);
 	if (task_sleep_lock == 0)
 	{
-#ifndef STM32		
 		SystemPowerIdle();
-#endif		
 	}
 	io_write(0, LOW);
 }

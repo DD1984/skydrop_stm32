@@ -1,8 +1,14 @@
 #include "time.h"
 
+#ifdef STM32
+RTC_HandleTypeDef RtcHandle;
+#endif
+
 uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+#ifndef STM32
 volatile uint32_t unix_time __attribute__ ((section (".noinit")));
+#endif
 
 #define LEAP_YEAR(_year) ((_year%4)==0)
 
@@ -108,14 +114,17 @@ void print_datetime()
 
 volatile bool time_rtc_irq;
 
+#ifndef STM32
 ISR(rtc_overflow_interrupt)
 {
 	time_rtc_irq = true;
 	unix_time += 1;
 }
+#endif
 
 void time_init()
 {
+#ifndef STM32
 	RTC_PWR_ON;
 
 	unix_time += 1;
@@ -123,16 +132,29 @@ void time_init()
 	RtcSetPeriod(3);
 	RtcInit(rtc_1024Hz_tosc, rtc_div256); //f == 32Hz
 	RtcEnableInterrupts(rtc_overflow); //ovf every sec
+#else
+	RtcHandle.Instance = RTC;
+	RtcHandle.Init.AsynchPrediv = RTC_AUTO_1_SECOND;
+	HAL_RTC_Init(&RtcHandle);
+#endif
 }
 
 
 void time_set_actual(uint32_t t)
 {
+#ifndef STM32
 	unix_time = t;
+#else
+	HAL_RTC_SetTimeCounter(&RtcHandle, t);
+#endif
 }
 
 
 uint32_t time_get_actual()
 {
+#ifdef STM32
+	uint32_t unix_time;
+	HAL_RTC_GetTimeCounter(&RtcHandle, &unix_time);
+#endif
 	return unix_time;
 }

@@ -51,6 +51,9 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_tim_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_i2c.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_flash.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_flash_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_rtc.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_rtc_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_pwr.c
 
 C_SOURCES += src/hal/stm32f1xx_hal_msp.c
 C_SOURCES += src/hal/stm32f1xx_it.c
@@ -85,6 +88,7 @@ CPP_SOURCES += src/drivers/audio/audio.cpp
 CPP_SOURCES += src/drivers/audio/buzzer.cpp
 CPP_SOURCES += src/drivers/audio/sequencer.cpp
 CPP_SOURCES += src/drivers/audio/vario.cpp
+CPP_SOURCES += src/drivers/time.cpp
 
 CPP_SOURCES += src/data/fonts.cpp
 
@@ -104,7 +108,7 @@ CPP_SOURCES += src/gui/widgets/temperature.cpp
 CPP_SOURCES += src/gui/widgets/battery.cpp
 CPP_SOURCES += src/gui/widgets/vario.cpp
 CPP_SOURCES += src/gui/widgets/altitude.cpp
-
+CPP_SOURCES += src/gui/widgets/time.cpp
 
 CPP_SOURCES += src/gui/settings/set_widgets.cpp
 CPP_SOURCES += src/gui/settings/settings.cpp
@@ -121,6 +125,7 @@ CPP_SOURCES += src/gui/settings/set_display.cpp
 CPP_SOURCES += src/gui/settings/set_debug.cpp
 CPP_SOURCES += src/gui/settings/set_altimeters.cpp
 CPP_SOURCES += src/gui/settings/set_logger.cpp
+CPP_SOURCES += src/gui/settings/set_time.cpp
 
 
 #asm
@@ -160,6 +165,7 @@ CFLAGS += -DUART_SUPPORT
 CFLAGS += -DDISPLAY_SUPPORT
 CFLAGS += -DAUDIO_SUPPORT
 CFLAGS += -DBMP180_SUPPORT
+CFLAGS += -DRTC_SUPPORT
 
 #######################################
 # LDFLAGS
