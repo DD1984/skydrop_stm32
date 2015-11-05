@@ -88,6 +88,27 @@ void Post()
 
 	RST.STATUS = 0b00111111;
 	DEBUG("\n");
+
+#else
+	DEBUG("RCC:\n")
+	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST))
+		DEBUG("\tPIN reset\n");
+	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST))
+		DEBUG("\tSoftware Reset\n");
+	if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
+		DEBUG("\tIndependent Watchdog reset\n");
+	 __HAL_RCC_CLEAR_RESET_FLAGS();
+
+	DEBUG("PWR:\n")
+	if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB)) {
+		DEBUG("\tResumed from StandBy mode\n");
+		__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
+	}
+	if (__HAL_PWR_GET_FLAG(PWR_FLAG_WU)) {
+		DEBUG("\tWake Up event\n");
+		__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+	}
+	//
 #endif	
 
 	//App name

@@ -39,9 +39,9 @@ void task_powerdown_init()
 
 #ifndef STM32
 	SD_EN_OFF;
-#endif
 
 	DEBUG("Using low speed uart\n");
+#endif
 }
 
 
@@ -68,6 +68,7 @@ extern bool time_rtc_irq;
 void powerdown_sleep()
 {
 	_delay_ms(31);
+#ifndef STM32
 #ifdef RTC_SUPPORT	
 	do
 	{
@@ -87,7 +88,13 @@ void powerdown_sleep()
 		//start task timer in low speed mode
 		task_timer_setup(false);
 	} while (time_rtc_irq == true);
-#endif	
+#endif
+
+#else
+	HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
+	DEBUG("STM32 - enter in standby mode\n");
+	HAL_PWR_EnterSTANDBYMode();
+#endif
 }
 
 extern uint8_t task_sleep_lock;
