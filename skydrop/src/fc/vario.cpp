@@ -22,11 +22,13 @@ int16_t	vario_get_altitude(uint8_t flags, uint8_t index)
 			return fc_press_to_alt(fc.pressure, config.altitude.QNH1);
 		case(ALT_ABS_QNH2):
 			return fc_press_to_alt(fc.pressure, config.altitude.QNH2);
+#ifdef GPS_SUPPORT
 		case(ALT_ABS_GPS):
 			if (fc.gps_data.valid)
 				return fc.gps_data.altitude;
 			else
 				return 0;
+#endif
 		case(ALT_DIFF):
 			uint8_t a_index = (flags & 0b00001111) + 1;
 			if (a_index == 1)

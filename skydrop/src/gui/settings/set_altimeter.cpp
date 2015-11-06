@@ -15,13 +15,24 @@ void gui_set_altimeter_index(uint8_t index)
 	set_alt_index = index;
 }
 
+#ifdef GPS_SUPPORT
+#define SET_ALT_LIST_LEN_MODE_0		5 //mode, relative to, zero at take off, units, sync with gps
+#define SET_ALT_LIST_LEN_MODE_1		3 //mode, units, sync with gps
+#define SET_ALT_LIST_LEN_MODE_2		2 //mode, units
+#else
+#define SET_ALT_LIST_LEN_MODE_0		4 //mode, relative to, zero at take off, units
+#define SET_ALT_LIST_LEN_MODE_1		2 //mode, units
+#endif
+
 void gui_set_altimeter_list()
 {
-	set_alt_list_num = 5; //mode, relative to, zero at take off, units, sync with gps
+	set_alt_list_num = SET_ALT_LIST_LEN_MODE_0;
 	if ((set_alt_flags & 0b11000000) != ALT_DIFF)
-		set_alt_list_num = 3; //mode, units, sync with gps
+		set_alt_list_num = SET_ALT_LIST_LEN_MODE_1;
+#ifdef GPS_SUPPORT
 	if ((set_alt_flags & 0b11000000) == ALT_ABS_GPS)
-		set_alt_list_num = 2; //mode, units
+		set_alt_list_num = SET_ALT_LIST_LEN_MODE_2;
+#endif
 
 	gui_list_set(gui_set_altimeter_item, gui_set_altimeter_action, set_alt_list_num, GUI_SET_ALTIMETERS);
 }
@@ -96,6 +107,7 @@ bool set_alt_find_abs(uint8_t index, uint8_t rep)
 	return true;
 }
 
+#ifdef GPS_SUPPORT
 void gui_set_altimeter_gps_alt(uint8_t ret)
 {
 	if (ret == GUI_DIALOG_YES)
@@ -133,6 +145,7 @@ void gui_set_altimeter_gps_alt(uint8_t ret)
 
 	gui_switch_task(GUI_SET_ALTIMETER);
 }
+#endif
 
 void gui_set_altimeter_action(uint8_t index)
 {
@@ -144,6 +157,12 @@ void gui_set_altimeter_action(uint8_t index)
 		{
 			tmp = (set_alt_flags & ALT_MODE_MASK) >> 6;
 			tmp = (tmp + 1) % 4;
+#ifndef GPS_SUPPORT
+			//шиза, но иначе ни как
+			// пропуск GPS
+			if (tmp == 2)
+				tmp++;
+#endif
 			set_alt_flags = (set_alt_flags & ~ALT_MODE_MASK) | (tmp << 6);
 			gui_set_altimeter_list();
 		}
@@ -154,7 +173,7 @@ void gui_set_altimeter_action(uint8_t index)
 		return;
 	}
 
-	if (set_alt_list_num == 5)
+	if (set_alt_list_num == SET_ALT_LIST_LEN_MODE_0)
 	{
 		if (index == 1)
 		{
@@ -188,13 +207,14 @@ void gui_set_altimeter_action(uint8_t index)
 		}
 	}
 
-	if ((index == 3 && set_alt_list_num == 5) || index == 1)
+	if ((index == 3 && set_alt_list_num == SET_ALT_LIST_LEN_MODE_0) || index == 1)
 	{
 		set_alt_flags ^= ALT_UNIT_I;
 		return;
 	}
 
-	if ((index == 4 && set_alt_list_num == 5) || index == 2)
+#ifdef GPS_SUPPORT
+	if ((index == 4 && set_alt_list_num == SET_ALT_LIST_LEN_MODE_0) || index == 2)
 	{
 		if (fc.gps_data.valid)
 		{
@@ -228,6 +248,7 @@ void gui_set_altimeter_action(uint8_t index)
 			gui_showmessage_P(PSTR("No GPS fix"));
 		}
 	}
+#endif
 }
 
 
@@ -247,16 +268,18 @@ void gui_set_altimeter_item(uint8_t index, char * text, uint8_t * flags, char * 
 			case(ALT_ABS_QNH2):
 				sprintf_P(sub_text, PSTR("Absolute QNH2"));
 			break;
+#ifdef GPS_SUPPORT
 			case(ALT_ABS_GPS):
 				sprintf_P(sub_text, PSTR("Absolute GPS"));
 			break;
+#endif
 			case(ALT_DIFF):
 				sprintf_P(sub_text, PSTR("Relative"));
 		}
 		return;
 	}
 
-	if (set_alt_list_num == 5)
+	if (set_alt_list_num == SET_ALT_LIST_LEN_MODE_0)
 	{
 		if (index == 1)
 		{
@@ -277,7 +300,7 @@ void gui_set_altimeter_item(uint8_t index, char * text, uint8_t * flags, char * 
 		}
 	}
 
-	if ((index == 3 && set_alt_list_num == 5) || index == 1)
+	if ((index == 3 && set_alt_list_num == SET_ALT_LIST_LEN_MODE_0) || index == 1)
 	{
 		sprintf_P(text, PSTR("Units"));
 		*flags |= GUI_LIST_SUB_TEXT;
@@ -288,8 +311,9 @@ void gui_set_altimeter_item(uint8_t index, char * text, uint8_t * flags, char * 
 		return;
 	}
 
-	if ((index == 4 && set_alt_list_num == 5) ||index == 2)
+#ifdef GPS_SUPPORT
+	if ((index == 4 && set_alt_list_num == SET_ALT_LIST_LEN_MODE_0) ||index == 2)
 		sprintf_P(text, PSTR("Get from GPS"));
-
+#endif
 }
 

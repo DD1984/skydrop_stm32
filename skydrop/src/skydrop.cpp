@@ -120,8 +120,10 @@ void Post()
 	print_datetime();
 #endif	
 
+#ifndef STM32
 	DEBUG("Free RAM at start ... %d\n", free_ram_at_start);
 	test_memory();
+#endif
 
 	DEBUG("\n");
 }

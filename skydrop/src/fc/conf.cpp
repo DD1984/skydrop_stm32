@@ -185,7 +185,11 @@ EEMEM cfg_t config_ee = {
 			//altimeter5
 			{
 				//flags
+#ifdef GPS_SUPPORT
 				ALT_ABS_GPS,
+#else
+				ALT_ABS_QNH2,
+#endif
 				//diff
 				0,
 			},

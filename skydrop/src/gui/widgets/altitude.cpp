@@ -27,9 +27,11 @@ void widget_alt_draw(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t index)
 		val *= FC_METER_TO_FEET;
 
 	bool valid;
+#ifdef GPS_SUPPORT
 	if ((alt_flags & 0b11000000) == ALT_ABS_GPS)
 		valid = fc.gps_data.valid;
 	else
+#endif
 		valid = fc.baro_valid;
 
 	char text[10];
@@ -57,11 +59,16 @@ void widget_alt_menu_irqh(uint8_t type, uint8_t * buff, uint8_t index)
 		a_index = config.altitude.altimeter[index - 2].flags & 0b00001111;
 	}
 
+#ifdef GPS_SUPPORT
 	if (a_type != ALT_ABS_GPS && fc.baro_valid == false)
 		return;
 
 	if (a_type == ALT_ABS_GPS && fc.gps_data.valid == false)
 		return;
+#else
+	if (fc.baro_valid == false)
+		return;
+#endif
 
 	if (type == TASK_IRQ_BUTTON_M && *buff == BE_LONG)
 	{
@@ -211,9 +218,11 @@ void widget_alt_menu_loop(uint8_t alt_index)
 		case(ALT_DIFF):
 			sprintf_P(title, PSTR("Relative to Alt%d"), a_index + 1);
 		break;
+#ifdef GPS_SUPPORT
 		case(ALT_ABS_GPS):
 			sprintf_P(title, PSTR("Absolute GPS"));
 		break;
+#endif
 	}
 
 	gui_dialog(title);
@@ -234,9 +243,11 @@ void widget_alt_menu_loop(uint8_t alt_index)
 		case(ALT_DIFF):
 			fprintf_P(lcd_out, PSTR("delta"));
 		break;
+#ifdef GPS_SUPPORT
 		case(ALT_ABS_GPS):
 			fprintf_P(lcd_out, PSTR("GPS fix"));
 		break;
+#endif
 	}
 
 	//imperial unit marker
@@ -278,12 +289,14 @@ void widget_alt_menu_loop(uint8_t alt_index)
 		case(ALT_DIFF):
 			sprintf_P(tmp, PSTR("%+d"), config.altitude.altimeter[alt_index - 2].delta);
 		break;
+#ifdef GPS_SUPPORT
 		case(ALT_ABS_GPS):
 			if (fc.gps_data.valid)
 				sprintf_P(tmp, PSTR("valid"));
 			else
 				sprintf_P(tmp, PSTR("invalid"));
 		break;
+#endif
 	}
 	gui_raligh_text(tmp, GUI_DIALOG_RIGHT, GUI_DIALOG_TOP + 2 + h_v);
 }
