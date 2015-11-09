@@ -29,9 +29,7 @@ void Setup()
 	uart_init();
 #endif
 	time_init();
-#ifdef AUDIO_SUPPORT
 	buzzer_init();
-#endif
 	battery_init();
 	buttons_init();
 

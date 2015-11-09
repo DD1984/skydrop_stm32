@@ -34,11 +34,9 @@ void gui_set_system_action(uint8_t index)
 		gui_switch_task(GUI_SET_DISPLAY);
 	break;
 
-#ifdef AUDIO_SUPPORT
 	case(2):
 		gui_switch_task(GUI_SET_AUDIO);
 	break;
-#endif
 
 #ifdef USB_SUPPORT
 	case(3):

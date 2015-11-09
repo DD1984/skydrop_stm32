@@ -289,9 +289,7 @@ void page_switch(bool right)
 
 	if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_PAGES)
 	{
-#ifdef AUDIO_SUPPORT
 		seq_start(snd_pages[active_page], config.gui.menu_volume);
-#endif
 	}
 
 	if (config.gui.disp_flags & CFG_DISP_ANIM)

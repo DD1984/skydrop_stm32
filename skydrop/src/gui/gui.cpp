@@ -54,9 +54,7 @@ void (* gui_init_array[])() = {
 	gui_splash_init,
 	gui_set_vario_init,
 	gui_value_init,
-#ifdef AUDIO_SUPPORT
 	gui_set_audio_init,
-#endif
 	gui_set_widgets_init,
 	gui_layouts_init,
 	gui_set_layout_init,
@@ -84,9 +82,7 @@ void (* gui_init_array[])() = {
 	gui_update_init,
 #endif
 	gui_set_weaklift_init,
-#ifdef AUDIO_SUPPORT
 	gui_set_menu_audio_init
-#endif
 };
 
 void (* gui_stop_array[])() = {
@@ -95,9 +91,7 @@ void (* gui_stop_array[])() = {
 	gui_splash_stop,
 	gui_set_vario_stop,
 	gui_value_stop,
-#ifdef AUDIO_SUPPORT
 	gui_set_audio_stop,
-#endif
 	gui_set_widgets_stop,
 	gui_layouts_stop,
 	gui_set_layout_stop,
@@ -125,9 +119,7 @@ void (* gui_stop_array[])() = {
 	gui_update_stop,
 #endif
 	gui_set_weaklift_stop,
-#ifdef AUDIO_SUPPORT
 	gui_set_menu_audio_stop
-#endif
 };
 
 void (* gui_loop_array[])() = {
@@ -136,9 +128,7 @@ void (* gui_loop_array[])() = {
 	gui_splash_loop,
 	gui_set_vario_loop,
 	gui_value_loop,
-#ifdef AUDIO_SUPPORT
 	gui_set_audio_loop,
-#endif
 	gui_set_widgets_loop,
 	gui_layouts_loop,
 	gui_set_layout_loop,
@@ -166,9 +156,7 @@ void (* gui_loop_array[])() = {
 	gui_update_loop,
 #endif
 	gui_set_weaklift_loop,
-#ifdef AUDIO_SUPPORT
 	gui_set_menu_audio_loop
-#endif
 };
 
 void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
@@ -177,9 +165,7 @@ void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
 	gui_splash_irqh,
 	gui_set_vario_irqh,
 	gui_value_irqh,
-#ifdef AUDIO_SUPPORT
 	gui_set_audio_irqh,
-#endif
 	gui_set_widgets_irqh,
 	gui_layouts_irqh,
 	gui_set_layout_irqh,
@@ -207,9 +193,7 @@ void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
 	gui_update_irqh,
 #endif
 	gui_set_weaklift_irqh,
-#ifdef AUDIO_SUPPORT
 	gui_set_menu_audio_irqh
-#endif
 };
 
 #define GUI_ANIM_STEPS	20
@@ -518,12 +502,10 @@ void gui_irqh(uint8_t type, uint8_t * buff)
 	{
 		if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_BUTTONS && gui_buttons_override == false)
 		{
-#ifdef AUDIO_SUPPORT
 			if (*buff == BE_CLICK)
 				seq_start(&snd_but_short, config.gui.menu_volume);
 			if (*buff == BE_LONG)
 				seq_start(&snd_but_long, config.gui.menu_volume);
-#endif
 		}
 
 		if (gui_message_end > task_get_ms_tick())

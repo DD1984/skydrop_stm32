@@ -22,10 +22,8 @@ void gui_splash_init()
 	{
 		gui_trigger_backlight();
 		splash_cnt = 0;
-#ifdef AUDIO_SUPPORT
 		if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_SPLASH)
 			seq_start(&beep_on, config.gui.menu_volume);
-#endif
 	}
 
 	if (splash_mode == SPLASH_OFF)
@@ -34,10 +32,8 @@ void gui_splash_init()
 		lcd_bckl(0);
 #endif
 		splash_cnt = SPLASH_ANIM_TOP;
-#ifdef AUDIO_SUPPORT
 		if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_SPLASH)
 			seq_start(&beep_off, config.gui.menu_volume);
-#endif
 	}
 }
 

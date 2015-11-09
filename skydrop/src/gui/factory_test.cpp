@@ -40,10 +40,8 @@ void gui_factory_test_init()
 	}
 #endif
 
-#ifdef AUDIO_SUPPORT
 	buzzer_set_vol(0);
 	buzzer_set_freq(0);
-#endif
 	f_test_button_test = 0;
 
 	f_test_lcd = FTEST_LCD_MIN_AUTO;
@@ -60,9 +58,7 @@ void gui_factory_test_stop()
 #ifdef LED_SUPPORT
 	led_set(0x00, 0x00, 0x00);
 #endif
-#ifdef AUDIO_SUPPORT
 	buzzer_set_vol(0);
-#endif
 }
 
 void gui_factory_test_loop()
@@ -346,29 +342,23 @@ void gui_factory_test_irqh(uint8_t type, uint8_t * buff)
 #ifdef LED_SUPPORT
 				led_set(0xFF, 0x00, 0x00);
 #endif
-#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(200);
-#endif
 			break;
 			case (TASK_IRQ_BUTTON_M):
 				f_test_button_test |= (1 << 1);
 #ifdef LED_SUPPORT
 				led_set(0x00, 0xFF, 0x00);
 #endif
-#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(100);
 				buzzer_set_freq(300);
-#endif
 			break;
 			case (TASK_IRQ_BUTTON_R):
 				f_test_button_test |= (1 << 2);
 #ifdef LED_SUPPORT
 				led_set(0x00, 0x00, 0xFF);
 #endif
-#ifdef AUDIO_SUPPORT
 				buzzer_set_vol(0);
-#endif
 			break;
 		}
 	}

@@ -48,9 +48,7 @@ void fc_init()
 
 	//init calculators
 	vario_init();
-#ifdef AUDIO_SUPPORT	
 	audio_init();
-#endif	
 
 #ifdef GPS_SUPPORT
 	gps_init();
