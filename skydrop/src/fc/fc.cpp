@@ -1,9 +1,7 @@
 #include "fc.h"
 
 #include "../drivers/sensors/devices.h"
-#ifdef UART_SUPPORT
 #include "../drivers/uart.h"
-#endif
 #include "../drivers/audio/audio.h"
 
 #include "kalman.h"

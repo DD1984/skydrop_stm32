@@ -15,16 +15,12 @@ void task_powerdown_init()
 	//disable other oscilators
 	OSC.CTRL = 0b00000001;
 #endif
-#ifdef UART_SUPPORT
 	uart_stop();
-#endif	
 	_delay_ms(10);
 
 	turnoff_subsystems();
 
-#ifdef UART_SUPPORT
 	uart_low_speed();
-#endif	
 	_delay_ms(10);
 
 	DEBUG(" *** POWER DOWN INIT ***\n");
@@ -51,9 +47,7 @@ void task_powerdown_stop()
 	DEBUG("Restarting all devices\n");
 
 #ifndef STM32
-#ifdef UART_SUPPORT
 	uart_stop();
-#endif	
 	Setup();
 	task_timer_setup();
 	DEBUG("Restoring full speed uart\n");
@@ -104,15 +98,11 @@ void task_powerdown_loop()
 		DEBUG("PD sleep\n");
 		
 
-#ifdef UART_SUPPORT
 		uart_stop();
-#endif
 
 		powerdown_sleep();
 
-#ifdef UART_SUPPORT
 		uart_low_speed();
-#endif
 	}
 }
 

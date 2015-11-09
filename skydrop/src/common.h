@@ -29,14 +29,6 @@
 #include <string.h>
 #include "eeprom.h"
 
-#endif
-
-#ifndef UART_SUPPORT
-#define DEBUG(args...) {}
-#endif
-
-#ifdef STM32
-
 #define HIGH	1
 #define LOW		0
 

@@ -1,7 +1,5 @@
 #include "common.h"
-#ifdef UART_SUPPORT
 #include "drivers/uart.h"
-#endif
 #include "drivers/storage/storage.h"
 #include <string.h>
 #include "gui/gui.h"

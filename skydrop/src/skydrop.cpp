@@ -2,9 +2,7 @@
 
 void Setup()
 {
-#ifdef UART_SUPPORT	
 	debug_level = 2;
-#endif	
 
 #ifndef STM32
 	//set clock to max for init 32MHz
@@ -24,10 +22,8 @@ void Setup()
 #ifdef LED_SUPPORT
 	led_init();
 #endif	
-#ifdef UART_SUPPORT	
 	uart_init_buffers();
 	uart_init();
-#endif
 	time_init();
 	buzzer_init();
 	battery_init();

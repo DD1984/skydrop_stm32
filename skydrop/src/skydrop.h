@@ -13,9 +13,7 @@
 #include "fc/conf.h"
 
 #include "drivers/led.h"
-#ifdef UART_SUPPORT
 #include "drivers/uart.h"
-#endif
 #include "drivers/time.h"
 #include "drivers/battery.h"
 #include "drivers/buttons.h"

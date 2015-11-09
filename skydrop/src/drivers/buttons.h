@@ -9,9 +9,7 @@
 #define BUTTONS_H_
 
 #include "../common.h"
-#ifdef UART_SUPPORT
 #include "../drivers/uart.h"
-#endif
 
 #define B_LEFT		0
 #define B_MIDDLE	1
