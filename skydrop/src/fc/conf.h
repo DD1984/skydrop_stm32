@@ -8,12 +8,9 @@
 #ifndef CONF_H_
 #define CONF_H_
 
-#ifdef DISPLAY_SUPPORT
 #include "../gui/widgets/widgets.h"
-#endif
 #include "fc.h"
 
-#ifdef DISPLAY_SUPPORT
 struct cfg_gui_layout
 {
 	uint8_t type;
@@ -45,7 +42,6 @@ struct cfg_gui
 	uint8_t number_of_pages;
 	cfg_gui_layout pages[MAX_NUMBER_OF_PAGES];
 };
-#endif
 
 #define VARIO_UNITS_M		0b00000000
 #define VARIO_UNITS_I		0b10000000
@@ -146,11 +142,7 @@ struct cfg_autostart
 struct cfg_t
 {
 	uint32_t build_number;
-
-#ifdef DISPLAY_SUPPORT
 	cfg_gui gui;
-#endif	
-
 	cfg_vario vario;
 	cfg_altitude altitude;
 	cfg_audio_profile audio_profile;

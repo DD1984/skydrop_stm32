@@ -150,7 +150,6 @@ void button_handle(uint8_t index, uint8_t state)
 
 void buttons_step()
 {
-#ifdef DISPLAY_SUPPORT
 	if (config.gui.disp_flags & CFG_DISP_FLIP)
 	{
 		button_handle(2, GpioRead(SWITCH1));
@@ -161,7 +160,6 @@ void buttons_step()
 		button_handle(0, GpioRead(SWITCH1));
 		button_handle(2, GpioRead(SWITCH3));
 	}
-#endif	
 	button_handle(1, GpioRead(SWITCH2));
 
 	if (buttons_state[0] > BS_IDLE || buttons_state[1] > BS_IDLE || buttons_state[2] > BS_IDLE)

@@ -4,9 +4,7 @@
 #endif
 #include "drivers/storage/storage.h"
 #include <string.h>
-#ifdef DISPLAY_SUPPORT
 #include "gui/gui.h"
-#endif
 #include "fc/conf.h"
 
 

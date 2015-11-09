@@ -1,26 +1,19 @@
 #include "task_active.h"
-#ifdef DISPLAY_SUPPORT
 #include "../gui/gui.h"
-#endif
 #include "../fc/fc.h"
-#ifdef DISPLAY_SUPPORT
 #include "../gui/splash.h"
-#endif
 
 void task_active_init()
 {
 	DEBUG(" *** THIS IS TASK ACTIVE ***\n");
 
-#ifdef DISPLAY_SUPPORT
 	//init gui
 	gui_init();
 	gui_trigger_backlight();
-#endif
 #ifdef WDT_SUPPORT
 	wdt_reset();
 #endif
 
-#ifdef DISPLAY_SUPPORT
 	if (cfg_factory_passed())
 	{
 		gui_splash_set_mode(SPLASH_ON);
@@ -31,7 +24,6 @@ void task_active_init()
 	{
 		gui_switch_task(GUI_FTEST);
 	}
-#endif		
 
 #ifdef WDT_SUPPORT
 	wdt_reset();
@@ -62,9 +54,7 @@ void task_active_init()
 		if (LoadEEPROM())
 		{
 			cfg_load();
-#ifdef DISPLAY_SUPPORT			
 			gui_load_eeprom();
-#endif			
 		}
 
 		//preserve EE and FW file if NO_WIPE file found (factory programming)
@@ -89,9 +79,7 @@ void task_active_stop()
 	StoreEEPROM();
 
 	fc_deinit();
-#ifdef DISPLAY_SUPPORT
 	gui_stop();
-#endif	
 #ifdef STORAGE_SUPPORT
 	storage_deinit();
 #endif	
@@ -101,9 +89,7 @@ void task_active_loop()
 {
 	fc_step();
 
-#ifdef DISPLAY_SUPPORT
 	gui_loop();
-#endif	
 #ifdef STORAGE_SUPPORT
 	storage_step();
 #endif	
@@ -121,10 +107,6 @@ void task_active_irqh(uint8_t type, uint8_t * buff)
 #endif		
 
 	default:
-#ifdef DISPLAY_SUPPORT
 		gui_irqh(type, buff);
-#else
-		;
-#endif		
 	}
 }

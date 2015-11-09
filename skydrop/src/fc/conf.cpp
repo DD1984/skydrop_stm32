@@ -1,7 +1,5 @@
 #include "conf.h"
-#ifdef DISPLAY_SUPPORT
 #include "../gui/widgets/layouts/layouts.h"
-#endif
 
 #ifndef STM32
 cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));

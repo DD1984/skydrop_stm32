@@ -18,6 +18,7 @@ Timer fc_meas_timer;
 #else
 
 TIM_HandleTypeDef fc_meas_timer;
+#endif
 
 #define TIM4CLK 125000 //125 == 1ms
 
@@ -29,8 +30,6 @@ enum {FCT_MEAS_TEMP, FCT_MEAS_PRES, FCT_MEAS_END};
 
 uint8_t fc_meas_timer_state = FCT_MEAS_TEMP;
 
-#endif
-
 extern KalmanFilter * kalmanFilter;
 
 void fc_init()
@@ -38,11 +37,9 @@ void fc_init()
 	DEBUG(" *** Flight computer init ***\n");
 
 	//start values
-#ifdef DISPLAY_SUPPORT	
 	active_page = config.gui.last_page;
 	if (active_page >= config.gui.number_of_pages)
 		active_page = 0;
-#endif		
 
 #ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
@@ -428,10 +425,7 @@ ISR(FC_MEAS_TIMER_CMPC)
 
 void fc_takeoff()
 {
-#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("Take off"));
-#endif	
-
 	fc.autostart_state = AUTOSTART_FLIGHT;
 #ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
@@ -447,10 +441,7 @@ void fc_takeoff()
 
 void fc_landing()
 {
-#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("Landing"));
-#endif
-
 	fc.autostart_state = AUTOSTART_LAND;
 #ifdef RTC_SUPPORT	
 	fc.epoch_flight_timer = time_get_actual() - fc.epoch_flight_timer;
@@ -474,9 +465,7 @@ void fc_sync_gps_time()
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		fc.epoch_flight_timer = time_get_actual() - diff;
 
-#ifdef DISPLAY_SUPPORT
 	gui_showmessage_P(PSTR("GPS Time set"));
-#endif	
 }
 #endif
 
