@@ -13,10 +13,9 @@
 
 volatile flight_data_t fc;
 
-#ifdef FC_TIMER
+#ifndef STM32
 Timer fc_meas_timer;
 #else
-
 TIM_HandleTypeDef fc_meas_timer;
 #endif
 
@@ -165,7 +164,7 @@ void fc_init()
 	sht21.Init(&mems_i2c, sht_cfg);
 #endif	
 
-#ifdef FC_TIMER
+#ifndef STM32
 	//Measurement timer
 	FC_MEAS_TIMER_PWR_ON;
 
@@ -210,14 +209,14 @@ void fc_deinit()
 
 void fc_pause()
 {
-#ifdef FC_TIMER	
+#ifndef STM32
 	fc_meas_timer.Stop();
 #endif	
 }
 
 void fc_continue()
 {
-#ifdef FC_TIMER
+#ifndef STM32
 	fc_meas_timer.Start();
 #endif	
 }
@@ -267,7 +266,7 @@ void fc_meas_timer_ovf(void)
 }
 #endif
 
-#ifdef FC_TIMER
+#ifndef STM32
 //First fc meas period
 // * Read pressure from ms5611
 // * Start temperature conversion ms5611
