@@ -74,9 +74,7 @@ void (* gui_init_array[])() = {
 	gui_set_debug_init,
 	gui_set_altimeters_init,
 	gui_set_altimeter_init,
-#ifdef RTC_SUPPORT
 	gui_set_time_init,
-#endif
 	gui_set_logger_init,
 	gui_dialog_init,
 #ifdef BT_SUPPORT
@@ -117,9 +115,7 @@ void (* gui_stop_array[])() = {
 	gui_set_debug_stop,
 	gui_set_altimeters_stop,
 	gui_set_altimeter_stop,
-#ifdef RTC_SUPPORT
 	gui_set_time_stop,
-#endif
 	gui_set_logger_stop,
 	gui_dialog_stop,
 #ifdef BT_SUPPORT
@@ -160,9 +156,7 @@ void (* gui_loop_array[])() = {
 	gui_set_debug_loop,
 	gui_set_altimeters_loop,
 	gui_set_altimeter_loop,
-#ifdef RTC_SUPPORT
 	gui_set_time_loop,
-#endif
 	gui_set_logger_loop,
 	gui_dialog_loop,
 #ifdef BT_SUPPORT
@@ -203,9 +197,7 @@ void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
 	gui_set_debug_irqh,
 	gui_set_altimeters_irqh,
 	gui_set_altimeter_irqh,
-#ifdef RTC_SUPPORT
 	gui_set_time_irqh,
-#endif
 	gui_set_logger_irqh,
 	gui_dialog_irqh,
 #ifdef BT_SUPPORT

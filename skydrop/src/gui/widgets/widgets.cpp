@@ -15,10 +15,8 @@ widget widget_array[NUMBER_OF_WIDGETS] = {
 #ifdef ACC_SUPPORT
 		w_accx,
 #endif
-#ifdef RTC_SUPPORT
 		w_time,
 		w_ftime,
-#endif
 		w_temperature,
 #ifdef GPS_SUPPORT
 		w_ghdg,

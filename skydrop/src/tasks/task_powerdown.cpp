@@ -69,7 +69,6 @@ void powerdown_sleep()
 {
 	_delay_ms(31);
 #ifndef STM32
-#ifdef RTC_SUPPORT	
 	do
 	{
 		task_timer_stop();
@@ -88,8 +87,6 @@ void powerdown_sleep()
 		//start task timer in low speed mode
 		task_timer_setup(false);
 	} while (time_rtc_irq == true);
-#endif
-
 #else
 	HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
 	DEBUG("STM32 - enter in standby mode\n");

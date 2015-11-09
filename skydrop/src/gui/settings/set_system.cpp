@@ -26,11 +26,9 @@ void gui_set_system_action(uint8_t index)
 {
 	switch(index)
 	{
-#ifdef RTC_SUPPORT
 	case(0):
 		gui_switch_task(GUI_SET_TIME);
 	break;
-#endif
 
 	case(1):
 		gui_switch_task(GUI_SET_DISPLAY);
@@ -62,9 +60,7 @@ void gui_set_system_item(uint8_t index, char * text, uint8_t * flags, char * sub
 	uint8_t month;
 	uint16_t year;
 
-#ifdef RTC_SUPPORT
 	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
-#endif
 
 	switch (index)
 	{

@@ -143,11 +143,9 @@ enum {
 	WIDGET_ACCX,
 #endif
 
-#ifdef RTC_SUPPORT
 	//time.h
 	WIDGET_TIME,
 	WIDGET_FTIME,
-#endif
 
 	//temperature.h
 	WIDGET_TEMPERATURE,

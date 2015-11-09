@@ -97,9 +97,7 @@ void gui_value_loop()
 
 
 		case(GUI_VAL_TIME):
-#ifdef RTC_SUPPORT
 			time_from_epoch(time_get_actual(), &sec, &min, &hour);
-#endif
 
 			sprintf_P(tmp, PSTR("%02d : %02d . %02d"), hour, min, sec);
 			gui_caligh_text(tmp, GUI_DISP_WIDTH / 2, GUI_DIALOG_TOP + (GUI_DIALOG_BOTTOM - GUI_DIALOG_TOP) / 2 - f_h / 2);
@@ -112,9 +110,7 @@ void gui_value_loop()
 		break;
 
 		case(GUI_VAL_DATE):
-#ifdef RTC_SUPPORT
 			datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
-#endif
 
 			sprintf_P(tmp, PSTR("%02d / %02d / %04d"), day, month, year);
 			gui_caligh_text(tmp, GUI_DISP_WIDTH / 2, GUI_DIALOG_TOP + (GUI_DIALOG_BOTTOM - GUI_DIALOG_TOP) / 2 - f_h / 2);
@@ -218,7 +214,6 @@ void gui_value_time_irqh(uint8_t type, uint8_t * buff)
 	break;
 	}
 
-#ifdef RTC_SUPPORT
 	switch (gui_value_index)
 	{
 		case(0):
@@ -231,7 +226,6 @@ void gui_value_time_irqh(uint8_t type, uint8_t * buff)
 			time_set_actual(time_get_actual() + inc);
 		break;
 	}
-#endif
 }
 
 void gui_value_date_irqh(uint8_t type, uint8_t * buff)
@@ -273,18 +267,14 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 	uint8_t month;
 	uint16_t year;
 
-#ifdef RTC_SUPPORT
 	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
-#endif
 
 	switch (gui_value_index)
 	{
 		case(0):
 			day += inc;
-#ifdef RTC_SUPPORT
 			if (day < 1)
 				day = monthDays[month - 1];
-#endif
 
 			if ((((!(year % 4)) && (year % 100) ) || (!(year % 400))) && month == 2)
 			{
@@ -293,10 +283,8 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 			}
 			else
 			{
-#ifdef RTC_SUPPORT
 				if (day > monthDays[month - 1])
 					day = monthDays[month - 1];
-#endif
 			}
 		break;
 
@@ -319,7 +307,6 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 
 	uint32_t diff = 0;
 
-#ifdef RTC_SUPPORT
 	//do not change flight time during update
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		diff = time_get_actual() - fc.epoch_flight_timer;
@@ -329,7 +316,6 @@ void gui_value_date_irqh(uint8_t type, uint8_t * buff)
 	//do not change flight time during update
 	if (fc.autostart_state == AUTOSTART_FLIGHT)
 		fc.epoch_flight_timer = time_get_actual() - diff;
-#endif
 }
 
 void gui_value_irqh(uint8_t type, uint8_t * buff)

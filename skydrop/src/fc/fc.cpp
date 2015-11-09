@@ -40,9 +40,7 @@ void fc_init()
 	if (active_page >= config.gui.number_of_pages)
 		active_page = 0;
 
-#ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
-#endif
 	fc.autostart_state = AUTOSTART_WAIT;
 
 	fc.temp_step = 0;
@@ -426,9 +424,7 @@ void fc_takeoff()
 {
 	gui_showmessage_P(PSTR("Take off"));
 	fc.autostart_state = AUTOSTART_FLIGHT;
-#ifdef RTC_SUPPORT
 	fc.epoch_flight_timer = time_get_actual();
-#endif
 
 	//zero altimeters at take off
 	for (uint8_t i = 0; i < NUMBER_OF_ALTIMETERS; i++)
@@ -442,9 +438,7 @@ void fc_landing()
 {
 	gui_showmessage_P(PSTR("Landing"));
 	fc.autostart_state = AUTOSTART_LAND;
-#ifdef RTC_SUPPORT	
 	fc.epoch_flight_timer = time_get_actual() - fc.epoch_flight_timer;
-#endif	
 
 	audio_off();
 }
@@ -491,14 +485,12 @@ void fc_step()
 		}
 		else
 		{
-#ifdef RTC_SUPPORT			
 			//reset wait timer
 			if (time_get_actual() - fc.epoch_flight_timer > FC_AUTOSTART_RESET)
 			{
 				fc.epoch_flight_timer = time_get_actual();
 				fc.start_altitude = fc.altitude1;
 			}
-#endif			
 		}
 	}
 

@@ -58,13 +58,8 @@ EEMEM cfg_t config_ee = {
 				LAYOUT_12,
 				{
 					WIDGET_VARIO_BAR,
-#ifdef RTC_SUPPORT
 					WIDGET_TIME,
 					WIDGET_FTIME,
-#else
-					WIDGET_EMPTY,
-					WIDGET_EMPTY,
-#endif
 					WIDGET_EMPTY,
 					WIDGET_EMPTY,
 					WIDGET_EMPTY,

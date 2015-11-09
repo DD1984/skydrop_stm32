@@ -28,9 +28,7 @@ void Setup()
 	uart_init_buffers();
 	uart_init();
 #endif
-#ifdef RTC_SUPPORT	
 	time_init();
-#endif
 #ifdef AUDIO_SUPPORT
 	buzzer_init();
 #endif
@@ -114,11 +112,9 @@ void Post()
 	//App name
 	print_fw_info();
 
-#ifdef RTC_SUPPORT
 	//Print actual time
 	DEBUG("Time is ... \n");
 	print_datetime();
-#endif	
 
 #ifndef STM32
 	DEBUG("Free RAM at start ... %d\n", free_ram_at_start);
