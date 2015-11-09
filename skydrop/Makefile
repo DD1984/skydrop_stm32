@@ -83,6 +83,7 @@ CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/sensors/bmp180.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/n5110_disp.cpp
+CPP_SOURCES += src/drivers/ILI9163C.cpp
 CPP_SOURCES += src/drivers/battery.cpp
 CPP_SOURCES += src/drivers/audio/audio.cpp
 CPP_SOURCES += src/drivers/audio/buzzer.cpp
@@ -166,6 +167,8 @@ CFLAGS += -DDISPLAY_SUPPORT
 CFLAGS += -DAUDIO_SUPPORT
 CFLAGS += -DBMP180_SUPPORT
 CFLAGS += -DRTC_SUPPORT
+
+CFLAGS += -DILI9163C
 
 #######################################
 # LDFLAGS
