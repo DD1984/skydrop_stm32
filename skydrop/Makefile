@@ -163,7 +163,6 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
 CFLAGS += -DBMP180_SUPPORT
-
 CFLAGS += -DILI9163C
 
 #######################################

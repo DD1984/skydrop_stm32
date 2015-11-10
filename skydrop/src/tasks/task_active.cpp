@@ -10,9 +10,7 @@ void task_active_init()
 	//init gui
 	gui_init();
 	gui_trigger_backlight();
-#ifdef WDT_SUPPORT
 	wdt_reset();
-#endif
 
 	if (cfg_factory_passed())
 	{
@@ -25,9 +23,7 @@ void task_active_init()
 		gui_switch_task(GUI_FTEST);
 	}
 
-#ifdef WDT_SUPPORT
 	wdt_reset();
-#endif
 	
 #ifdef STORAGE_SUPPORT	
 	if (storage_init())
@@ -68,9 +64,7 @@ void task_active_init()
 #endif
 
 	//init flight computer
-#ifdef WDT_SUPPORT	
 	wdt_reset();
-#endif	
 	fc_init();
 }
 

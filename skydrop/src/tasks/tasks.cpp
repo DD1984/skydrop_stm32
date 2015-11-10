@@ -1,5 +1,5 @@
 #include "tasks.h"
-#ifdef WDT_SUPPORT
+#ifndef STM32
 #include "../xlib/core/watchdog.h"
 #endif
 #include "../fc/conf.h"
@@ -170,9 +170,7 @@ void task_init()
 		task_set(TASK_USB);
 #endif		
 
-#ifdef WDT_SUPPORT
 	wdt_init(wdt_2s);
-#endif	
 }
 
 void task_set(uint8_t task)
@@ -182,9 +180,8 @@ void task_set(uint8_t task)
 
 void task_loop()
 {
-#ifdef WDT_SUPPORT
 	wdt_reset();
-#endif	
+
 	if (actual_task != NO_TASK)
 		task_loop_array[actual_task]();
 }
@@ -193,9 +190,7 @@ uint64_t loop_start = 0;
 
 void task_system_loop()
 {
-#ifdef WDT_SUPPORT
 	wdt_reset();
-#endif	
 
 	//task switching outside interrupt
 	if (new_task != actual_task)
