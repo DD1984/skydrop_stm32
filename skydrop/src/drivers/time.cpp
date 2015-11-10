@@ -2,6 +2,7 @@
 
 #ifdef STM32
 RTC_HandleTypeDef RtcHandle;
+void time_set_actual(uint32_t t);
 #endif
 
 uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -102,12 +103,12 @@ void datetime_from_epoch(uint32_t epoch, uint8_t * psec, uint8_t * pmin, uint8_t
 	*pday=epoch+1;  // day of month
 }
 
-void print_datetime()
+void print_datetime(uint32_t epoch)
 {
 	uint8_t sec, min, hour, day, wday, month;
 	uint16_t year;
 
-	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+	datetime_from_epoch(epoch, &sec, &min, &hour, &day, &wday, &month, &year);
 
 	DEBUG("%02d.%02d.%04d %02d:%02d.%02d\n", day, month, year, hour, min, sec);
 }
@@ -122,6 +123,8 @@ ISR(rtc_overflow_interrupt)
 }
 #endif
 
+#define TIME_MIN_DATE	(1420113600) //1.1.2015 12:00.00
+
 void time_init()
 {
 #ifndef STM32
@@ -132,10 +135,16 @@ void time_init()
 	RtcSetPeriod(3);
 	RtcInit(rtc_1024Hz_tosc, rtc_div256); //f == 32Hz
 	RtcEnableInterrupts(rtc_overflow); //ovf every sec
+
+	if (time_get_actual() < TIME_MIN_DATE)
+		unix_time = TIME_MIN_DATE;
 #else
 	RtcHandle.Instance = RTC;
 	RtcHandle.Init.AsynchPrediv = RTC_AUTO_1_SECOND;
 	HAL_RTC_Init(&RtcHandle);
+
+	if (time_get_actual() < TIME_MIN_DATE)
+		time_set_actual(TIME_MIN_DATE);
 #endif
 }
 

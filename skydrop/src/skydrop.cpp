@@ -1,15 +1,25 @@
 #include "skydrop.h"
 
+int free_ram_at_start;
+uint8_t system_rst;
+
 void Setup()
 {
-	debug_level = 2;
-
 #ifndef STM32
 	//set clock to max for init 32MHz
 	ClockSetSource(x32MHz);
 	//disable 2MHZ osc
 	OSC.CTRL = 0b00000010;
-	//save power
+
+	//get RAM info
+	free_ram_at_start = freeRam();
+
+	//get reset reason
+	system_rst = RST.STATUS;
+	RST.STATUS = 0b00111111;
+
+	//save power - peripherals are turned on on demand by drivers
+
 	turnoff_subsystems();
 
 	EnableInterrupts();
@@ -17,6 +27,9 @@ void Setup()
 	HAL_Init();
 	SystemClock_Config();
 #endif
+
+	//load device id
+	GetID();
 
 	//init basic peripherals
 #ifdef LED_SUPPORT
@@ -37,26 +50,19 @@ void Setup()
 	SD_EN_INIT;
 #endif
 
-	//load configuration
+	//load configuration from EE
 	cfg_load();
 
 	_delay_ms(100);
 }
 
-int free_ram_at_start;
-uint8_t system_rst;
-
 void Post()
 {
-	//buzzer_beep(_1sec, 0, 0, 0, 0);
-
 	DEBUG("\n *** POST *** \n");
 
 #ifndef STM32
 	//Print reset reason
 	DEBUG("Reset reason ... ");
-
-	system_rst = RST.STATUS;
 
 	if (RST.STATUS & 0b00100000)
 		DEBUG("Software ");
@@ -78,11 +84,10 @@ void Post()
 	else
 		DEBUG("Unknown: %02X", RST.STATUS);
 
-	RST.STATUS = 0b00111111;
 	DEBUG("\n");
 
 #else
-	DEBUG("RCC:\n")
+	DEBUG("RCC:\n");
 	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST))
 		DEBUG("\tPIN reset\n");
 	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST))
@@ -91,7 +96,7 @@ void Post()
 		DEBUG("\tIndependent Watchdog reset\n");
 	 __HAL_RCC_CLEAR_RESET_FLAGS();
 
-	DEBUG("PWR:\n")
+	DEBUG("PWR:\n");
 	if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB)) {
 		DEBUG("\tResumed from StandBy mode\n");
 		__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
@@ -108,22 +113,26 @@ void Post()
 
 	//Print actual time
 	DEBUG("Time is ... \n");
-	print_datetime();
+	print_datetime(time_get_actual());
 
 #ifndef STM32
 	DEBUG("Free RAM at start ... %d\n", free_ram_at_start);
 	test_memory();
 #endif
 
-	DEBUG("\n");
+	char id[22];
+	GetID_str(id);
+	DEBUG("Device serial number ... %s\n", id);
+
+	DEBUG("Board rev ... %u\n", (hw_revision == HW_REW_1504) ? 1504 : 1406);
+
+	//debug info
+	debug_last_dump();
 }
 
-extern uint8_t actual_task;
-extern uint8_t task_sleep_lock;
 
 int main()
 {
-	free_ram_at_start = freeRam();
 	Setup();
 
 	Post();

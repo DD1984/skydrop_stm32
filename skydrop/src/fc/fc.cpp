@@ -9,6 +9,10 @@
 
 #include "protocols/protocol.h"
 
+#include "logger/logger.h"
+
+#include "../gui/gui_dialog.h"
+
 volatile flight_data_t fc;
 
 #ifndef STM32
@@ -38,25 +42,26 @@ void fc_init()
 	if (active_page >= config.gui.number_of_pages)
 		active_page = 0;
 
-	fc.epoch_flight_timer = time_get_actual();
-	fc.autostart_state = AUTOSTART_WAIT;
+	//reset flight status
+	fc_reset();
 
+	//temperature state machine
 	fc.temp_step = 0;
-
 
 	//init calculators
 	vario_init();
 	audio_init();
+	logger_init();
 
 #ifdef GPS_SUPPORT
 	gps_init();
-	if (config.system.use_gps)
+	if (config.connectivity.use_gps)
 		gps_start();
 #endif		
 
 #ifdef BT_SUPPORT
 	bt_init();
-	if (config.system.use_bt)
+	if (config.connectivity.use_bt)
 		bt_module_init();
 #endif
 
@@ -64,25 +69,24 @@ void fc_init()
 	mems_power_on();
 
 	//init and test i2c
+	//HW_REW_1504 have two mems enable pins, both have to be enabled!
+	//HW_REW_1506 have standalone ldo for mems, hence only one pin is needed
 	if (!mems_i2c_init())
 	{
-		DEBUG("ERROR I2C\n");
+		DEBUG("ERROR I2C, Wrong board rev? (%02X)\n", hw_revision);
 #ifdef LED_SUPPORT
 		led_set(0xFF, 0, 0);
 #endif
 #ifndef STM32
-		if (hw_revision == HW_REW_UNKNOWN)
-		{
-			hw_revision = HW_REW_1504;
-			eeprom_busy_wait();
-			eeprom_update_byte(&config_ro.hw_revision, hw_revision);
-			eeprom_busy_wait();
+		hw_revision = HW_REW_1504;
+		eeprom_busy_wait();
+		eeprom_update_byte(&config_ro.hw_revision, hw_revision);
+		eeprom_busy_wait();
 
-			mems_power_init();
-			io_init();
-			mems_power_on();
-			mems_i2c_init();
-		}
+		mems_power_init();
+		io_init();
+		mems_power_on();
+		assert(mems_i2c_init());
 #endif
 	}
 	else
@@ -101,6 +105,12 @@ void fc_init()
 			mems_i2c_init();
 		}
 #endif
+	}
+
+	if (!mems_i2c_init())
+	{
+		DEBUG("I2C error!\nUnable to init flight computer!\n");
+		return;
 	}
 
 #ifdef MS5611_SUPPORT
@@ -187,6 +197,13 @@ void fc_init()
 
 void fc_deinit()
 {
+#ifndef STM32	
+	fc_meas_timer.Stop();
+#endif	
+
+	if (fc.flight_state == FLIGHT_FLIGHT)
+		fc_landing();
+
 	eeprom_busy_wait();
 	//store altimeter info
 	eeprom_update_float(&config_ee.altitude.QNH1, config.altitude.QNH1);
@@ -418,9 +435,17 @@ ISR(FC_MEAS_TIMER_CMPC)
 
 void fc_takeoff()
 {
+	if (!fc.baro_valid)
+		return;
+
 	gui_showmessage_P(PSTR("Take off"));
-	fc.autostart_state = AUTOSTART_FLIGHT;
-	fc.epoch_flight_timer = time_get_actual();
+
+	fc.flight_state = FLIGHT_FLIGHT;
+	fc.flight_timer = time_get_actual();
+
+	//reset timer and altitude for autoland
+	fc.autostart_altitude = fc.altitude1;
+	fc.autostart_timer = time_get_actual();
 
 	//zero altimeters at take off
 	for (uint8_t i = 0; i < NUMBER_OF_ALTIMETERS; i++)
@@ -428,15 +453,45 @@ void fc_takeoff()
 		if (config.altitude.altimeter[i].flags & ALT_AUTO_ZERO)
 			fc_zero_alt(i + 1);
 	}
+
+	logger_start();
+}
+
+uint8_t fc_landing_old_gui;
+
+void fc_landing_cb(uint8_t ret)
+{
+	gui_switch_task(fc_landing_old_gui);
 }
 
 void fc_landing()
 {
-	gui_showmessage_P(PSTR("Landing"));
-	fc.autostart_state = AUTOSTART_LAND;
-	fc.epoch_flight_timer = time_get_actual() - fc.epoch_flight_timer;
+//	gui_showmessage_P(PSTR("Landing"));
+
+	gui_dialog_set_P(PSTR("Landing"), PSTR(""), GUI_STYLE_STATS, fc_landing_cb);
+	fc_landing_old_gui = gui_task;
+	gui_switch_task(GUI_DIALOG);
+
+	fc.flight_state = FLIGHT_LAND;
+	fc.flight_timer = time_get_actual() - fc.flight_timer;
 
 	audio_off();
+
+	logger_stop();
+}
+
+void fc_reset()
+{
+	//autostart timer
+	fc.autostart_timer = time_get_actual();
+	fc.flight_state = FLIGHT_WAIT;
+
+	//statistic
+	fc.stats.max_alt = -32678;
+	fc.stats.min_alt = 32677;
+	fc.stats.max_climb = 0;
+	fc.stats.max_sink = 0;
+
 }
 
 #ifdef GPS_SUPPORT
@@ -444,15 +499,18 @@ void fc_sync_gps_time()
 {
 	uint32_t diff = 0;
 
+	if (time_get_actual() == (fc.gps_data.utc_time + (config.system.time_zone * 3600ul) / 2))
+		return;
+
 	//do not change flight time during update
-	if (fc.autostart_state == AUTOSTART_FLIGHT)
-		diff = time_get_actual() - fc.epoch_flight_timer;
+	if (fc.flight_state == FLIGHT_FLIGHT)
+		diff = time_get_actual() - fc.flight_timer;
 
 	time_set_actual(fc.gps_data.utc_time + (config.system.time_zone * 3600ul) / 2);
 
 	//do not change flight time during update
-	if (fc.autostart_state == AUTOSTART_FLIGHT)
-		fc.epoch_flight_timer = time_get_actual() - diff;
+	if (fc.flight_state == FLIGHT_FLIGHT)
+		fc.flight_timer = time_get_actual() - diff;
 
 	gui_showmessage_P(PSTR("GPS Time set"));
 }
@@ -472,22 +530,44 @@ void fc_step()
 	protocol_step();
 #endif	
 
+	logger_step();
+
 	//auto start
-	if (fc.baro_valid && fc.autostart_state == AUTOSTART_WAIT)
+	// baro valid, waiting to take off, and enabled auto start
+	if (fc.baro_valid && fc.flight_state == FLIGHT_WAIT && config.autostart.start_sensititvity > 0)
 	{
-		if (abs(fc.altitude1 - fc.start_altitude) > config.autostart.sensititvity)
+		if (abs(fc.altitude1 - fc.autostart_altitude) > config.autostart.start_sensititvity)
 		{
 			fc_takeoff();
 		}
 		else
 		{
 			//reset wait timer
-			if (time_get_actual() - fc.epoch_flight_timer > FC_AUTOSTART_RESET)
+			if (time_get_actual() - fc.autostart_timer > config.autostart.timeout)
 			{
-				fc.epoch_flight_timer = time_get_actual();
-				fc.start_altitude = fc.altitude1;
+				fc.autostart_timer = time_get_actual();
+				fc.autostart_altitude = fc.altitude1;
 			}
 		}
+	}
+
+	//auto land
+	// flying and auto land enabled
+	if (fc.flight_state == FLIGHT_FLIGHT && config.autostart.land_sensititvity > 0)
+	{
+		if (abs(fc.altitude1 - fc.autostart_altitude) < config.autostart.land_sensititvity)
+		{
+			if (time_get_actual() - fc.autostart_timer > config.autostart.timeout)
+			{
+				fc_landing();
+			}
+		}
+		else
+		{
+			fc.autostart_altitude = fc.altitude1;
+			fc.autostart_timer = time_get_actual();
+		}
+
 	}
 
 #ifdef GPS_SUPPORT
@@ -498,8 +578,8 @@ void fc_step()
 	}
 
 	//glide ratio
-	//when you hav GPS, baro and speed is higher than 2km/h and you are sinking
-	if (fc.gps_data.valid && fc.baro_valid && fc.gps_data.groud_speed > FC_GLIDE_MIN_KNOTS && fc.avg_vario < 0.0)
+	//when you have GPS, baro and speed is higher than 2km/h and you are sinking <= -0.01
+	if (fc.gps_data.valid && fc.baro_valid && fc.gps_data.groud_speed > FC_GLIDE_MIN_KNOTS && fc.avg_vario <= FC_GLIDE_MIN_SINK)
 	{
 		float spd_m = fc.gps_data.groud_speed * FC_KNOTS_TO_MPS;
 		fc.glide_ratio = spd_m / abs(fc.avg_vario);
@@ -511,6 +591,22 @@ void fc_step()
 		fc.glide_ratio_valid = false;
 	}
 #endif
+
+	//flight statistic
+	if (fc.flight_state == FLIGHT_FLIGHT)
+	{
+		int16_t t_vario = fc.avg_vario * 100;
+
+		if (fc.altitude1 > fc.stats.max_alt)
+			fc.stats.max_alt = fc.altitude1;
+		if (fc.altitude1 < fc.stats.min_alt)
+			fc.stats.min_alt = fc.altitude1;
+
+		if (t_vario > fc.stats.max_climb)
+			fc.stats.max_climb = t_vario;
+		if (t_vario < fc.stats.max_sink)
+			fc.stats.max_sink = t_vario;
+	}
 }
 
 float fc_alt_to_qnh(float alt, float pressure)
@@ -537,9 +633,7 @@ void fc_zero_alt(uint8_t index)
 			uint8_t a_index = config.altitude.altimeter[index].flags & 0x0F;
 
 			if (a_index == 0)
-			{
 				config.altitude.altimeter[index].delta = -fc.altitude1;
-			}
 			else
 				config.altitude.altimeter[index].delta = -fc.altitudes[a_index];
 
@@ -549,6 +643,9 @@ void fc_zero_alt(uint8_t index)
 void fc_manual_alt0_change(float val)
 {
     kalmanFilter->setXAbs(val);
-    fc.start_altitude = val;
+    if (fc.flight_state == FLIGHT_WAIT)
+    {
+    	fc.autostart_altitude = val;
+    }
 }
 

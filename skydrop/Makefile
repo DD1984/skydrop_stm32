@@ -67,11 +67,13 @@ CPP_SOURCES += src/hal/eeprom.cpp
 
 CPP_SOURCES += src/skydrop.cpp
 CPP_SOURCES += src/common.cpp
+CPP_SOURCES += src/debug.cpp
 
 CPP_SOURCES += src/fc/fc.cpp
 CPP_SOURCES += src/fc/conf.cpp
 CPP_SOURCES += src/fc/vario.cpp
 CPP_SOURCES += src/fc/kalman.cpp
+CPP_SOURCES += src/fc/logger/logger.cpp
 
 CPP_SOURCES += src/tasks/tasks.cpp
 CPP_SOURCES += src/tasks/task_active.cpp
@@ -82,7 +84,7 @@ CPP_SOURCES += src/drivers/uart.cpp
 CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/sensors/bmp180.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
-CPP_SOURCES += src/drivers/n5110_disp.cpp
+CPP_SOURCES += src/drivers/lcd_disp.cpp
 CPP_SOURCES += src/drivers/ILI9163C.cpp
 CPP_SOURCES += src/drivers/battery.cpp
 CPP_SOURCES += src/drivers/audio/audio.cpp
@@ -104,12 +106,12 @@ CPP_SOURCES += src/gui/gui_list.cpp
 CPP_SOURCES += src/gui/widgets/layouts/layouts.cpp
 CPP_SOURCES += src/gui/widgets/widgets.cpp
 CPP_SOURCES += src/gui/widgets/dummy.cpp
-#CPP_SOURCES += src/gui/widgets/flight.cpp
 CPP_SOURCES += src/gui/widgets/temperature.cpp
 CPP_SOURCES += src/gui/widgets/battery.cpp
 CPP_SOURCES += src/gui/widgets/vario.cpp
 CPP_SOURCES += src/gui/widgets/altitude.cpp
 CPP_SOURCES += src/gui/widgets/time.cpp
+CPP_SOURCES += src/gui/widgets/ctrl.cpp
 
 CPP_SOURCES += src/gui/settings/set_widgets.cpp
 CPP_SOURCES += src/gui/settings/settings.cpp

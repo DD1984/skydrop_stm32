@@ -6,8 +6,6 @@ Usart uart;
 UART_HandleTypeDef Uart;
 #endif
 
-uint8_t debug_level;
-
 #ifndef STM32
 CreateStdIn(uart_in, uart.Read);
 CreateStdOut(uart_out, uart.Write);
@@ -18,6 +16,19 @@ void uart_init_buffers()
 #ifndef STM32
 	uart.InitBuffers(0, BUFFER_SIZE);
 #endif
+}
+
+void uart_send(char * msg)
+{
+	char * ptr = msg;
+
+	while (*ptr != 0)
+	{
+#ifndef STM32		
+		uart.Write(*ptr);
+#endif		
+		ptr++;
+	}
 }
 
 void uart_init()

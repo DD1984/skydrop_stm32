@@ -98,14 +98,20 @@ bool SleepLock::Active()
 #ifndef STM32
 ISR(TASK_TIMER_OVF)
 {
-	task_timer_high++;
+	if (SP<debug_min_stack_pointer)
+		debug_min_stack_pointer = SP;
+
+	if (debug_max_heap_pointer < freeRam())
+		debug_max_heap_pointer = freeRam();
+
+	task_timer_high += 512ul;
 }
 #endif
 
 #ifdef USB_SUPPORT
 ISR(USB_CONNECTED_IRQ)
 {
-	//dummy
+	//dummy ISR
 	//just wake up the device
 	//usb_in is checked in main loop
 }
@@ -114,7 +120,8 @@ ISR(USB_CONNECTED_IRQ)
 uint32_t task_get_ms_tick()
 {
 #ifndef STM32
-	uint32_t res = (task_timer_high * 512ul) + (uint32_t)(task_timer.GetValue() / 125);
+
+	uint32_t res = (task_timer_high) + (uint32_t)(task_timer.GetValue() / 125);
 
 	return res;
 #else
@@ -170,7 +177,7 @@ void task_init()
 		task_set(TASK_USB);
 #endif		
 
-	wdt_init(wdt_2s);
+	ewdt_init();
 }
 
 void task_set(uint8_t task)
@@ -180,7 +187,7 @@ void task_set(uint8_t task)
 
 void task_loop()
 {
-	wdt_reset();
+	ewdt_reset();
 
 	if (actual_task != NO_TASK)
 		task_loop_array[actual_task]();
@@ -190,7 +197,7 @@ uint64_t loop_start = 0;
 
 void task_system_loop()
 {
-	wdt_reset();
+	ewdt_reset();
 
 	//task switching outside interrupt
 	if (new_task != actual_task)
@@ -203,6 +210,12 @@ void task_system_loop()
 			//XXX: this will guarantee that task switched from the powerdown task will be vanilla
 			if (new_task == TASK_POWERDOWN)
 				SystemReset();
+
+#ifdef USB_SUPPORT
+			//XXX: usb is bit unstable when it is switched from another task, this is hack
+			if (new_task == TASK_USB && actual_task != NO_TASK)
+				SystemReset();
+#endif				
 		}
 
 		actual_task = new_task;

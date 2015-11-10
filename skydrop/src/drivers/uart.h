@@ -15,43 +15,11 @@
 #include <stdio.h>
 #endif
 
-//DEBUG
-extern uint8_t debug_level;
-
-#ifndef STM32
-#define DEBUG(format, ...) \
-	do \
-	if (debug_level > 0) \
-	{ \
-		printf_P(PSTR(format), ##__VA_ARGS__); \
-		uart.FlushTxBuffer(); \
-	} \
-	while(0)
-#else
-#define DEBUG(format, ...) {\
-		printf("%s:%s[%d] - ", __FILE__, __func__,__LINE__);\
-		printf(format, ##__VA_ARGS__);\
-	}
-#endif
-
-//#define DEBUG1
-
-#define DEBUG1(x...) \
-	do \
-	if (debug_level > 1) \
-	{ \
-		DEBUG("%S@%d: ", PSTR(__FILE__), __LINE__); \
-		DEBUG(x); \
-		DEBUG("\n"); \
-		uart.FlushTxBuffer(); \
-	} \
-	while(0)
-
-
 void uart_init_buffers();
 void uart_init();
 void uart_low_speed();
 void uart_stop();
+void uart_send(char * msg);
 
 
 void DUMP_REG(uint8_t val);

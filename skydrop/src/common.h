@@ -54,6 +54,7 @@
 
 #include "build_defs.h"
 #include "build_number.h"
+#include "debug.h"
 
 union byte8
 {
@@ -219,6 +220,10 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define BT_UART_PWR_OFF			PR.PRPD |= 0b00010000;
 
 //XXX: timerd0 should left unused so user can generate pwm.
+#define DEBUG_TIMER				timerd0
+#define DEBUG_TIMER_PWR_ON		PR.PRPD	&= 0b11111110;
+#define DEBUG_TIMER_PWR_OFF		PR.PRPD	|= 0b00000001;
+#define DEBUG_TIMER_OVF			timerd0_overflow_interrupt
 
 #define LED_TIMER1				timerd1
 #define LED_TIMER1_PWR_ON		PR.PRPD	&= 0b11111101;
@@ -299,6 +304,11 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define REV_1504_MEMS_EN_2		portb1
 #define REV_1504_I2C_EN			portf5
 
+//bat_en
+#define BAT_EN_ADC	(1 << 0)
+#define BAT_EN_LED	(1 << 1)
+#define BAT_EN_LCD	(1 << 2)
+
 class DataBuffer
 {
 public:
@@ -337,6 +347,9 @@ bool StoreEEPROM();
 //system info
 void print_fw_info();
 extern uint8_t hw_revision;
+extern uint8_t device_id[11];
+void GetID(); //11 b
+void GetID_str(char * id); //22 b
 
 //power
 void mems_power_init();

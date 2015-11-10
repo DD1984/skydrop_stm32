@@ -23,7 +23,7 @@ void widget_gspd_draw(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t flags)
 	{
 		float val;
 
-		switch(config.system.gps_format_flags & GPS_SPD_MASK)
+		switch(config.connectivity.gps_format_flags & GPS_SPD_MASK)
 		{
 			case(GPS_SPD_KPH):
 				val = fc.gps_data.groud_speed * FC_KNOTS_TO_KPH;
@@ -66,11 +66,11 @@ void widget_gpos_draw(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t flags)
 
 	if (fc.gps_data.valid)
 	{
-		switch (config.system.gps_format_flags & GPS_FORMAT_MASK)
+		switch (config.connectivity.gps_format_flags & GPS_FORMAT_MASK)
 		{
 			case(GPS_DDdddddd):
 				sprintf_P(tmp1, PSTR("%+02.6f"), fc.gps_data.latitude);
-				sprintf_P(tmp2, PSTR("%+02.6f"), fc.gps_data.longtitude);
+				sprintf_P(tmp2, PSTR("%+03.6f"), fc.gps_data.longtitude);
 			break;
 			case(GPS_DDMMmmm):
 				c = (fc.gps_data.latitude < 0) ? 'S' : 'N';
@@ -83,7 +83,7 @@ void widget_gpos_draw(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t flags)
 				decimal = abs(fc.gps_data.longtitude);
 				deg = floor(decimal);
 				min = (decimal - deg) * 60;
-				sprintf_P(tmp2, PSTR("%02.0f*%02.3f%c"), deg, min, c);
+				sprintf_P(tmp2, PSTR("%03.0f*%02.3f%c"), deg, min, c);
 			break;
 			case(GPS_DDMMSS):
 				c = (fc.gps_data.latitude < 0) ? 'S' : 'N';
@@ -98,7 +98,7 @@ void widget_gpos_draw(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t flags)
 				deg = floor(decimal);
 				min = floor((decimal - deg) * 60);
 				sec = floor((decimal - deg - min / 60) * 3600);
-				sprintf_P(tmp2, PSTR("%02.0f*%02.0f'%02.0f\"%c"), deg, min, sec, c);
+				sprintf_P(tmp2, PSTR("%03.0f*%02.0f'%02.0f\"%c"), deg, min, sec, c);
 
 			break;
 		}

@@ -9,6 +9,6 @@ void protocol_bluefly_step(char * buffer)
 
 	sprintf_P(buffer, PSTR("PRS %lX\n"), tmp);
 
-	//5Hz refresh
-	protocol_set_next_step(200);
+	//10Hz refresh
+	protocol_set_next_step(100);
 }

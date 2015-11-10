@@ -102,7 +102,11 @@ extern float widget_menu_fvalue1;
 #define WIDGET_GLIDE_RATIO	19
 #include "flight.h"
 
-#define NUMBER_OF_WIDGETS	20
+#define WIDGET_CTRL_AUDIO	20
+#define WIDGET_CTRL_WLIFT	21
+#include "ctrl.h"
+
+#define NUMBER_OF_WIDGETS	22
 
 #else
 
@@ -118,7 +122,11 @@ extern float widget_menu_fvalue1;
 #include "gps.h"
 #endif
 #include "battery.h"
+#ifdef GPS_SUPPORT
 #include "flight.h"
+#endif
+#include "ctrl.h"
+
 
 enum {
 	//dummpy.h
@@ -159,8 +167,16 @@ enum {
 
 	//battery.h
 	WIDGET_BATTERY,
+
+#ifdef GPS_SUPPORT
 	//flight.h
 	WIDGET_GLIDE_RATIO,
+#endif	
+
+	//ctrl.h
+	WIDGET_CTRL_AUDIO,
+	WIDGET_CTRL_WLIFT,
+
 	//
 	WIDGET_END,
 	//

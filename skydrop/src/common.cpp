@@ -9,7 +9,7 @@
 struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 struct app_info fw_info;
 
-uint8_t hw_revision = HW_REW_1506;
+uint8_t hw_revision = HW_REW_UNKNOWN;
 
 void print_fw_info()
 {
@@ -133,6 +133,8 @@ void DataBuffer::Clear()
 	this->read_index = 0;
 }
 
+//***************************************************
+
 volatile uint8_t bat_en_mask = 0;
 
 void bat_en_high(uint8_t mask)
@@ -151,6 +153,53 @@ void bat_en_low(uint8_t mask)
 		GpioWrite(BAT_EN, LOW);
 #endif		
 }
+
+//***************************************************
+
+uint8_t device_id[11];
+
+void GetID() //11 b
+{
+#ifndef STM32
+	enum
+	{
+		LOTNUM0=8,  // Lot Number Byte 0, ASCII
+		LOTNUM1,    // Lot Number Byte 1, ASCII
+		LOTNUM2,    // Lot Number Byte 2, ASCII
+		LOTNUM3,    // Lot Number Byte 3, ASCII
+		LOTNUM4,    // Lot Number Byte 4, ASCII
+		LOTNUM5,    // Lot Number Byte 5, ASCII
+		WAFNUM =16, // Wafer Number
+		COORDX0=18, // Wafer Coordinate X Byte 0
+		COORDX1,    // Wafer Coordinate X Byte 1
+		COORDY0,    // Wafer Coordinate Y Byte 0
+		COORDY1,    // Wafer Coordinate Y Byte 1
+	};
+
+	device_id[0] = pgm_read_byte(LOTNUM0);
+	device_id[1] = pgm_read_byte(LOTNUM1);
+	device_id[2] = pgm_read_byte(LOTNUM2);
+	device_id[3] = pgm_read_byte(LOTNUM3);
+	device_id[4] = pgm_read_byte(LOTNUM4);
+	device_id[5] = pgm_read_byte(LOTNUM5);
+	device_id[6] = pgm_read_byte(WAFNUM);
+	device_id[7] = pgm_read_byte(COORDX0);
+	device_id[8] = pgm_read_byte(COORDX1);
+	device_id[9] = pgm_read_byte(COORDY0);
+	device_id[10] = pgm_read_byte(COORDY1);
+	NVM.CMD = NVM_CMD_NO_OPERATION_gc;
+#endif	
+}
+
+
+void GetID_str(char * id) //23 b
+{
+	uint8_t * b = device_id;
+
+	sprintf_P(id, PSTR("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X"), b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9], b[10]);
+}
+
+//***************************************************
 
 
 bool cmpn(char * s1, const char * s2, uint8_t n)
@@ -232,7 +281,8 @@ bool LoadEEPROM()
 bool StoreEEPROM()
 {
 #ifndef STM32
-	wdt_reset();
+	ewdt_reset();
+
 	DEBUG("Storing settings\n");
 
 	if (!storage_selftest())
@@ -256,8 +306,6 @@ bool StoreEEPROM()
 	eeprom_busy_wait();
 	eeprom_update_dword(&config_ee.build_number, BUILD_NUMBER);
 
-	uint16_t res;
-
 	uint16_t i = 0;
 	do
 	{
@@ -274,7 +322,7 @@ bool StoreEEPROM()
 		eeprom_read_block(buf, (uint8_t *)(APP_INFO_EE_offset + i), wd);
 
 
-		res = f_write(ee_file, buf, wd, &rwd);
+		assert(f_write(ee_file, buf, wd, &rwd) == FR_OK);
 
 		i += wd;
 	} while (i < sizeof(cfg_t));

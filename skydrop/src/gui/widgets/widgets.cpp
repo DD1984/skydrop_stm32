@@ -27,6 +27,8 @@ widget widget_array[NUMBER_OF_WIDGETS] = {
 #ifdef GPS_SUPPORT
 		w_glide_ratio,
 #endif
+		w_ctrl_audio,
+		w_ctrl_wlift
 };
 
 uint8_t widget_label_P(const char * label, uint8_t x, uint8_t y)

@@ -74,7 +74,7 @@ void powerdown_sleep()
 		SystemPowerSave();
 
 		if (time_rtc_irq)
-			wdt_reset();
+			ewdt_reset();
 
 		//start task timer in low speed mode
 		task_timer_setup(false);
