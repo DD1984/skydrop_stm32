@@ -54,6 +54,9 @@ void uart_init()
 	Uart.Init.Mode       = UART_MODE_TX_RX;
 
 	HAL_UART_Init(&Uart);
+	setvbuf(stdin, NULL, _IONBF, 0);
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
 #endif
 }
 

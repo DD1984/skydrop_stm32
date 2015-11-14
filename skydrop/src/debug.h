@@ -26,7 +26,6 @@ void debug_log(char * msg);
 		const char * msg PROGMEM = PSTR(format);\
 		sprintf_P(msg_buff, msg, ##__VA_ARGS__); \
 		printf(msg_buff);\
-		printf("\n");\
 	} while(0)
 #endif	
 
