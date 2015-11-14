@@ -82,7 +82,7 @@ CPP_SOURCES += src/tasks/task_powerdown.cpp
 CPP_SOURCES += src/drivers/uart.cpp
 
 CPP_SOURCES += src/drivers/sensors/devices.cpp
-CPP_SOURCES += src/drivers/sensors/bmp180.cpp
+CPP_SOURCES += src/drivers/sensors/ms5611.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/lcd_disp.cpp
 CPP_SOURCES += src/drivers/ILI9163C.cpp
@@ -164,7 +164,7 @@ endif
 CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
-CFLAGS += -DBMP180_SUPPORT
+CFLAGS += -DMS5611_SUPPORT
 CFLAGS += -DILI9163C
 
 #######################################
