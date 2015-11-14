@@ -232,23 +232,18 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   * @retval None
   */
 /* Definition for TIMx's NVIC */
-#define TIMx_IRQn                      TIM3_IRQn
-#define TIMx_IRQHandler                TIM3_IRQHandler
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
-	/*##-1- Enable peripheral clock #################################*/
-	/* TIMx Peripheral clock enable */
-	__HAL_RCC_TIM3_CLK_ENABLE();
-	__HAL_RCC_TIM4_CLK_ENABLE();
-
-	/*##-2- Configure the NVIC for TIMx ########################################*/
-	/* Set the TIMx priority */
-	HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
-	HAL_NVIC_SetPriority(TIM4_IRQn, 3, 0);
-
-	/* Enable the TIMx global Interrupt */
-	HAL_NVIC_EnableIRQ(TIM3_IRQn);
-	HAL_NVIC_EnableIRQ(TIM4_IRQn);
+	if (htim->Instance == TIM3) {
+		__HAL_RCC_TIM3_CLK_ENABLE();
+		HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
+		HAL_NVIC_EnableIRQ(TIM3_IRQn);
+	}
+	if (htim->Instance == TIM4) {
+		__HAL_RCC_TIM4_CLK_ENABLE();
+		HAL_NVIC_SetPriority(TIM4_IRQn, 3, 0);
+		HAL_NVIC_EnableIRQ(TIM4_IRQn);
+	}
 }
 
 /**
