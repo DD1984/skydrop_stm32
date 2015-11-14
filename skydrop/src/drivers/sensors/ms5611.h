@@ -14,8 +14,8 @@
 #endif
 #include "common.h"
 
-#define MS5611_ADDRESS_CSB_HI	0b1110110
-#define MS5611_ADDRESS_CSB_LO	0b1110111
+#define MS5611_ADDRESS_CSB_HI	0b11101100
+#define MS5611_ADDRESS_CSB_LO	0b11101110
 
 #define MS5611_ACCEPT_TEMP_DELTA	1000
 
@@ -40,8 +40,9 @@
 class MS5611
 {
 public:
+#ifndef STM32
 	Timer timer;
-
+#endif
 	uint16_t calibration_C1;
 	uint16_t calibration_C2;
 	uint16_t calibration_C3;
@@ -54,7 +55,11 @@ public:
 
 	int32_t dT;
 
+#ifndef STM32
 	I2c * i2c;
+#else
+	I2C_HandleTypeDef *i2c;
+#endif
 
 	uint8_t address;
 
@@ -64,7 +69,11 @@ public:
 	uint32_t raw_temperature;
 	uint32_t raw_pressure;
 
+#ifndef STM32
 	void Init(I2c * i2c, uint8_t address);
+#else
+	void Init(I2C_HandleTypeDef *i2c, uint8_t dummy);
+#endif
 	void ReadPROM();
 	void Reset();
 

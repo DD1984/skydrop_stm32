@@ -23,9 +23,8 @@ TIM_HandleTypeDef fc_meas_timer;
 
 #define TIM4CLK 125000 //125 == 1ms
 
-#define MEAS_TEMP_TIME ((TIM4CLK / 1000) * 2) //typical time
-#define MEAS_PRES_TIME ((TIM4CLK / 1000) * 16) //typical time
-#define MEAS_POLL_TIME ((TIM4CLK / 1000) * 1) //polling time for detect EOC
+#define MEAS_TEMP_TIME ((TIM4CLK / 1000) * 0.64) //0.64ms
+#define MEAS_PRES_TIME ((TIM4CLK / 1000) * 9.36)
 
 enum {FCT_MEAS_TEMP, FCT_MEAS_PRES, FCT_MEAS_END};
 
@@ -115,12 +114,7 @@ void fc_init()
 
 #ifdef MS5611_SUPPORT
 	//Barometer
-	ms5611.Init(&mems_i2c, MS5611_ADDRESS_CSB_LO);
-#endif
-
-#if defined(BMP180_SUPPORT) && defined(STM32)
-	//Barometer
-	bmp180.Init(&mems_i2c, 0);
+	ms5611.Init(&mems_i2c, MS5611_ADDRESS_CSB_HI);
 #endif
 
 #ifdef LSM303D_SUPPORT
@@ -186,7 +180,7 @@ void fc_init()
 	fc_meas_timer.Init.ClockDivision = 0;
 	fc_meas_timer.Init.CounterMode = TIM_COUNTERMODE_UP;
 	fc_meas_timer.Init.RepetitionCounter = 0;
-	fc_meas_timer.Init.Period = MEAS_POLL_TIME;
+	fc_meas_timer.Init.Period = MEAS_TEMP_TIME;
 	HAL_TIM_Base_Init(&fc_meas_timer);
 	HAL_TIM_Base_Start_IT(&fc_meas_timer);
 #endif
@@ -233,19 +227,11 @@ void fc_continue()
 }
 
 #ifdef STM32
-static BMP180 *bmp180_ptr = &bmp180;
 void fc_meas_timer_ovf(void)
 {
-#if 1
-	if (bmp180_ptr->EOC() == false) {
-		fc_meas_timer.Instance->CNT = 0;
-		fc_meas_timer.Instance->ARR = MEAS_POLL_TIME;
-		return;
-	}
-#endif
 	if (fc_meas_timer_state == FCT_MEAS_TEMP) {
-		bmp180_ptr->ReadTemperature();
-		bmp180_ptr->StartPressure();
+		ms5611.ReadTemperature();
+		ms5611.StartPressure();
 
 		fc_meas_timer.Instance->CNT = 0;
 		fc_meas_timer.Instance->ARR = MEAS_PRES_TIME;
@@ -253,25 +239,25 @@ void fc_meas_timer_ovf(void)
 		fc_meas_timer_state = FCT_MEAS_PRES;
 
 
-		vario_calc(bmp180_ptr->pressure);
+		vario_calc(ms5611.pressure);
 
 		//audio loop
 		audio_step();
 
-		bmp180_ptr->CompensateTemperature();
+		ms5611.CompensateTemperature();
 		return;
 	}
 	if (fc_meas_timer_state == FCT_MEAS_PRES) {
-		bmp180_ptr->ReadPressure();
+		ms5611.ReadPressure();
 
-		bmp180_ptr->StartTemperature();
+		ms5611.StartTemperature();
 
 		fc_meas_timer.Instance->CNT = 0;
 		fc_meas_timer.Instance->ARR = MEAS_TEMP_TIME;
 
 		fc_meas_timer_state = FCT_MEAS_TEMP;
 
-		bmp180_ptr->CompensatePressure();
+		ms5611.CompensatePressure();
 		return;
 	}
 }
@@ -292,10 +278,6 @@ ISR(FC_MEAS_TIMER_OVF)
 	ms5611.ReadPressure();
 	ms5611.StartTemperature();
 #endif
-#ifdef BMP180_SUPPORT
-	bmp180.ReadPressure();
-	bmp180.StartTemperature();
-#endif	
 
 #ifdef LSM303D_SUPPORT
 	lsm303d.StartReadMag(); //it takes 152us to transfer
@@ -304,9 +286,7 @@ ISR(FC_MEAS_TIMER_OVF)
 #ifdef MS5611_SUPPORT
 	ms5611.CompensatePressure();
 #endif
-#ifdef BMP180_SUPPORT
-	bmp180.CompensatePressure();
-#endif
+
 	io_write(1, LOW);
 	BT_ALLOW_TX
 }
@@ -332,19 +312,12 @@ ISR(FC_MEAS_TIMER_CMPA)
 	ms5611.ReadTemperature();
 	ms5611.StartPressure();
 #endif
-#ifdef BMP180_SUPPORT
-	bmp180.ReadTemperature();
-	bmp180.StartPressure();
-#endif
 
 #ifdef LSM303D_SUPPORT	
 	lsm303d.StartReadAccStream(16); //it take 1600us to transfer
 #endif	
 
 #ifdef MS5611_SUPPORT
-	vario_calc(ms5611.pressure);
-#endif
-#ifdef BMP180_SUPPORT
 	vario_calc(ms5611.pressure);
 #endif
 
@@ -354,9 +327,6 @@ ISR(FC_MEAS_TIMER_CMPA)
 #ifdef MS5611_SUPPORT
 	ms5611.CompensateTemperature();
 #endif	
-#ifdef BMP180_SUPPORT
-	bmp180.CompensateTemperature();
-#endif
 
 	io_write(1, LOW);
 	BT_ALLOW_TX

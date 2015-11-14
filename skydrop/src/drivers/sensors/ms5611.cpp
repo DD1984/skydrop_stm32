@@ -8,7 +8,11 @@
 #include "ms5611.h"
 #include "devices.h"
 
+#ifndef STM32
 void MS5611::Init(I2c * i2c, uint8_t address)
+#else
+void MS5611::Init(I2C_HandleTypeDef *i2c, uint8_t address)
+#endif
 {
 	this->i2c = i2c;
 	this->address = address;
@@ -26,6 +30,7 @@ void MS5611::Init(I2c * i2c, uint8_t address)
 
 uint16_t MS5611::Read16(uint8_t cmd)
 {
+#ifndef STM32
 	this->i2c->Write(cmd);
 	this->i2c->StartTransmittion(this->address, 2);
 	this->i2c->Wait();
@@ -34,12 +39,21 @@ uint16_t MS5611::Read16(uint8_t cmd)
 	uint8_t b = this->i2c->Read();
 
 	return (a << 8) | b;
+#else
+	uint8_t buf[2];
+	while (HAL_I2C_Master_Transmit(this->i2c, (uint16_t)this->address, &cmd, 1, 1000)!= HAL_OK);
+
+	while (HAL_I2C_Master_Receive(this->i2c, (uint16_t)this->address, buf, 2, 1000) != HAL_OK);
+
+	return (buf[0] << 8) | buf[1];
+#endif
 }
 
 uint32_t MS5611::Read24(uint8_t cmd)
 {
 	union {uint32_t val; uint8_t raw[4];} res;
 
+#ifndef STM32
 	this->i2c->Write(cmd);
 	this->i2c->StartTransmittion(this->address, 3);
 	this->i2c->Wait();
@@ -47,12 +61,24 @@ uint32_t MS5611::Read24(uint8_t cmd)
 	res.raw[2] = this->i2c->Read();
 	res.raw[1] = this->i2c->Read();
 	res.raw[0] = this->i2c->Read();
+#else
+	while (HAL_I2C_Master_Transmit(this->i2c, (uint16_t)this->address, &cmd, 1, 1000)!= HAL_OK);
+
+	res.val = 0;
+	while (HAL_I2C_Master_Receive(this->i2c, (uint16_t)this->address, (uint8_t *)&res.raw, 3, 1000) != HAL_OK);
+
+	uint8_t temp = res.raw[0];
+	res.raw[0] = res.raw[2];
+	res.raw[2] = temp;
+
+#endif
 
 	return res.val;
 }
 
 bool MS5611::SelfTest()
 {
+#ifndef STM32
 	this->i2c->StartTransmittion(this->address, 0);
 	this->i2c->Wait();
 
@@ -60,6 +86,7 @@ bool MS5611::SelfTest()
 	{
 		return false;
 	}
+#endif
 
 	return true;
 }
@@ -84,9 +111,14 @@ void MS5611::ReadPROM()
 
 void MS5611::Write(uint8_t cmd)
 {
+#ifndef STM32
 	this->i2c->Write(cmd);
 	this->i2c->StartTransmittion(this->address, 0);
 	this->i2c->Wait();
+#else
+	while (HAL_I2C_Master_Transmit(this->i2c, (uint16_t)this->address, &cmd, 1, 1000)!= HAL_OK);
+#endif
+
 };
 
 void MS5611::Reset()
