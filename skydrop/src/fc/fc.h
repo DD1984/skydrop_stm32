@@ -93,21 +93,32 @@ struct gps_data_t
 struct flight_data_t
 {
 	// --- RAW from sensors ---
+#ifdef LSM303D_SUPPORT
 	vector_i16_t mag_data;
 	vector_i16_t acc_data;
+#endif
+#ifdef L3GD20_SUPPORT
 	vector_i16_t gyro_data;
+#endif
 
+#ifdef GPS_SUPPORT
 	gps_data_t gps_data;
+#endif
 
 	int16_t temperature;
+#ifdef SHT21_SUPPORT
 	int16_t humidity;
+#endif
 
 	uint8_t temp_step;
 	uint32_t temp_next;
 
 	// --- STATE ---
 	bool baro_valid;
+
+#ifdef GPS_SUPPORT
 	bool glide_ratio_valid;
+#endif
 
 	//serve as wait timer, flight time and flight duration holder after land
 	uint32_t flight_timer;
@@ -128,16 +139,21 @@ struct flight_data_t
 	float digital_vario;
 	float avg_vario;
 
+#ifdef GPS_SUPPORT
 	float glide_ratio;
+#endif
 
 	float altitude1;
 
 	int16_t altitudes[NUMBER_OF_ALTIMETERS];
 
+#ifdef LSM303D_SUPPORT
 	vector_float_t mag_f;
 	vector_float_t acc_f;
+#endif
+#ifdef L3GD20_SUPPORT
 	vector_float_t gyro_f;
-
+#endif
 };
 
 void fc_init();

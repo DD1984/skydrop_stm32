@@ -22,10 +22,6 @@ Lsm303d lsm303d;
 MS5611 ms5611;
 #endif
 
-#ifdef BMP180_SUPPORT
-BMP180 bmp180;
-#endif
-
 #ifdef L3GD20_SUPPORT
 L3gd20 l3gd20;
 #endif

@@ -118,7 +118,9 @@ void logger_start()
 	uint8_t month;
 	uint16_t year;
 
+#ifdef GPS_SUPPORT
 	datetime_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 	char path[128];
 

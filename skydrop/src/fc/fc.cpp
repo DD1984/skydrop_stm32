@@ -44,8 +44,10 @@ void fc_init()
 	//reset flight status
 	fc_reset();
 
+#ifdef SHT21_SUPPORT
 	//temperature state machine
 	fc.temp_step = 0;
+#endif
 
 	//init calculators
 	vario_init();
@@ -231,6 +233,9 @@ void fc_meas_timer_ovf(void)
 {
 	if (fc_meas_timer_state == FCT_MEAS_TEMP) {
 		ms5611.ReadTemperature();
+#ifndef SHT21_SUPPORT_SUPPORT
+		fc.temperature = (int16_t)(ms5611.temperature * 10);
+#endif
 		ms5611.StartPressure();
 
 		fc_meas_timer.Instance->CNT = 0;
@@ -362,11 +367,11 @@ ISR(FC_MEAS_TIMER_CMPC)
 	l3gd20.ReadGyroStreamAvg(&fc.gyro_data.x, &fc.gyro_data.y, &fc.gyro_data.z, 7); //it take 1000us to transfer
 #endif	
 
+#ifdef SHT21_SUPPORT
 	if (fc.temp_next < task_get_ms_tick())
 	{
 		switch (fc.temp_step)
 		{
-#ifdef SHT21_SUPPORT			
 			case(0):
 				sht21.StartHumidity();
 			break;
@@ -387,11 +392,11 @@ ISR(FC_MEAS_TIMER_CMPC)
 				sht21.CompensateTemperature();
 				fc.temperature = sht21.temperature;
 			break;
-#endif			
 		}
 		fc.temp_next = task_get_ms_tick() + FC_TEMP_PERIOD;
 		fc.temp_step = (fc.temp_step + 1) % 6;
 	}
+#endif
 
 	io_write(1, LOW);
 
