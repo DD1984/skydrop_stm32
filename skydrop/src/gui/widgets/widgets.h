@@ -132,7 +132,9 @@ enum {
 	//dummpy.h
 	WIDGET_EMPTY,
 	WIDGET_DEBUG_ETC,
+#if defined(LSM303D_SUPPORT) || defined(L3GD20_SUPPORT)
 	WIDGET_DEBUG_IMU,
+#endif
 
 	//vario.h
 	WIDGET_VARIO,
