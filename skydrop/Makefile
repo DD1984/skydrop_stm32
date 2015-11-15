@@ -85,7 +85,7 @@ CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/sensors/ms5611.cpp
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/lcd_disp.cpp
-CPP_SOURCES += src/drivers/ILI9163C.cpp
+#CPP_SOURCES += src/drivers/ILI9163C.cpp
 CPP_SOURCES += src/drivers/battery.cpp
 CPP_SOURCES += src/drivers/audio/audio.cpp
 CPP_SOURCES += src/drivers/audio/buzzer.cpp
@@ -165,7 +165,7 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
 CFLAGS += -DMS5611_SUPPORT
-CFLAGS += -DILI9163C
+#CFLAGS += -DILI9163C
 
 #######################################
 # LDFLAGS

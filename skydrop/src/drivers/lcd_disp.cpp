@@ -13,10 +13,10 @@ SPI_HandleTypeDef Spi;
 void SpiInitMaster(void)
 {
 	Spi.Instance               = SPI1;
-	Spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+	Spi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
 	Spi.Init.Direction         = SPI_DIRECTION_2LINES;
-	Spi.Init.CLKPhase          = SPI_PHASE_1EDGE;
-	Spi.Init.CLKPolarity       = SPI_POLARITY_LOW;
+	Spi.Init.CLKPhase          = SPI_PHASE_2EDGE;
+	Spi.Init.CLKPolarity       = SPI_POLARITY_HIGH;
 	Spi.Init.DataSize          = SPI_DATASIZE_8BIT;
 	Spi.Init.FirstBit          = SPI_FIRSTBIT_MSB;
 	Spi.Init.TIMode            = SPI_TIMODE_DISABLE;
@@ -46,8 +46,8 @@ void LCD_InitPins(void)
 
 	GPIO_InitStruct.Pin       = LCD_RST | LCD_CE | LCD_DC;
 	GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull      = GPIO_NOPULL;
-	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+	GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
 
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
@@ -579,6 +579,7 @@ void lcd_display::Draw()
 			LCD_PinSet(LCD_DC, HIGH);
 			LCD_PinSet(LCD_CE, LOW);
 #endif
+
 			for (uint8_t a=0; a < lcd_width; a++)
 			{
 #ifndef STM32
@@ -587,6 +588,7 @@ void lcd_display::Draw()
 				SpiSendRaw(active_buffer[a+(j * lcd_width)]);
 #endif
 			}
+
 #ifndef STM32
 			this->spi->UnsetSlave();
 #else
