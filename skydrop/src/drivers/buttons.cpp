@@ -148,6 +148,13 @@ void button_handle(uint8_t index, uint8_t state)
 
 void buttons_step()
 {
+#ifdef STM32
+	static uint32_t last_btns_poll = 0;
+	uint32_t cur_time = task_get_ms_tick();
+	if (cur_time == last_btns_poll)
+		return;
+	last_btns_poll = cur_time;
+#endif
 	if (config.gui.disp_flags & CFG_DISP_FLIP)
 	{
 		button_handle(2, GpioRead(SWITCH1));
