@@ -113,7 +113,7 @@ extern float widget_menu_fvalue1;
 #include "dummy.h"
 #include "vario.h"
 #include "altitude.h"
-#ifdef ACC_SUPPORT
+#ifdef LSM303D_SUPPORT
 #include "acc.h"
 #endif
 #include "time.h"
@@ -146,7 +146,7 @@ enum {
 	WIDGET_ALT4,
 	WIDGET_ALT5,
 
-#ifdef ACC_SUPPORT
+#ifdef LSM303D_SUPPORT
 	//acc.h
 	WIDGET_ACCX,
 #endif

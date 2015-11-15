@@ -8,11 +8,13 @@ float widget_menu_fvalue1;
 widget widget_array[NUMBER_OF_WIDGETS] = {
 		w_dummy,
 		w_debug_etc,
+#if defined(LSM303D_SUPPORT) || defined(L3GD20_SUPPORT)
 		w_debug_imu,
+#endif
 		w_vario,
 		w_avg_vario, w_vario_bar,
 		w_alt1, w_alt2, w_alt3, w_alt4, w_alt5,
-#ifdef ACC_SUPPORT
+#ifdef LSM303D_SUPPORT
 		w_accx,
 #endif
 		w_time,
