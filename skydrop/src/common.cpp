@@ -410,6 +410,20 @@ void mems_power_init()
 		GpioSetDirection(REV_1504_MEMS_EN_2, OUTPUT);
 		GpioSetDirection(REV_1504_I2C_EN, OUTPUT);
 	}
+#else
+	GPIO_InitTypeDef  GPIO_InitStruct;
+
+	//ms5611
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin       = GPIO_PIN_5;
+	GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull      = GPIO_NOPULL;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
+
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 #endif
 }
 
@@ -423,6 +437,8 @@ void mems_power_on()
 		GpioWrite(REV_1504_MEMS_EN_2, HIGH);
 		GpioWrite(REV_1504_I2C_EN, HIGH);
 	}
+#else
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); //ms5611
 #endif
 }
 
@@ -436,5 +452,7 @@ void mems_power_off()
 		GpioWrite(REV_1504_MEMS_EN_2, LOW);
 		GpioWrite(REV_1504_I2C_EN, LOW);
 	}
+#else
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); //ms5611
 #endif
 }

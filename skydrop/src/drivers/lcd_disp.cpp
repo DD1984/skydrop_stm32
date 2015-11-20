@@ -34,19 +34,22 @@ void SpiSendRaw(uint8_t data)
 	HAL_SPI_Transmit(&Spi, &data, 1, 1);
 }
 
+//A
 #define LCD_RST					GPIO_PIN_4
 #define LCD_CE					GPIO_PIN_3
 #define LCD_DC					GPIO_PIN_2
+#define LCD_VDD					GPIO_PIN_15 //not worked now
 
 void LCD_InitPins(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
 
-	GPIO_InitStruct.Pin       = LCD_RST | LCD_CE | LCD_DC;
+	GPIO_InitStruct.Pin       = LCD_RST | LCD_CE | LCD_DC | LCD_VDD;
 	GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull      = GPIO_NOPULL;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
 
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -229,6 +232,8 @@ void lcd_display::Init()
 	_delay_ms(10);
 	GpioWrite(LCD_RST, HIGH);
 #else
+	LCD_PinSet(LCD_VDD, HIGH);
+
 	LCD_PinSet(LCD_RST, LOW);
 	_delay_ms(10);
 	LCD_PinSet(LCD_RST, HIGH);
@@ -299,6 +304,9 @@ void lcd_display::Stop()
 	GpioSetDirection(LCD_VCC, INPUT);
 
 	LCD_SPI_PWR_OFF;
+#else
+	sendcommand(0x24); //lcd powerdown
+	LCD_PinSet(LCD_VDD, LOW);
 #endif
 }
 

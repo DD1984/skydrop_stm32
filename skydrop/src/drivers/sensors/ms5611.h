@@ -43,12 +43,14 @@ public:
 #ifndef STM32
 	Timer timer;
 #endif
+	uint16_t calibration_C0;
 	uint16_t calibration_C1;
 	uint16_t calibration_C2;
 	uint16_t calibration_C3;
 	uint16_t calibration_C4;
 	uint16_t calibration_C5;
 	uint16_t calibration_C6;
+	uint16_t calibration_C7;
 
 	uint8_t press_osr;
 	uint8_t temp_osr;
@@ -78,6 +80,7 @@ public:
 	void Reset();
 
 	bool SelfTest();
+	bool CalcCRC(uint16_t *prom);
 
 	void Write(uint8_t cmd);
 	uint16_t Read16(uint8_t cmd);

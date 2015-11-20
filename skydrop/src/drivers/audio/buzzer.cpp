@@ -5,9 +5,19 @@
 #ifndef STM32
 Timer buzzer_timer;
 #else
-#define TIM2CLK 2000000
+#define TIM1CLK 2000000
 TIM_HandleTypeDef buzzer_timer;
 TIM_OC_InitTypeDef sConfig; // Timer Output Compare Configuration Structure declaration
+
+#define buzzer_timer_start() do {\
+	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_1);\
+	HAL_TIMEx_PWMN_Start(&buzzer_timer, TIM_CHANNEL_1);\
+} while(0)
+
+#define buzzer_timer_stop() do {\
+	HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_1);\
+	HAL_TIMEx_PWMN_Stop(&buzzer_timer, TIM_CHANNEL_1);\
+} while(0)
 #endif
 
 //V = (val / 0xFFF) * 3.3V
@@ -47,9 +57,9 @@ void buzzer_set_vol(uint8_t vol)
 		buzzer_timer.Start();
 #else
 	if (vol == 0)
-		HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_2);
+		buzzer_timer_stop();
 	else
-		HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_2);
+		buzzer_timer_start();
 
 #endif
 
@@ -63,7 +73,7 @@ void buzzer_set_freq(uint16_t freq_hz)
 #ifndef STM32
 		buzzer_timer.Stop();
 #else
-		 HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_2);
+		buzzer_timer_stop();
 #endif
 		return;
 	}
@@ -78,14 +88,14 @@ void buzzer_set_freq(uint16_t freq_hz)
 
 	buzzer_timer.Start();
 #else
-	uint32_t buzzer_period = (TIM2CLK / freq_hz) - 1;
+	uint32_t buzzer_period = (TIM1CLK / freq_hz) - 1;
 
 	buzzer_timer.Instance->ARR = buzzer_period;
-	buzzer_timer.Instance->CCR2 = buzzer_period / 5; //20% duty cycle = battery saving
+	buzzer_timer.Instance->CCR1 = buzzer_period / 2; //20% duty cycle = battery saving
 	if (buzzer_timer.Instance->CNT > buzzer_period)
 		buzzer_timer.Instance->CNT = 1;
 
-	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_2);
+	buzzer_timer_start();
 #endif
 }
 
@@ -104,19 +114,24 @@ void buzzer_init()
 	buzzer_timer.EnableOutputs(timer_A);
 	buzzer_timer.EnableInterrupts(timer_overflow);
 #else
-	buzzer_timer.Instance = TIM2;
+	buzzer_timer.Instance = TIM1;
 	buzzer_timer.Init.ClockDivision = 0;
 	buzzer_timer.Init.CounterMode = TIM_COUNTERMODE_UP;
 	buzzer_timer.Init.RepetitionCounter = 0;
-	buzzer_timer.Init.Prescaler = (uint32_t)(SystemCoreClock / TIM2CLK) - 1;;
+	buzzer_timer.Init.Prescaler = (uint32_t)(SystemCoreClock / TIM1CLK) - 1;;
 	HAL_TIM_PWM_Init(&buzzer_timer);
 
 	sConfig.OCMode       = TIM_OCMODE_PWM1;
+
 	sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
-	sConfig.OCFastMode   = TIM_OCFAST_DISABLE;
 	sConfig.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
+
+	sConfig.OCIdleState  = TIM_OCIDLESTATE_RESET;
 	sConfig.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	HAL_TIM_PWM_ConfigChannel(&buzzer_timer, &sConfig, TIM_CHANNEL_2);
+
+	sConfig.OCFastMode   = TIM_OCFAST_DISABLE;
+
+	HAL_TIM_PWM_ConfigChannel(&buzzer_timer, &sConfig, TIM_CHANNEL_1);
 #endif
 
 	buzzer_set_vol(0);

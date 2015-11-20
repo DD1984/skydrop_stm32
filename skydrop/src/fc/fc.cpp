@@ -23,8 +23,8 @@ TIM_HandleTypeDef fc_meas_timer;
 
 #define TIM4CLK 125000 //125 == 1ms
 
-#define MEAS_TEMP_TIME ((TIM4CLK / 1000) * 0.64) //0.64ms
-#define MEAS_PRES_TIME ((TIM4CLK / 1000) * 9.36)
+#define MEAS_TEMP_TIME 100 //((TIM4CLK / 1000) * 0.8) 0.8ms
+#define MEAS_PRES_TIME 1150 //((TIM4CLK / 1000) * 9.2) 9.2ms
 
 enum {FCT_MEAS_TEMP, FCT_MEAS_PRES, FCT_MEAS_END};
 

@@ -91,22 +91,51 @@ bool MS5611::SelfTest()
 	return true;
 }
 
+bool MS5611::CalcCRC(uint16_t *prom)
+{
+	int32_t i, j;
+	uint32_t res = 0;
+	uint8_t crc = prom[7] & 0xF;
+	prom[7] &= 0xFF00;
+	for (i = 0; i < 16; i++) {
+		if (i & 1) {
+			res ^= ((prom[i >> 1]) & 0x00FF);
+		}
+		else {
+			res ^= (prom[i >> 1] >> 8);
+		}
+		for (j = 8; j > 0; j--) {
+			if (res & 0x8000) {
+				res ^= 0x1800;
+			}
+			res <<= 1;
+		}
+	}
+	prom[7] |= crc;
+	if (crc == ((res >> 12) & 0xF)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 void MS5611::ReadPROM()
 {
-	this->calibration_C1 = this->Read16(MS5611_PROM + 0);
-	this->calibration_C2 = this->Read16(MS5611_PROM + 2);
-	this->calibration_C3 = this->Read16(MS5611_PROM + 4);
-	this->calibration_C4 = this->Read16(MS5611_PROM + 6);
-	this->calibration_C5 = this->Read16(MS5611_PROM + 8);
-	this->calibration_C6 = this->Read16(MS5611_PROM + 10);
-
 	DEBUG("ms5611 calibration data\n");
-	DEBUG(" C1 %u\n", this->calibration_C1);
-	DEBUG(" C2 %u\n", this->calibration_C2);
-	DEBUG(" C3 %u\n", this->calibration_C3);
-	DEBUG(" C4 %u\n", this->calibration_C4);
-	DEBUG(" C5 %u\n", this->calibration_C5);
-	DEBUG(" C6 %u\n", this->calibration_C6);
+	uint8_t prom_addr = 0xA0;
+	for (uint8_t i = 0; i < 8; i++) {
+		uint16_t data = this->Read16(prom_addr);
+		((uint16_t *)&calibration_C0)[i] = data;
+		DEBUG(" C%d 0x%04X %u\n", i, data, data);
+		prom_addr += 2;
+	}
+
+	DEBUG("CRC: ");
+	if (CalcCRC(&calibration_C0) == true)
+		DEBUG("OK\n");
+	else
+		DEBUG("FAIL!!!\n");
 }
 
 void MS5611::Write(uint8_t cmd)

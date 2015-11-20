@@ -66,15 +66,6 @@
 #define SPIx_MOSI_GPIO_PORT              GPIOA
 
 
-/* Definition for TIMx clock resources */
-#define TIM2_CLK_ENABLE()              __HAL_RCC_TIM2_CLK_ENABLE()
-
-/* Definition for TIMx Channel Pins */
-#define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOA_CLK_ENABLE()
-#define TIMx_GPIO_PORT_CHANNEL2        GPIOA
-#define TIMx_GPIO_PIN_CHANNEL2         GPIO_PIN_1
-#define TIMx_GPIO_AF_CHANNEL2          /
-
 /**
   * @brief UART MSP Initialization
   *        This function configures the hardware resources used in this example:
@@ -194,34 +185,24 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 	}
 }
 
-/**
-  * @brief TIM MSP Initialization
-  *        This function configures the hardware resources used in this example:
-  *           - Peripheral's clock enable
-  *           - Peripheral's GPIO Configuration
-  * @param htim: TIM handle pointer
-  * @retval None
-  */
+
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 {
 	GPIO_InitTypeDef   GPIO_InitStruct;
 
-	/*##-1- Enable peripherals and GPIO Clocks #################################*/
-	/* TIMx Peripheral clock enable */
-	TIM2_CLK_ENABLE();
+	__HAL_RCC_TIM1_CLK_ENABLE();
 
-	/* Enable all GPIO Channels Clock requested */
-	TIMx_CHANNEL_GPIO_PORT();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	/* Configure  PA.1  (On Eval Board, pin 33 on CN1  for example) (TIM2_Channel2) in output, push-pull, alternate function mode
-	 */
-	/* Common configuration for all channels */
+	GPIO_InitStruct.Pin = GPIO_PIN_8;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = TIMx_GPIO_PIN_CHANNEL2;
-	HAL_GPIO_Init(TIMx_GPIO_PORT_CHANNEL2, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_13;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 /**
