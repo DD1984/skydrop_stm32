@@ -1,0 +1,115 @@
+Cmp-Mod V01 Created by CvPcb (25-Oct-2014 BZR 4029)-stable date = Вт. 24 нояб. 2015 02:03:41
+
+BeginCmp
+TimeStamp = /565373BE;
+Reference = BT1;
+ValeurCmp = BATTERY;
+IdModule  = ;
+EndCmp
+
+BeginCmp
+TimeStamp = /565379B2;
+Reference = C1;
+ValeurCmp = 4.7u;
+IdModule  = SM1210;
+EndCmp
+
+BeginCmp
+TimeStamp = /56537878;
+Reference = C2;
+ValeurCmp = 10u;
+IdModule  = SM1210;
+EndCmp
+
+BeginCmp
+TimeStamp = /56538E88;
+Reference = C3;
+ValeurCmp = NA;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56538E79;
+Reference = C4;
+ValeurCmp = 10u tantalum;
+IdModule  = SM1210;
+EndCmp
+
+BeginCmp
+TimeStamp = /56539232;
+Reference = C5;
+ValeurCmp = 0.1u;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /50827277;
+Reference = P1;
+ValeurCmp = CONN28;
+IdModule  = PIN_ARRAY_28X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /50827286;
+Reference = P2;
+ValeurCmp = CONN28;
+IdModule  = PIN_ARRAY_28X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /50827295;
+Reference = P3;
+ValeurCmp = CONN6;
+IdModule  = PIN_ARRAY_6X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /56536003;
+Reference = P4;
+ValeurCmp = CONN_2;
+IdModule  = PIN_ARRAY_2X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /56537325;
+Reference = R1;
+ValeurCmp = 2k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56539832;
+Reference = SW1;
+ValeurCmp = btn_left;
+IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /56539841;
+Reference = SW2;
+ValeurCmp = btn_center;
+IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /56539850;
+Reference = SW3;
+ValeurCmp = btn_right;
+IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /565371AA;
+Reference = U1;
+ValeurCmp = MCP73831;
+IdModule  = SOT23-5;
+EndCmp
+
+BeginCmp
+TimeStamp = /5653883A;
+Reference = U2;
+ValeurCmp = LTC1844-3.3;
+IdModule  = SOT23-5;
+EndCmp
+
+EndListe
