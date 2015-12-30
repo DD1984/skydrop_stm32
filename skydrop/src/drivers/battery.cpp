@@ -1,6 +1,39 @@
 #include "battery.h"
 #include "../tasks/tasks.h"
 
+#ifdef STM32
+ADC_HandleTypeDef    AdcHandle;
+__IO uint16_t   aADCxConvertedValues[1];
+
+static void ADC_Config(void)
+{
+  ADC_ChannelConfTypeDef   sConfig;
+
+  AdcHandle.Instance = ADC1;
+
+  AdcHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
+  AdcHandle.Init.ScanConvMode          = ADC_SCAN_DISABLE;              /* Sequencer disabled (ADC conversion on only 1 channel: channel set on rank 1) */
+
+  AdcHandle.Init.ContinuousConvMode    = ENABLE;                        /* Continuous mode to have maximum conversion speed (no delay between conversions) */
+  AdcHandle.Init.NbrOfConversion       = 1;                             /* Parameter discarded because sequencer is disabled */
+  AdcHandle.Init.DiscontinuousConvMode = DISABLE;                       /* Parameter discarded because sequencer is disabled */
+  AdcHandle.Init.NbrOfDiscConversion   = 1;                             /* Parameter discarded because sequencer is disabled */
+  AdcHandle.Init.ExternalTrigConv      = ADC_SOFTWARE_START;            /* Software start to trig the 1st conversion manually, without external event */
+
+  HAL_ADC_Init(&AdcHandle);
+
+  sConfig.Channel      = ADC_CHANNEL_11;
+  sConfig.Rank         = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_41CYCLES_5;
+
+  HAL_ADC_ConfigChannel(&AdcHandle, &sConfig);
+
+ // sConfig.Channel      = ADC_CHANNEL_TEMPSENSOR;
+
+  //HAL_ADC_ConfigChannel(&AdcHandle, &sConfig);
+}
+#endif
+
 void battery_init()
 {
 #ifndef STM32
@@ -13,6 +46,24 @@ void battery_init()
 	AdcPipeSetSource(pipea0, BAT_SNS_ADC);
 
 	GpioSetDirection(BAT_EN, OUTPUT);
+#else
+	GPIO_InitTypeDef          GPIO_InitStruct;
+
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, (GPIO_PinState)1);
+
+	ADC_Config();
+	HAL_ADCEx_Calibration_Start(&AdcHandle);
 #endif
 	bat_en_low(BAT_EN_ADC);
 }
@@ -90,6 +141,8 @@ bool battery_step()
 	case(BATTERY_STATE_START):
 #ifndef STM32
 		AdcPipeStart(pipea0);
+#else
+		HAL_ADC_Start_DMA(&AdcHandle, (uint32_t *)aADCxConvertedValues, 1);
 #endif
 		battery_meas_state = BATTERY_STATE_RESULT;
 	break;
@@ -103,7 +156,7 @@ bool battery_step()
 		}
 		uint16_t tmp = AdcPipeValue(pipea0);
 #else
-		uint16_t tmp = 20;
+		uint16_t tmp = aADCxConvertedValues[0];
 #endif
 		battery_meas_acc += tmp;
 

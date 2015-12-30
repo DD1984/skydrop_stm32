@@ -325,4 +325,59 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef *hrtc)
 	__HAL_RCC_RTC_DISABLE();
 }
 
+
+
+void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
+{
+	static DMA_HandleTypeDef  DmaHandle;
+	RCC_PeriphCLKInitTypeDef  PeriphClkInit;
+
+	/* Enable clock of ADCx peripheral */
+	__HAL_RCC_ADC1_CLK_ENABLE();
+
+	/* Configure ADCx clock prescaler */
+	/* Caution: On STM32F1, ADC clock frequency max is 14MHz (refer to device   */
+	/*          datasheet).                                                     */
+	/*          Therefore, ADC clock prescaler must be configured in function   */
+	/*          of ADC clock source frequency to remain below this maximum      */
+	/*          frequency.                                                      */
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+	PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+
+	/* Enable clock of DMA associated to the peripheral */
+	__HAL_RCC_DMA1_CLK_ENABLE();
+
+	/* Configure DMA parameters */
+	DmaHandle.Instance = DMA1_Channel1;
+
+	DmaHandle.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+	DmaHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+	DmaHandle.Init.MemInc              = DMA_MINC_ENABLE;
+	DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;   /* Transfer from ADC by half-word to match with ADC configuration: ADC resolution 10 or 12 bits */
+	DmaHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;   /* Transfer to memory by half-word to match with buffer variable type: half-word */
+	DmaHandle.Init.Mode                = DMA_CIRCULAR;              /* DMA in circular mode to match with ADC configuration: DMA continuous requests */
+	DmaHandle.Init.Priority            = DMA_PRIORITY_HIGH;
+
+	/* Deinitialize  & Initialize the DMA for new transfer */
+	HAL_DMA_DeInit(&DmaHandle);
+	HAL_DMA_Init(&DmaHandle);
+
+	/* Associate the initialized DMA handle to the ADC handle */
+	__HAL_LINKDMA(hadc, DMA_Handle, DmaHandle);
+}
+
+void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
+{
+	__HAL_RCC_ADC1_FORCE_RESET();
+	__HAL_RCC_ADC1_RELEASE_RESET();
+
+	/* De-Initialize the DMA associated to the peripheral */
+	if(hadc->DMA_Handle != NULL)
+	{
+		HAL_DMA_DeInit(hadc->DMA_Handle);
+	}
+}
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

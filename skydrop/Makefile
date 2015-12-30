@@ -54,6 +54,9 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_flash_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_rtc.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_rtc_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_pwr.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_adc.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_adc_ex.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_dma.c
 
 C_SOURCES += src/hal/stm32f1xx_hal_msp.c
 C_SOURCES += src/hal/stm32f1xx_it.c

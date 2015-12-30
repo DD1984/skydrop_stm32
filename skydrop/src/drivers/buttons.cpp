@@ -11,9 +11,9 @@
 #ifdef STM32
 #include "stm32f1xx_hal.h"
 #define SWITCH_GPIO_PORT		GPIOA
-#define SWITCH3					GPIO_PIN_12
+#define SWITCH3					GPIO_PIN_11
 #define SWITCH2					GPIO_PIN_0
-#define SWITCH1					GPIO_PIN_11
+#define SWITCH1					GPIO_PIN_12
 
 volatile uint8_t GpioRead(uint16_t button)
 {
