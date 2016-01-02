@@ -239,6 +239,9 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
   */
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
+	__HAL_RCC_I2C1_FORCE_RESET();
+	__HAL_RCC_I2C1_RELEASE_RESET();
+
 	/*##-1- Enable peripherals and GPIO Clocks #################################*/
 	/* Enable GPIO TX/RX clock */
 	__HAL_RCC_GPIOB_CLK_ENABLE();

@@ -77,8 +77,8 @@ void battery_init()
 #define BATTERY_STATE_RESULT	3
 
 #define BATTERY_MEAS_AVG 		16
-#define BATTERY_MEAS_PERIOD 	10000
-//#define BATTERY_MEAS_PERIOD 	1000
+//#define BATTERY_MEAS_PERIOD 	10000
+#define BATTERY_MEAS_PERIOD 	1000
 #define BATTERY_STABILISE 		100
 
 
@@ -95,8 +95,11 @@ int8_t battery_per = 0;
 //#define BATT_COEF_B  (-672.1273455619)
 
 
+//#define BATT_COEF_A	(0.2147782473)
+//#define BATT_COEF_B  (-681.4132446547)
+
 #define BATT_COEF_A	(0.2147782473)
-#define BATT_COEF_B  (-681.4132446547)
+#define BATT_COEF_B  (-660.7532446547)
 
 uint8_t battery_get_per()
 {
