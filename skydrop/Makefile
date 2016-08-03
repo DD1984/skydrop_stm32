@@ -135,7 +135,8 @@ CPP_SOURCES += src/gui/settings/set_time.cpp
 
 
 #asm
-ASM_SOURCES = src/hal/startup_stm32f100xb.s
+#ASM_SOURCES = src/hal/startup_stm32f100xb.s
+ASM_SOURCES = src/hal/startup_stm32f103xe.s
 
 #######################################
 # binaries
@@ -153,7 +154,8 @@ BIN = $(CP) -O binary -S
 #######################################
 # macros for gcc
 AS_DEFS = 
-C_DEFS = -DSTM32F100xB
+#C_DEFS = -DSTM32F100xB
+C_DEFS = -DSTM32F103xE
 # includes for gcc
 AS_INCLUDES = 
 C_INCLUDES = -I src/ -I src/hal/Inc -I src/hal
@@ -174,7 +176,8 @@ CFLAGS += -DMS5611_SUPPORT
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = src/hal/STM32F100XB_FLASH.ld
+#LDSCRIPT = src/hal/STM32F100XB_FLASH.ld
+LDSCRIPT = src/hal/STM32F103XE_FLASH.ld
 # libraries
 LIBS = -lc -lm -lstdc++
 LIBDIR =
