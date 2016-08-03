@@ -239,13 +239,9 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
   */
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 {
-	__HAL_RCC_I2C1_FORCE_RESET();
-	__HAL_RCC_I2C1_RELEASE_RESET();
-
 	/*##-1- Enable peripherals and GPIO Clocks #################################*/
 	/* Enable GPIO TX/RX clock */
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	__HAL_RCC_I2C1_CLK_ENABLE();
 
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
@@ -254,9 +250,11 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c)
 	GPIO_InitStruct.Pin       = GPIO_PIN_6 //scl
 							  | GPIO_PIN_7; //sda
 	GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
-	GPIO_InitStruct.Pull      = GPIO_PULLUP;
+	GPIO_InitStruct.Pull      = GPIO_NOPULL;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	__HAL_RCC_I2C1_CLK_ENABLE();
 }
 
 /**

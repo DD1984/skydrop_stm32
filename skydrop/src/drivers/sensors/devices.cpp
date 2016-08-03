@@ -57,7 +57,35 @@ bool mems_i2c_init()
 	mems_i2c.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
 	mems_i2c.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
 
+	mems_i2c.Init.OwnAddress1     = 0xFF;
+	mems_i2c.Init.OwnAddress2     = 0xFF;
+
 	HAL_I2C_Init(&mems_i2c);
+
+	//hack for reset i2c bysu flag - manually make stop condition on bus
+    if (__HAL_I2C_GET_FLAG(&mems_i2c, I2C_FLAG_BUSY) == SET)
+    {
+    	GPIO_InitTypeDef  GPIO_InitStruct;
+
+    	GPIO_InitStruct.Pin       = GPIO_PIN_6 //scl
+    							  | GPIO_PIN_7; //sda
+    	GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_OD;
+    	GPIO_InitStruct.Pull      = GPIO_NOPULL;
+    	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+    	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+
+    	_delay_ms(10);
+
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    	_delay_ms(10);
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+
+    	GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+    	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    }
 #endif
 	return true;
 }

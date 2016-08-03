@@ -69,6 +69,12 @@ void fc_init()
 	//VCC to baro, acc/mag gyro + i2c pull-ups
 	mems_power_on();
 
+#ifdef STM32
+	//init i2 before sensors power on
+	mems_i2c_init();
+#endif
+
+#ifndef STM32
 	//init and test i2c
 	//HW_REW_1504 have two mems enable pins, both have to be enabled!
 	//HW_REW_1506 have standalone ldo for mems, hence only one pin is needed
@@ -78,7 +84,6 @@ void fc_init()
 #ifdef LED_SUPPORT
 		led_set(0xFF, 0, 0);
 #endif
-#ifndef STM32
 		hw_revision = HW_REW_1504;
 		eeprom_busy_wait();
 		eeprom_update_byte(&config_ro.hw_revision, hw_revision);
@@ -88,11 +93,9 @@ void fc_init()
 		io_init();
 		mems_power_on();
 		assert(mems_i2c_init());
-#endif
 	}
 	else
 	{
-#ifndef STM32
 		if (hw_revision == HW_REW_UNKNOWN)
 		{
 			hw_revision = HW_REW_1506;
@@ -105,7 +108,6 @@ void fc_init()
 			mems_power_on();
 			mems_i2c_init();
 		}
-#endif
 	}
 
 	if (!mems_i2c_init())
@@ -113,6 +115,7 @@ void fc_init()
 		DEBUG("I2C error!\nUnable to init flight computer!\n");
 		return;
 	}
+#endif
 
 #ifdef MS5611_SUPPORT
 	//Barometer
