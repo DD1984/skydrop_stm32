@@ -546,7 +546,7 @@ void lcd_display::SetRowCol(unsigned char row, unsigned char col)
 #ifndef ILI9163C
 void lcd_display::Draw()
 {
-	if (this->flip)
+	if (!this->flip)
 	{
 		for (uint8_t j=0;j<6;j++)
 		{
