@@ -35,29 +35,46 @@ void SpiSendRaw(uint8_t data)
 }
 
 //A
-#define LCD_RST					GPIO_PIN_4
-#define LCD_CE					GPIO_PIN_3
-#define LCD_DC					GPIO_PIN_2
-#define LCD_VDD					GPIO_PIN_15 //not worked now
+#define LCD_RST_PIN			GPIO_PIN_4
+#define LCD_RST_PORT		GPIOA
+
+#define LCD_CE_PIN			GPIO_PIN_0
+#define LCD_CE_PORT			GPIOB
+
+#define LCD_DC_PIN			GPIO_PIN_5
+#define LCD_DC_PORT			GPIOC
+
+#define LCD_VDD_PIN			GPIO_PIN_4
+#define LCD_VDD_PORT		GPIOC
 
 void LCD_InitPins(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
-	GPIO_InitStruct.Pin       = LCD_RST | LCD_CE | LCD_DC | LCD_VDD;
 	GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull      = GPIO_NOPULL;
 	GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
 
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin       = LCD_RST_PIN;
+	HAL_GPIO_Init(LCD_RST_PORT, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin       = LCD_CE_PIN;
+	HAL_GPIO_Init(LCD_CE_PORT, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin       = LCD_DC_PIN;
+	HAL_GPIO_Init(LCD_DC_PORT, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin       = LCD_VDD_PIN;
+	HAL_GPIO_Init(LCD_VDD_PORT, &GPIO_InitStruct);
 }
 
-void LCD_PinSet(uint16_t pin, uint8_t level)
+void LCD_PinSet(GPIO_TypeDef* port, uint16_t pin, uint8_t level)
 {
-	HAL_GPIO_WritePin(GPIOA, pin, (GPIO_PinState)level);
+	HAL_GPIO_WritePin(port, pin, (GPIO_PinState)level);
 }
 #endif
 
@@ -190,11 +207,11 @@ void lcd_display::sendcommand(unsigned char cmd)
 	this->spi->SendRaw(cmd);
 	this->spi->UnsetSlave();
 #else
-	LCD_PinSet(LCD_DC, LOW);
+	LCD_PinSet(LCD_DC_PORT, LCD_DC_PIN, LOW);
 
-	LCD_PinSet(LCD_CE, LOW);
+	LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, LOW);
 	SpiSendRaw(cmd);
-	LCD_PinSet(LCD_CE, HIGH);
+	LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, HIGH);
 #endif
 }
 
@@ -232,11 +249,11 @@ void lcd_display::Init()
 	_delay_ms(10);
 	GpioWrite(LCD_RST, HIGH);
 #else
-	LCD_PinSet(LCD_VDD, HIGH);
+	LCD_PinSet(LCD_VDD_PORT, LCD_VDD_PIN, HIGH);
 
-	LCD_PinSet(LCD_RST, LOW);
+	LCD_PinSet(LCD_RST_PORT, LCD_RST_PIN, LOW);
 	_delay_ms(10);
-	LCD_PinSet(LCD_RST, HIGH);
+	LCD_PinSet(LCD_RST_PORT, LCD_RST_PIN, HIGH);
 #endif
 
 #ifndef ILI9163C
@@ -306,7 +323,7 @@ void lcd_display::Stop()
 	LCD_SPI_PWR_OFF;
 #else
 	sendcommand(0x24); //lcd powerdown
-	LCD_PinSet(LCD_VDD, LOW);
+	LCD_PinSet(LCD_VDD_PORT, LCD_VDD_PIN, LOW);
 #endif
 }
 
@@ -556,8 +573,8 @@ void lcd_display::Draw()
 			GpioWrite(LCD_DC, HIGH);
 			this->spi->SetSlave(LCD_CE);
 #else
-			LCD_PinSet(LCD_DC, HIGH);
-			LCD_PinSet(LCD_CE, LOW);
+			LCD_PinSet(LCD_DC_PORT, LCD_DC_PIN, HIGH);
+			LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, LOW);
 #endif
 			for (uint8_t a=0; a < lcd_width; a++)
 			{
@@ -570,7 +587,7 @@ void lcd_display::Draw()
 #ifndef STM32
 			this->spi->UnsetSlave();
 #else
-			LCD_PinSet(LCD_CE, HIGH);
+			LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, HIGH);
 #endif
 		}
 	}
@@ -584,8 +601,8 @@ void lcd_display::Draw()
 			GpioWrite(LCD_DC, HIGH);
 			this->spi->SetSlave(LCD_CE);
 #else
-			LCD_PinSet(LCD_DC, HIGH);
-			LCD_PinSet(LCD_CE, LOW);
+			LCD_PinSet(LCD_DC_PORT, LCD_DC_PIN, HIGH);
+			LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, LOW);
 #endif
 
 			for (uint8_t a=0; a < lcd_width; a++)
@@ -600,7 +617,7 @@ void lcd_display::Draw()
 #ifndef STM32
 			this->spi->UnsetSlave();
 #else
-			LCD_PinSet(LCD_CE, HIGH);
+			LCD_PinSet(LCD_CE_PORT, LCD_CE_PIN, HIGH);
 #endif
 		}
 	}

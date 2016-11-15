@@ -44,7 +44,7 @@ void uart_init()
 
 	SetStdIO(uart_in, uart_out);
 #else
-	Uart.Instance        = USART1;
+	Uart.Instance        = USART3;
 
 	Uart.Init.BaudRate   = 921600;
 	Uart.Init.WordLength = UART_WORDLENGTH_8B;

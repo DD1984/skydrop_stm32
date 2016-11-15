@@ -12,11 +12,15 @@ TIM_OC_InitTypeDef sConfig; // Timer Output Compare Configuration Structure decl
 #define buzzer_timer_start() do {\
 	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_1);\
 	HAL_TIMEx_PWMN_Start(&buzzer_timer, TIM_CHANNEL_1);\
+	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_2);\
+	HAL_TIMEx_PWMN_Start(&buzzer_timer, TIM_CHANNEL_2);\
 } while(0)
 
 #define buzzer_timer_stop() do {\
 	HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_1);\
 	HAL_TIMEx_PWMN_Stop(&buzzer_timer, TIM_CHANNEL_1);\
+	HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_2);\
+	HAL_TIMEx_PWMN_Stop(&buzzer_timer, TIM_CHANNEL_2);\
 } while(0)
 #endif
 
@@ -91,7 +95,9 @@ void buzzer_set_freq(uint16_t freq_hz)
 	uint32_t buzzer_period = (TIM1CLK / freq_hz) - 1;
 
 	buzzer_timer.Instance->ARR = buzzer_period;
-	buzzer_timer.Instance->CCR1 = buzzer_period / 2; //20% duty cycle = battery saving
+	buzzer_timer.Instance->CCR1 = buzzer_period / 5;
+	buzzer_timer.Instance->CCR2 = buzzer_period - buzzer_period / 5;
+
 	if (buzzer_timer.Instance->CNT > buzzer_period)
 		buzzer_timer.Instance->CNT = 1;
 
@@ -132,6 +138,15 @@ void buzzer_init()
 	sConfig.OCFastMode   = TIM_OCFAST_DISABLE;
 
 	HAL_TIM_PWM_ConfigChannel(&buzzer_timer, &sConfig, TIM_CHANNEL_1);
+
+	sConfig.OCMode       = TIM_OCMODE_PWM2;
+
+	HAL_TIM_PWM_ConfigChannel(&buzzer_timer, &sConfig, TIM_CHANNEL_2);
+
+	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
+	sBreakDeadTimeConfig.DeadTime = 20;
+	HAL_TIMEx_ConfigBreakDeadTime(&buzzer_timer, &sBreakDeadTimeConfig);
+
 #endif
 
 	buzzer_set_vol(0);
