@@ -22,7 +22,7 @@ static void ADC_Config(void)
 
   HAL_ADC_Init(&AdcHandle);
 
-  sConfig.Channel      = ADC_CHANNEL_11;
+  sConfig.Channel      = ADC_CHANNEL_9;
   sConfig.Rank         = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_41CYCLES_5;
 
@@ -49,18 +49,33 @@ void battery_init()
 #else
 	GPIO_InitTypeDef          GPIO_InitStruct;
 
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
 	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Pin = GPIO_PIN_12;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, (GPIO_PinState)1);
+
+	GPIO_InitStruct.Pin = GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, (GPIO_PinState)1);
+
+	GPIO_InitStruct.Pin = GPIO_PIN_10;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 
 	ADC_Config();
 	HAL_ADCEx_Calibration_Start(&AdcHandle);
@@ -90,6 +105,11 @@ uint8_t  battery_meas_cnt = 0;
 
 int16_t battery_adc_raw = 0;
 int8_t battery_per = 0;
+
+#ifdef STM32
+uint8_t battery_charge_stat;
+uint8_t battery_vbus;
+#endif
 
 //#define BATT_COEF_A	(0.291950711)
 //#define BATT_COEF_B  (-672.1273455619)
@@ -127,7 +147,10 @@ bool battery_step()
 		battery_next_meas = task_get_ms_tick() + BATTERY_MEAS_PERIOD;
 		battery_meas_acc = 0;
 		battery_meas_cnt = 0;
-
+#ifdef STM32
+		 battery_charge_stat = ((uint8_t)HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7));
+		 battery_vbus = ((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10));
+#endif
 		return true;
 	break;
 

@@ -616,6 +616,18 @@ void gui_statusbar()
 
 	disp.DrawLine(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 13, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 13, 1);
 	disp.DrawRectangle(GUI_DISP_WIDTH - 6, GUI_DISP_HEIGHT - 12, GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 1, 1, 0);
-	disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
+
+	if (battery_vbus) {
+		disp.LoadFont(F_TEXT_S);
+		if (!battery_charge_stat) {
+			gui_raligh_text("C", GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 9);
+		}
+		else {
+			gui_raligh_text("F", GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 9);
+		}
+	}
+	else {
+		disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
+	}
 
 }

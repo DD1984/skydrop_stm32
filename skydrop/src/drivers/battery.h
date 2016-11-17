@@ -14,6 +14,10 @@
 
 extern int16_t battery_adc_raw;
 extern int8_t battery_per;
+#ifdef STM32
+extern uint8_t battery_charge_stat;
+extern uint8_t battery_vbus;
+#endif
 
 
 void battery_init();

@@ -143,10 +143,10 @@ void buzzer_init()
 
 	HAL_TIM_PWM_ConfigChannel(&buzzer_timer, &sConfig, TIM_CHANNEL_2);
 
-	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
-	sBreakDeadTimeConfig.DeadTime = 20;
-	HAL_TIMEx_ConfigBreakDeadTime(&buzzer_timer, &sBreakDeadTimeConfig);
-
+	//TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
+	//sBreakDeadTimeConfig.DeadTime = 20;
+	//sBreakDeadTimeConfig.BreakState = 0;
+	//HAL_TIMEx_ConfigBreakDeadTime(&buzzer_timer, &sBreakDeadTimeConfig);
 #endif
 
 	buzzer_set_vol(0);
