@@ -193,7 +193,6 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 	__HAL_RCC_TIM1_CLK_ENABLE();
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -204,12 +203,6 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 
 	GPIO_InitStruct.Pin = GPIO_PIN_9;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	GPIO_InitStruct.Pin = GPIO_PIN_13;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-	GPIO_InitStruct.Pin = GPIO_PIN_14;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 /**

@@ -11,16 +11,12 @@ TIM_OC_InitTypeDef sConfig; // Timer Output Compare Configuration Structure decl
 
 #define buzzer_timer_start() do {\
 	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_1);\
-	HAL_TIMEx_PWMN_Start(&buzzer_timer, TIM_CHANNEL_1);\
 	HAL_TIM_PWM_Start(&buzzer_timer, TIM_CHANNEL_2);\
-	HAL_TIMEx_PWMN_Start(&buzzer_timer, TIM_CHANNEL_2);\
 } while(0)
 
 #define buzzer_timer_stop() do {\
 	HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_1);\
-	HAL_TIMEx_PWMN_Stop(&buzzer_timer, TIM_CHANNEL_1);\
 	HAL_TIM_PWM_Stop(&buzzer_timer, TIM_CHANNEL_2);\
-	HAL_TIMEx_PWMN_Stop(&buzzer_timer, TIM_CHANNEL_2);\
 } while(0)
 #endif
 
@@ -130,10 +126,10 @@ void buzzer_init()
 	sConfig.OCMode       = TIM_OCMODE_PWM1;
 
 	sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
-	sConfig.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
+	//sConfig.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
 
 	sConfig.OCIdleState  = TIM_OCIDLESTATE_RESET;
-	sConfig.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+	//sConfig.OCNIdleState = TIM_OCNIDLESTATE_RESET;
 
 	sConfig.OCFastMode   = TIM_OCFAST_DISABLE;
 
