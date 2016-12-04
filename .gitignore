@@ -6,7 +6,9 @@
 *.mk
 *.dat
 *.elf
+*.bin
 *~
+skydrop/.dep/
 /skydrop/Release
 /skydrop/Debug
 /skydrop_sd_bootloader/Release
