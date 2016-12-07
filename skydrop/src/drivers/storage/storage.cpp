@@ -1,9 +1,13 @@
 #include "storage.h"
 
+#ifndef STM32
 FATFS FatFs;		/* FatFs work area needed for each volume */
 //FIL Fil;			/* File object needed for each open file */
 
 extern Usart sd_spi_usart;
+#else
+#include "spi_flash.h"
+#endif
 
 uint32_t storage_space = 0;
 uint32_t storage_free_space = 0;
@@ -14,6 +18,7 @@ bool sd_avalible = false;
 
 bool storage_init()
 {
+#ifndef STM32
 	uint8_t res;
 
 	GpioSetPull(SD_IN, gpio_pull_up);
@@ -91,13 +96,21 @@ bool storage_init()
 	DEBUG(" sector count %12lu\n", sector_count);
 	DEBUG(" total space  %12lu\n", storage_space);
 	DEBUG(" free space   %12lu\n", storage_free_space);
+#else
+	  /* Initialize the SPI FLASH driver */
+	  BSP_SERIAL_FLASH_Init();
 
+	  /* Get SPI Flash ID */
+	  uint32_t flash_id = BSP_SERIAL_FLASH_ReadID();
+	  printf("flash_id: 0x08%x\n", flash_id);
+#endif
 	sd_avalible = true;
 	return true;
 }
 
 void storage_deinit()
 {
+#ifndef STM32
 	DEBUG("storage_deinit\n");
 
 	if (!sd_avalible)
@@ -113,10 +126,12 @@ void storage_deinit()
 	//power spi & sdcard
 	SD_EN_OFF;
 	SD_SPI_PWR_OFF;
+#endif
 }
 
 void storage_step()
 {
+#ifndef STM32
 	if (SD_CARD_DETECT)
 	{
 		if (!sd_avalible)
@@ -127,6 +142,7 @@ void storage_step()
 		if (sd_avalible)
 			storage_deinit();
 	}
+#endif
 }
 
 bool storage_selftest()

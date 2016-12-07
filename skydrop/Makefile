@@ -63,6 +63,9 @@ C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
 
 C_SOURCES += src/hal/clock.c
+C_SOURCES += src/drivers/storage/spi_flash.c
+C_SOURCES += src/drivers/storage/spi_flash_io.c
+C_SOURCES += src/drivers/storage/spi_ctrl.c
 
 #cpp
 CPP_SOURCES += src/hal/timers_irq_handlers.cpp
@@ -95,6 +98,7 @@ CPP_SOURCES += src/drivers/audio/buzzer.cpp
 CPP_SOURCES += src/drivers/audio/sequencer.cpp
 CPP_SOURCES += src/drivers/audio/vario.cpp
 CPP_SOURCES += src/drivers/time.cpp
+CPP_SOURCES += src/drivers/storage/storage.cpp
 
 CPP_SOURCES += src/data/fonts.cpp
 
@@ -170,6 +174,7 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
 CFLAGS += -DMS5611_SUPPORT
+CFLAGS += -DSTORAGE_SUPPORT
 #CFLAGS += -DILI9163C
 
 #######################################

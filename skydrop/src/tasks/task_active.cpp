@@ -28,6 +28,7 @@ void task_active_init()
 #ifdef STORAGE_SUPPORT	
 	if (storage_init())
 	{
+#ifndef STM32
 		//Handle update files
 
 		FILINFO fno;
@@ -60,6 +61,7 @@ void task_active_init()
 			f_unlink("UPDATE.EE");
 			f_unlink("UPDATE.FW");
 		}
+#endif
 	}
 #endif
 
