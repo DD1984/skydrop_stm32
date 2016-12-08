@@ -75,6 +75,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
   GPIO_InitStruct.Pin = USB_DISCONNECT_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   HAL_GPIO_Init(USB_DISCONNECT_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_SET);
   
   /* Enable USB Clock */
   __HAL_RCC_USB_CLK_ENABLE();

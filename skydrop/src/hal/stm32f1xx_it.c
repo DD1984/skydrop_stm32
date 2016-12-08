@@ -194,4 +194,10 @@ void TIM4_IRQHandler(void)
   HAL_TIM_IRQHandler(&fc_meas_timer);
 }
 
+extern PCD_HandleTypeDef hpcd;
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+  HAL_PCD_IRQHandler(&hpcd);
+}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

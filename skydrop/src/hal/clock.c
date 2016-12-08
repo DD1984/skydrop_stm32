@@ -17,19 +17,26 @@ void SystemClock_Config(void)
 {
 	RCC_ClkInitTypeDef clkinitstruct = {0};
 	RCC_OscInitTypeDef oscinitstruct = {0};
+	RCC_PeriphCLKInitTypeDef rccperiphclkinit = {0};
 
 	/* Enable HSE Oscillator and activate PLL with HSE as source */
 	oscinitstruct.OscillatorType  = RCC_OSCILLATORTYPE_HSE;
 	oscinitstruct.HSEState        = RCC_HSE_ON;
-	oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV2;
+	oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV1;
 	oscinitstruct.PLL.PLLState    = RCC_PLL_ON;
 	oscinitstruct.PLL.PLLSource   = RCC_PLLSOURCE_HSE;
-	oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL6;
+	oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL9;
 	if (HAL_RCC_OscConfig(&oscinitstruct)!= HAL_OK)
 	{
 		/* Initialization Error */
 		while(1);
 	}
+
+	  /* USB clock selection */
+	rccperiphclkinit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+	rccperiphclkinit.UsbClockSelection = RCC_USBPLLCLK_DIV1_5;
+	HAL_RCCEx_PeriphCLKConfig(&rccperiphclkinit);
+
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
@@ -37,8 +44,8 @@ void SystemClock_Config(void)
 	clkinitstruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_0)!= HAL_OK)
+	clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_2)!= HAL_OK)
 	{
 		/* Initialization Error */
 		while(1);
