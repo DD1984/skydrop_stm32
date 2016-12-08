@@ -21,3 +21,8 @@ pcb/*.s#*
 pcb/*.b#*
 pcb/*.l#*
 pcb/*.lck
+
+skydrop/.settings/*
+skydrop/.cproject
+skydrop/.project
+
