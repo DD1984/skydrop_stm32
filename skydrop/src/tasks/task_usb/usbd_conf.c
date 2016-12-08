@@ -35,8 +35,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define USB_DISCONNECT_PORT                 GPIOB  
-#define USB_DISCONNECT_PIN                  GPIO_PIN_14
+#define USB_DISCONNECT_PORT                 GPIOC
+#define USB_DISCONNECT_PIN                  GPIO_PIN_10
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -472,13 +472,12 @@ void HAL_PCDEx_SetConnectionState(PCD_HandleTypeDef *hpcd, uint8_t state)
   if (state != 0)
   {
     /* Enabling DP Pull-Down bit to Connect internal pull-up on USB DP line */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_RESET);
   }
   else
   {
     /* Disable DP Pull-Down bit */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_SET);
   }
 }
-
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
