@@ -20,3 +20,4 @@ generated*.png
 pcb/*.s#*
 pcb/*.b#*
 pcb/*.l#*
+pcb/*.lck
