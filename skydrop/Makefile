@@ -58,6 +58,10 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_adc.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_adc_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_dma.c
 
+C_SOURCES += src/hal/Src/stm32f1xx_ll_usb.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_pcd.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_pcd_ex.c
+
 C_SOURCES += src/hal/stm32f1xx_hal_msp.c
 C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
@@ -66,6 +70,18 @@ C_SOURCES += src/hal/clock.c
 C_SOURCES += src/drivers/storage/spi_flash.c
 C_SOURCES += src/drivers/storage/spi_flash_io.c
 C_SOURCES += src/drivers/storage/spi_ctrl.c
+C_SOURCES += src/drivers/storage/usbd_storage.c
+
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_core.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_bot.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_scsi.c
+C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_data.c
+
+C_SOURCES += src/tasks/task_usb/usbd_conf.c
+C_SOURCES += src/tasks/task_usb/usbd_desc.c
 
 #cpp
 CPP_SOURCES += src/hal/timers_irq_handlers.cpp
@@ -84,6 +100,8 @@ CPP_SOURCES += src/fc/logger/logger.cpp
 CPP_SOURCES += src/tasks/tasks.cpp
 CPP_SOURCES += src/tasks/task_active.cpp
 CPP_SOURCES += src/tasks/task_powerdown.cpp
+
+CPP_SOURCES += src/tasks/task_usb/task_usb.cpp
 
 CPP_SOURCES += src/drivers/uart.cpp
 
@@ -109,6 +127,7 @@ CPP_SOURCES += src/gui/gui_value.cpp
 CPP_SOURCES += src/gui/splash.cpp
 CPP_SOURCES += src/gui/factory_test.cpp
 CPP_SOURCES += src/gui/gui_list.cpp
+CPP_SOURCES += src/gui/usb.cpp
 
 CPP_SOURCES += src/gui/widgets/layouts/layouts.cpp
 CPP_SOURCES += src/gui/widgets/widgets.cpp
@@ -163,6 +182,10 @@ C_DEFS = -DSTM32F103xE
 # includes for gcc
 AS_INCLUDES = 
 C_INCLUDES = -I src/ -I src/hal/Inc -I src/hal
+
+#for usb
+C_INCLUDES += -I src/tasks/task_usb/STM32_USB_Device_Library/Core/Inc -I src/tasks/task_usb/ -I src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Inc/
+ 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -fdata-sections -ffunction-sections
@@ -175,6 +198,7 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 CFLAGS += -DSTM32
 CFLAGS += -DMS5611_SUPPORT
 CFLAGS += -DSTORAGE_SUPPORT
+CFLAGS += -DUSB_SUPPORT
 #CFLAGS += -DILI9163C
 
 #######################################

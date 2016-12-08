@@ -50,6 +50,7 @@
 #define strcpy_P strcpy
 
 #define abs(x) ((x)>0?(x):-(x))
+
 #endif
 
 #include "build_defs.h"
@@ -290,7 +291,10 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 //---------------- PORTR ---------------------
 #define IO2						portr0
 #define SD_SS					portr1
-#endif
+#else
+
+#define USB_CONNECTED (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_SET)
+#endif //STM32
 
 #define BUILD_VER	"%02d%02d%02d-%02d%02d", BUILD_YEAR, BUILD_MONTH, BUILD_DAY, BUILD_HOUR, BUILD_MIN
 

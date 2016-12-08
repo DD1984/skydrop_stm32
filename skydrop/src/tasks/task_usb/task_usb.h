@@ -9,7 +9,10 @@
 #define TASK_USB_H_
 
 #include "../tasks.h"
+
+#ifndef STM32
 #include "MassStorage/MassStorage.h"
+#endif
 
 void task_usb_init();
 void task_usb_stop();

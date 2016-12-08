@@ -109,12 +109,14 @@ ISR(TASK_TIMER_OVF)
 #endif
 
 #ifdef USB_SUPPORT
+#ifndef STM32
 ISR(USB_CONNECTED_IRQ)
 {
 	//dummy ISR
 	//just wake up the device
 	//usb_in is checked in main loop
 }
+#endif
 #endif
 
 uint32_t task_get_ms_tick()
@@ -161,9 +163,11 @@ void task_timer_stop()
 void task_init()
 {
 	task_timer_setup();
-#ifdef USB_SUPPORT	
+#ifdef USB_SUPPORT
+#ifndef STM32
 	USB_CONNECTED_IRQ_ON;
 #endif	
+#endif
 
 	powerdown_lock.Unlock();
 

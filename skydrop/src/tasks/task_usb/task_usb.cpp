@@ -1,11 +1,39 @@
 #include "task_usb.h"
 #include "../../gui/gui.h"
 
+#ifndef STM32
 SleepLock usb_lock;
 extern Usart sd_spi_usart;
+#else
+
+//#include "stm32f1xx_hal.h"
+#include "usbd_desc.h"
+#include "usbd_core.h"
+#include "usbd_msc.h"
+
+#include "../../drivers/storage/usbd_storage.h"
+
+USBD_HandleTypeDef USBD_Device;
+
+void USB_Init(void)
+{
+	  /* Init MSC Application */
+	  USBD_Init(&USBD_Device, &MSC_Desc, 0);
+
+	  /* Add Supported Class */
+	  USBD_RegisterClass(&USBD_Device, USBD_MSC_CLASS);
+
+	  /* Add Storage callbacks for MSC Class */
+	  USBD_MSC_RegisterStorage(&USBD_Device, &USBD_DISK_fops);
+
+	  /* Start Device Process */
+	  USBD_Start(&USBD_Device);
+}
+#endif
 
 void task_usb_init()
 {
+#ifndef STM32
 	SD_EN_OFF;
 	_delay_ms(200);
 
@@ -27,6 +55,7 @@ void task_usb_init()
 		DEBUG("OK\n");
 	else
 		DEBUG("Error\n");
+#endif
 
 	DEBUG("USB init\n");
 
@@ -40,6 +69,7 @@ void task_usb_init()
 
 void task_usb_stop()
 {
+#ifndef STM32
 	usb_lock.Unlock();
 
 	led_set(0, 0, 0);
@@ -51,7 +81,7 @@ void task_usb_stop()
 	USB_PWR_OFF;
 	SD_SPI_PWR_OFF;
 	SD_EN_OFF;
-
+#endif
 }
 
 
@@ -61,7 +91,9 @@ void task_usb_loop()
 
 	for (uint8_t i=0; i < 128; i++)
 	{
+#ifndef STM32
 		MassStorage_Loop();
+#endif
 		ewdt_reset();
 	}
 }
