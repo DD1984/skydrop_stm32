@@ -144,7 +144,7 @@ uint8_t BSP_SERIAL_FLASH_EraseBulk(void)
   FLASH_SPI_IO_WriteEnable();
   
   /*!< Send Bulk Erase instruction  */
-  FLASH_SPI_IO_WriteByte(FLASH_SPI_CMD_BE);
+  FLASH_SPI_IO_WriteByte(FLASH_SPI_CMD_CE);
 
   /*!< Wait the end of Flash writing and Deselect the FLASH*/
   if(FLASH_SPI_IO_WaitForWriteEnd()!= HAL_OK)
@@ -319,7 +319,7 @@ uint8_t BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint3
   */
 uint32_t BSP_SERIAL_FLASH_ReadID(void)
 {
-  return(FLASH_SPI_IO_ReadID());
+  return(FLASH_SPI_IO_ReadID() & 0x00ffffff);
 }
 
 

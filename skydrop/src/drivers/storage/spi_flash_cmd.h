@@ -9,8 +9,9 @@
 #define FLASH_SPI_CMD_READ           0x03  /*!< Read from Memory instruction */
 #define FLASH_SPI_CMD_RDSR           0x05  /*!< Read Status Register instruction  */
 #define FLASH_SPI_CMD_RDID           0x9F  /*!< Read identification */
-#define FLASH_SPI_CMD_SE             0xD8  /*!< Sector Erase instruction */
-#define FLASH_SPI_CMD_BE             0xC7  /*!< Bulk Erase instruction */
+#define FLASH_SPI_CMD_SE             0x20  /*!< Sector Erase instruction */
+#define FLASH_SPI_CMD_BE             0xD8  /*!< Block Erase instruction */
+#define FLASH_SPI_CMD_CE             0xC7  /*!< Chip Erase instruction */
 
 #define FLASH_SPI_WIP_FLAG           0x01  /*!< Write In Progress (WIP) flag */
 
