@@ -27,12 +27,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_storage.h"
+#include "spi_flash.h"
 //#include "stm3210e_eval_sd.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define STORAGE_LUN_NBR                  1  
-#define STORAGE_BLK_NBR                  0x10000  
 #define STORAGE_BLK_SIZ                  0x200
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,6 +85,13 @@ int8_t STORAGE_Init(uint8_t lun)
 #if 0
   BSP_SD_Init();
 #endif
+
+  BSP_SERIAL_FLASH_Init();
+
+  /* Get SPI Flash ID */
+  uint32_t flash_id = BSP_SERIAL_FLASH_ReadID();
+
+  printf("flash_id: 0x08%x\n", flash_id);
   return 0;
 }
 
@@ -98,7 +105,7 @@ int8_t STORAGE_Init(uint8_t lun)
 int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
   //HAL_SD_CardInfoTypedef info;
-  int8_t ret = -1;  
+  int8_t ret = 0;
   
 #if 0
   if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
@@ -110,6 +117,10 @@ int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_siz
     ret = 0;
   }
 #endif
+
+  *block_num = (8 * 1024 *1024 / 8) / STORAGE_BLK_SIZ  - 1;
+  *block_size = STORAGE_BLK_SIZ;
+
   return ret;
 }
 
@@ -121,7 +132,7 @@ int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_siz
 int8_t STORAGE_IsReady(uint8_t lun)
 {
   static int8_t prev_status = 0;
-  int8_t ret = -1;
+  int8_t ret = 0;
 
 #if 0
   if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
@@ -155,6 +166,39 @@ int8_t STORAGE_IsWriteProtected(uint8_t lun)
   return 0;
 }
 
+void dump_line(void *addr, int len, int line_len)
+{
+	if (len <= 0)
+		return;
+	printf(" %04x  ", addr);
+	char *ptr = (char *)addr;
+	while (ptr - (char *)addr < len) {
+		printf("%02x ", (unsigned char)*ptr);
+		ptr++;
+	}
+
+	int i;
+	for (i = 0; i < line_len - len; i++)
+		printf("   ");
+
+	ptr = (char *)addr;
+	while (ptr - (char *)addr < len) {
+		printf("%c", ((unsigned char)*ptr < 0x20 || (unsigned char)*ptr > 0x7e) ? '.' : (unsigned char)*ptr);
+		ptr++;
+	}
+
+	printf("\n");
+}
+
+void _hex_dump(void *addr, int len, int line_len)
+{
+	char *ptr = (char *)addr;
+	while (ptr - (char *)addr < len) {
+		dump_line(ptr, ((char *)addr + len - ptr > line_len) ? line_len : (char *)addr + len - ptr, line_len);
+		ptr += line_len;
+	}
+}
+
 /**
   * @brief  Reads data from the medium.
   * @param  lun: Logical unit number
@@ -164,7 +208,7 @@ int8_t STORAGE_IsWriteProtected(uint8_t lun)
   */
 int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
-  int8_t ret = -1;  
+  int8_t ret = 0;
 
 #if 0
   if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
@@ -173,6 +217,10 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
     ret = 0;
   }
 #endif
+  //printf("%s[%d] buf_ptr: 0x%x\n", __func__, __LINE__, buf);
+  uint8_t read_stat = BSP_SERIAL_FLASH_ReadData(blk_addr * STORAGE_BLK_SIZ * 8, buf, STORAGE_BLK_SIZ);
+  //printf("%s[%d] read: addr: 0x%x blk_addr: 0x%x rs: %d buf_ptr:0x%x\n", __func__, __LINE__, blk_addr * STORAGE_BLK_SIZ * 8, blk_addr, read_stat, buf);
+  //_hex_dump(buf, 32, 16);
   return ret;
 }
 
@@ -185,7 +233,7 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
   */
 int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
-  int8_t ret = -1;  
+  int8_t ret = 0;
 
 #if 0
   if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
@@ -194,6 +242,12 @@ int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_
     ret = 0;
   }
 #endif
+  uint8_t erase_stat = BSP_SERIAL_FLASH_EraseSector(blk_addr * STORAGE_BLK_SIZ * 8);
+
+  uint8_t write_stat = BSP_SERIAL_FLASH_WriteData(blk_addr * STORAGE_BLK_SIZ * 8 , buf, STORAGE_BLK_SIZ);
+
+  //printf("%s[%d] write: addr: 0x%x blk_addr: 0x%x es: %d, ws: %d\n", __func__, __LINE__, blk_addr * STORAGE_BLK_SIZ * 8, blk_addr, erase_stat, write_stat);
+  //_hex_dump(buf, 32, 16);
   return ret;
 }
 
