@@ -37,58 +37,21 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM3210E_EVAL_SERIAL_FLASH_H
-#define __STM3210E_EVAL_SERIAL_FLASH_H
+#ifndef __SPI_FLASH_H__
+#define __SPI_FLASH_H__
 
 #ifdef __cplusplus
- extern "C" {
+	extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 #include "stm32f1xx_hal.h"
 #include "spi_flash_cmd.h"
 
 
-/** @addtogroup BSP
-  * @{
-  */ 
-
-/** @addtogroup STM3210E_EVAL
-  * @{
-  */
-  
-/** @addtogroup STM3210E_EVAL_SERIAL_FLASH
-  * @{
-  */  
-
-/** @defgroup STM3210E_EVAL_SERIAL_FLASH_Exported_Types Exported_Types
-  * @{
-  */ 
-/**
-  * @}
-  */
-  
-/** @defgroup STM3210E_EVAL_SERIAL_FLASH_Exported_Constants Exported_Constants
-  * @{
-  */
 #define   FLASH_OK         0x00
 #define   FLASH_ERROR      0x01
-/**
-  * @}
-  */ 
-  
-/** @defgroup STM3210E_EVAL_SERIAL_FLASH_Exported_Macros Exported_Macros
-  * @{
-  */
-/**
-  * @}
-  */ 
- 
 
-/** @addtogroup STM3210E_EVAL_SERIAL_FLASH_Exported_Functions
-  * @{
-  */
 uint8_t  BSP_SERIAL_FLASH_Init(void);
 uint8_t  BSP_SERIAL_FLASH_EraseSector(uint32_t SectorAddr);
 uint8_t  BSP_SERIAL_FLASH_EraseBulk(void);
@@ -101,7 +64,7 @@ uint32_t BSP_SERIAL_FLASH_ReadID(void);
 }
 #endif
 
-#endif /* __STM3210E_EVAL_SERIAL_FLASH_H */
+#endif
 /**
   * @}
   */

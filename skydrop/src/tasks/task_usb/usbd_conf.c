@@ -442,27 +442,6 @@ void USBD_LL_Delay(uint32_t Delay)
 }
 
 /**
-  * @brief  static single allocation.
-  * @param  size: size of allocated memory
-  * @retval None
-  */
-void *USBD_static_malloc(uint32_t size)
-{
-  static uint32_t mem[MAX_STATIC_ALLOC_SIZE];
-  return mem;
-}
-
-/**
-  * @brief  Dummy memory free
-  * @param  *p pointer to allocated  memory address
-  * @retval None
-  */
-void USBD_static_free(void *p)
-{
-
-}
-
-/**
   * @brief  Software Device Connection
   * @param  hpcd: PCD handle
   * @param  state: connection state (0 : disconnected / 1: connected)

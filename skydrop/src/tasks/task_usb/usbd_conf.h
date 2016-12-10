@@ -46,7 +46,7 @@
 #define USBD_DEBUG_LEVEL                      0
 
 /* MSC Class Config */
-#define MSC_MEDIA_PACKET                      512
+#define MSC_MEDIA_PACKET                      0x1000
 
 /* Exported macro ------------------------------------------------------------*/
 /* Memory management macros */
@@ -59,8 +59,8 @@ void USBD_static_free(void *p);
 
 #define MAX_STATIC_ALLOC_SIZE     155 /* MSC Class Driver Structure size */
 
-#define USBD_malloc               (uint32_t *)USBD_static_malloc
-#define USBD_free                 USBD_static_free
+#define USBD_malloc               malloc
+#define USBD_free                 free
 #define USBD_memset               /* Not used */
 #define USBD_memcpy               /* Not used */
 

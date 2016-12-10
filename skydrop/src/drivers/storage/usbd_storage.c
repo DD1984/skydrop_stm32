@@ -28,12 +28,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_storage.h"
 #include "spi_flash.h"
-//#include "stm3210e_eval_sd.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define STORAGE_LUN_NBR                  1  
-#define STORAGE_BLK_SIZ                  0x200
+#define STORAGE_BLK_SIZ                  0x1000
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -82,10 +81,6 @@ USBD_StorageTypeDef USBD_DISK_fops = {
   */
 int8_t STORAGE_Init(uint8_t lun)
 {
-#if 0
-  BSP_SD_Init();
-#endif
-
   BSP_SERIAL_FLASH_Init();
 
   /* Get SPI Flash ID */
@@ -104,24 +99,12 @@ int8_t STORAGE_Init(uint8_t lun)
   */
 int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
-  //HAL_SD_CardInfoTypedef info;
-  int8_t ret = 0;
-  
-#if 0
-  if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
-  {
-    BSP_SD_GetCardInfo(&info);
-    
-    *block_num = (info.CardCapacity)/STORAGE_BLK_SIZ  - 1;
-    *block_size = STORAGE_BLK_SIZ;
-    ret = 0;
-  }
-#endif
+	int8_t ret = 0;
 
-  *block_num = (8 * 1024 *1024 / 8) / STORAGE_BLK_SIZ  - 1;
-  *block_size = STORAGE_BLK_SIZ;
+	*block_num = (8 * 1024 *1024) / STORAGE_BLK_SIZ  - 1;
+	*block_size = STORAGE_BLK_SIZ;
 
-  return ret;
+	return ret;
 }
 
 /**
@@ -131,29 +114,7 @@ int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_siz
   */
 int8_t STORAGE_IsReady(uint8_t lun)
 {
-  static int8_t prev_status = 0;
-  int8_t ret = 0;
-
-#if 0
-  if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
-  {
-    if(prev_status < 0)
-    {
-      BSP_SD_Init();
-      prev_status = 0;
-      
-    }
-    if(BSP_SD_GetStatus() == SD_TRANSFER_OK)
-    {
-      ret = 0;
-    }
-  }
-  else if(prev_status == 0)
-  {
-    prev_status = -1;
-  }
-#endif
-  return ret;
+	return 0;
 }
 
 /**
@@ -163,40 +124,7 @@ int8_t STORAGE_IsReady(uint8_t lun)
   */
 int8_t STORAGE_IsWriteProtected(uint8_t lun)
 {
-  return 0;
-}
-
-void dump_line(void *addr, int len, int line_len)
-{
-	if (len <= 0)
-		return;
-	printf(" %04x  ", addr);
-	char *ptr = (char *)addr;
-	while (ptr - (char *)addr < len) {
-		printf("%02x ", (unsigned char)*ptr);
-		ptr++;
-	}
-
-	int i;
-	for (i = 0; i < line_len - len; i++)
-		printf("   ");
-
-	ptr = (char *)addr;
-	while (ptr - (char *)addr < len) {
-		printf("%c", ((unsigned char)*ptr < 0x20 || (unsigned char)*ptr > 0x7e) ? '.' : (unsigned char)*ptr);
-		ptr++;
-	}
-
-	printf("\n");
-}
-
-void _hex_dump(void *addr, int len, int line_len)
-{
-	char *ptr = (char *)addr;
-	while (ptr - (char *)addr < len) {
-		dump_line(ptr, ((char *)addr + len - ptr > line_len) ? line_len : (char *)addr + len - ptr, line_len);
-		ptr += line_len;
-	}
+	return 0;
 }
 
 /**
@@ -208,19 +136,10 @@ void _hex_dump(void *addr, int len, int line_len)
   */
 int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
-  int8_t ret = 0;
+  int8_t ret;
 
-#if 0
-  if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
-  {  
-    BSP_SD_ReadBlocks_DMA((uint32_t *)buf, blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ, blk_len);
-    ret = 0;
-  }
-#endif
-  //printf("%s[%d] buf_ptr: 0x%x\n", __func__, __LINE__, buf);
-  uint8_t read_stat = BSP_SERIAL_FLASH_ReadData(blk_addr * STORAGE_BLK_SIZ * 8, buf, STORAGE_BLK_SIZ);
-  //printf("%s[%d] read: addr: 0x%x blk_addr: 0x%x rs: %d buf_ptr:0x%x\n", __func__, __LINE__, blk_addr * STORAGE_BLK_SIZ * 8, blk_addr, read_stat, buf);
-  //_hex_dump(buf, 32, 16);
+  ret = BSP_SERIAL_FLASH_ReadData(blk_addr * STORAGE_BLK_SIZ, buf, STORAGE_BLK_SIZ);
+
   return ret;
 }
 
@@ -233,21 +152,12 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
   */
 int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
-  int8_t ret = 0;
+  int8_t ret;
 
-#if 0
-  if(BSP_SD_IsDetected() != SD_NOT_PRESENT)
-  { 
-    BSP_SD_WriteBlocks_DMA((uint32_t *)buf, blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ, blk_len);
-    ret = 0;
-  }
-#endif
-  uint8_t erase_stat = BSP_SERIAL_FLASH_EraseSector(blk_addr * STORAGE_BLK_SIZ * 8);
+  ret = BSP_SERIAL_FLASH_EraseSector(blk_addr * STORAGE_BLK_SIZ);
+  if (!ret)
+	  ret = BSP_SERIAL_FLASH_WriteData(blk_addr * STORAGE_BLK_SIZ , buf, STORAGE_BLK_SIZ);
 
-  uint8_t write_stat = BSP_SERIAL_FLASH_WriteData(blk_addr * STORAGE_BLK_SIZ * 8 , buf, STORAGE_BLK_SIZ);
-
-  //printf("%s[%d] write: addr: 0x%x blk_addr: 0x%x es: %d, ws: %d\n", __func__, __LINE__, blk_addr * STORAGE_BLK_SIZ * 8, blk_addr, erase_stat, write_stat);
-  //_hex_dump(buf, 32, 16);
   return ret;
 }
 
