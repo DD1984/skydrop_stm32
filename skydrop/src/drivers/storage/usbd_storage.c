@@ -27,12 +27,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_storage.h"
-#include "spi_flash.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define STORAGE_LUN_NBR                  1  
-#define STORAGE_BLK_SIZ                  0x1000
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -55,20 +53,20 @@ int8_t STORAGE_Inquirydata[] = { /* 36 */
 
 /* Private function prototypes -----------------------------------------------*/
 int8_t STORAGE_Init(uint8_t lun);
-int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size);
+int8_t _STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size);
 int8_t STORAGE_IsReady(uint8_t lun);
 int8_t STORAGE_IsWriteProtected(uint8_t lun);
-int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
-int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
+int8_t _STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
+int8_t _STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
 int8_t STORAGE_GetMaxLun(void);
 
 USBD_StorageTypeDef USBD_DISK_fops = {
   STORAGE_Init,
-  STORAGE_GetCapacity,
+  _STORAGE_GetCapacity,
   STORAGE_IsReady,
   STORAGE_IsWriteProtected,
-  STORAGE_Read,
-  STORAGE_Write,
+  _STORAGE_Read,
+  _STORAGE_Write,
   STORAGE_GetMaxLun,
   STORAGE_Inquirydata, 
 };
@@ -81,13 +79,9 @@ USBD_StorageTypeDef USBD_DISK_fops = {
   */
 int8_t STORAGE_Init(uint8_t lun)
 {
-  BSP_SERIAL_FLASH_Init();
+	BSP_SERIAL_FLASH_Init();
 
-  /* Get SPI Flash ID */
-  uint32_t flash_id = BSP_SERIAL_FLASH_ReadID();
-
-  printf("flash_id: 0x08%x\n", flash_id);
-  return 0;
+	return 0;
 }
 
 /**
@@ -97,11 +91,11 @@ int8_t STORAGE_Init(uint8_t lun)
   * @param  block_size: Block size
   * @retval Status (0: Ok / -1: Error)
   */
-int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
+int8_t _STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
 	int8_t ret = 0;
 
-	*block_num = (8 * 1024 *1024) / STORAGE_BLK_SIZ  - 1;
+	*block_num = spi_flash_capacity / STORAGE_BLK_SIZ;
 	*block_size = STORAGE_BLK_SIZ;
 
 	return ret;
@@ -134,7 +128,7 @@ int8_t STORAGE_IsWriteProtected(uint8_t lun)
   * @param  blk_len: Blocks number
   * @retval Status (0: Ok / -1: Error)
   */
-int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
+int8_t _STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   int8_t ret;
 
@@ -150,7 +144,7 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
   * @param  blk_len: Blocks number
   * @retval Status (0 : Ok / -1 : Error)
   */
-int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
+int8_t _STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   int8_t ret;
 

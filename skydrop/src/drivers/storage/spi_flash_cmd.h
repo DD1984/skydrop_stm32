@@ -1,7 +1,7 @@
 #ifndef __SPI_FLASH_CMD_H__
 #define __SPI_FLASH_CMD_H__
 
-/* @brief  M25P FLASH SPI supported commands */
+/* @brief  MX25L FLASH SPI supported commands */
 
 #define FLASH_SPI_CMD_WRITE          0x02  /*!< Write to Memory instruction */
 #define FLASH_SPI_CMD_WRSR           0x01  /*!< Write Status Register instruction */

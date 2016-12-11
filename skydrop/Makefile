@@ -72,6 +72,10 @@ C_SOURCES += src/drivers/storage/spi_flash_io.c
 C_SOURCES += src/drivers/storage/spi_ctrl.c
 C_SOURCES += src/drivers/storage/usbd_storage.c
 
+C_SOURCES += src/drivers/storage/FatFs/ff.c
+C_SOURCES += src/drivers/storage/FatFs/diskio.c
+//C_SOURCES += src/drivers/storage/FatFs/option/unicode.c
+
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_core.c
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_bot.c
@@ -79,6 +83,8 @@ C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_scsi.c
 C_SOURCES += src/tasks/task_usb/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc_data.c
+
+C_SOURCES += src/dump.c
 
 C_SOURCES += src/tasks/task_usb/usbd_conf.c
 C_SOURCES += src/tasks/task_usb/usbd_desc.c

@@ -59,30 +59,20 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
 #include "spi_flash.h"
 #include "spi_flash_io.h"
 
-/** @addtogroup BSP
-  * @{
-  */
+#define SIZE2N_01MB     0x14
+#define SIZE2N_02MB     0x15
+#define SIZE2N_04MB     0x16
+#define SIZE2N_08MB     0x17
+#define SIZE2N_16MB     0x18
+#define SIZE2N_32MB     0x19
+#define SIZE2N_64MB     0x20
+#define SIZE2N_128M     0x21
 
-/** @addtogroup STM3210E_EVAL
-  * @{
-  */ 
-  
-/** @defgroup STM3210E_EVAL_SERIAL_FLASH STM3210E_EVAL Serial FLASH
-  * @brief    This file includes the M25Pxxx SPI FLASH driver of 
-  *           STM3210E-EVAL board.
-  * @{
-  */
-  
-
-
-/** @defgroup STM3210E_EVAL_SERIAL_FLASH_Exported_Functions Exported_Functions
-  * @{
-  */ 
-
+uint32_t spi_flash_capacity = 0;
 /**
   * @brief  Initializes peripherals used by the Serial FLASH device.
   * @retval FLASH_OK (0x00) if operation is correctly performed, else 
@@ -90,14 +80,47 @@
   */
 uint8_t BSP_SERIAL_FLASH_Init(void)
 {
-  if(FLASH_SPI_IO_Init() != HAL_OK)
-  {
-    return FLASH_ERROR;
-  }
-  else
-  {
-    return FLASH_OK;
-  }
+	if (FLASH_SPI_IO_Init() != HAL_OK) {
+		return FLASH_ERROR;
+	}
+
+	uint32_t id = FLASH_SPI_IO_ReadID();
+	printf("Detected flash, id: 0x%06x\n", id & 0xffffff);
+
+	spi_flash_capacity = 0;
+
+	switch (id & 0xff) {
+	case SIZE2N_01MB:
+		spi_flash_capacity = 1 * 1024 * 1024;
+		break;
+	case SIZE2N_02MB:
+		spi_flash_capacity = 2 * 1024 * 1024;
+		break;
+	case SIZE2N_04MB:
+		spi_flash_capacity = 4 * 1024 * 1024;
+		break;
+	case SIZE2N_08MB:
+		spi_flash_capacity = 8 * 1024 * 1024;
+		break;
+	case SIZE2N_16MB:
+		spi_flash_capacity = 16 * 1024 * 1024;
+		break;
+	case SIZE2N_32MB:
+		spi_flash_capacity = 32 * 1024 * 1024;
+		break;
+	case SIZE2N_64MB:
+		spi_flash_capacity = 64 * 1024 * 1024;
+		break;
+	case SIZE2N_128M:
+		spi_flash_capacity = 128 * 1024 * 1024;
+		break;
+	default:
+		printf("Unknown flash capacity!!!\n");
+		return FLASH_ERROR;
+	}
+
+	printf("Capacity: %dMB\n", spi_flash_capacity / 1024 / 1024);
+	return FLASH_OK;
 }
 
 /**
@@ -311,32 +334,5 @@ uint8_t BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint3
     return FLASH_OK;
   }
 }
-
-
-/**
-  * @brief  Reads FLASH identification.
-  * @retval FLASH identification
-  */
-uint32_t BSP_SERIAL_FLASH_ReadID(void)
-{
-  return(FLASH_SPI_IO_ReadID() & 0x00ffffff);
-}
-
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */  
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

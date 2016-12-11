@@ -22,11 +22,12 @@
 
 #else
 
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include "clock.h"
 #include "stm32f1xx_hal.h"
 #include "drivers/uart.h"
-#include <string.h>
 #include "eeprom.h"
 
 #define HIGH	1
@@ -34,9 +35,20 @@
 
 #define _delay_ms(x) HAL_Delay(x)
 
-#define SystemReset() HAL_NVIC_SystemReset()
+#define SystemReset() system_reset()
+inline void system_reset(void)
+{
+	printf("---------> %s\n", __func__);
+	HAL_NVIC_SystemReset();
+}
+
 #define SystemPowerIdle()
-#define SystemPowerSave()
+
+#define SystemPowerSave() system_power_save()
+inline void system_power_save(void)
+{
+	printf("---------> %s\n", __func__);
+}
 
 #define wdt_init(x)
 #define wdt_reset()
@@ -293,7 +305,24 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define SD_SS					portr1
 #else
 
-#define USB_CONNECTED (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_SET)
+#define USB_CONNECTED usb_connected()
+
+inline uint8_t usb_connected(void)
+{
+	static uint8_t con_stat = 0;
+	uint8_t cur_con_stat = (uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
+
+	if (cur_con_stat && cur_con_stat ^ con_stat)
+			printf("USB connected\n");
+
+	if (!cur_con_stat && cur_con_stat ^ con_stat)
+			printf("USB disconnected\n");
+
+	con_stat = cur_con_stat;
+
+	return con_stat;
+}
+
 #endif //STM32
 
 #define BUILD_VER	"%02d%02d%02d-%02d%02d", BUILD_YEAR, BUILD_MONTH, BUILD_DAY, BUILD_HOUR, BUILD_MIN

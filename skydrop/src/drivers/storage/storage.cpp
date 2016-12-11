@@ -1,12 +1,15 @@
 #include "storage.h"
+#include "usbd_storage.h"
+FATFS FatFs;		/* FatFs work area needed for each volume */
 
 #ifndef STM32
-FATFS FatFs;		/* FatFs work area needed for each volume */
 //FIL Fil;			/* File object needed for each open file */
 
 extern Usart sd_spi_usart;
 #else
 #include "spi_flash.h"
+#include "../../dump.h"
+char ff_work_buf[STORAGE_BLK_SIZ];
 #endif
 
 uint32_t storage_space = 0;
@@ -97,12 +100,54 @@ bool storage_init()
 	DEBUG(" total space  %12lu\n", storage_space);
 	DEBUG(" free space   %12lu\n", storage_free_space);
 #else
-	  /* Initialize the SPI FLASH driver */
-	  BSP_SERIAL_FLASH_Init();
+	uint8_t ret;
+	FATFS *FatFs_p;
 
-	  /* Get SPI Flash ID */
-	  uint32_t flash_id = BSP_SERIAL_FLASH_ReadID();
-	  printf("flash_id: 0x08%x\n", flash_id);
+	BSP_SERIAL_FLASH_Init();
+
+	ret = f_mount(&FatFs, "", 1);
+
+	if (ret != RES_OK) {
+		//TOD: add gui dialog
+		printf("Mounting err: %d - formating...", ret);
+		ret = f_mkfs("", FM_EXFAT | FM_SFD, STORAGE_BLK_SIZ, ff_work_buf, sizeof(ff_work_buf));
+		if (ret == RES_OK) {
+			printf("OK\n");
+			ret = f_mount(&FatFs, "", 1);
+		}
+		else {
+			printf("FAIL err:%d\n", ret);
+		}
+	}
+
+	printf("Mounting ");
+	if (ret == RES_OK)
+		printf("OK\n");
+	else
+		printf("FAIL\n");
+
+#if 0
+	FIL fp;
+
+	//for (i = 0; i < strlen(file); i++)
+	//	path[i] = file[i];
+	//path[i] = 0;
+
+	//hex_dump(path_p, 32);
+
+	//memset(&fp, 0, sizeof(fp));
+
+	ret = f_open(&fp, "/flash1.txt", FA_READ | FA_CREATE_ALWAYS | FA_WRITE);
+	f_puts("flash work\n", &fp);
+
+	f_close(&fp);
+
+	//char buf[32];
+	//f_gets(buf, 32, &fp);
+	//hex_dump(buf, 32);
+
+	printf("ret: %d\n", ret);
+#endif
 #endif
 	sd_avalible = true;
 	return true;

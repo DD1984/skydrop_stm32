@@ -36,7 +36,6 @@
   ******************************************************************************
   */ 
 
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __SPI_FLASH_H__
 #define __SPI_FLASH_H__
 
@@ -49,32 +48,25 @@
 #include "spi_flash_cmd.h"
 
 
-#define   FLASH_OK         0x00
-#define   FLASH_ERROR      0x01
+#define FLASH_OK         0x00
+#define	FLASH_ERROR      0x01
+
+#define SPI_FLASH_SECTOR_SIZE	0x1000 /* 4KB */
 
 uint8_t  BSP_SERIAL_FLASH_Init(void);
 uint8_t  BSP_SERIAL_FLASH_EraseSector(uint32_t SectorAddr);
 uint8_t  BSP_SERIAL_FLASH_EraseBulk(void);
 uint8_t  BSP_SERIAL_FLASH_WritePage(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
 uint8_t  BSP_SERIAL_FLASH_WriteData(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
-uint8_t  BSP_SERIAL_FLASH_ReadData( uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
-uint32_t BSP_SERIAL_FLASH_ReadID(void);
+uint8_t  BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
+
+extern uint32_t spi_flash_capacity;
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
