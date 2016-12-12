@@ -56,10 +56,12 @@ inline void system_power_save(void)
 #define PROGMEM
 #define pgm_read_byte(addr) (*(addr))
 #define pgm_read_word(addr) (*(addr))
+#define pgm_read_dword(addr) (*(addr))
 #define PSTR(x) x
 #define sprintf_P sprintf
 #define fprintf_P fprintf
 #define strcpy_P strcpy
+#define memcpy_P memcpy
 
 #define abs(x) ((x)>0?(x):-(x))
 

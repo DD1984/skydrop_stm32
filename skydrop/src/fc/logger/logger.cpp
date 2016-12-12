@@ -87,7 +87,7 @@ void logger_step()
 
 	if (fc.flight_state == FLIGHT_FLIGHT)
 	{
-#ifndef STM32		
+#ifdef LOGGER_SUPPORT
 		switch (config.logger.format)
 		{
 			case(LOGGER_IGC):
@@ -124,7 +124,7 @@ void logger_start()
 
 	char path[128];
 
-#ifndef STM32
+#ifdef LOGGER_SUPPORT
 	//base dir
 	sprintf_P(path, PSTR("%S"), LOG_DIR);
 	f_mkdir(path);
@@ -141,7 +141,7 @@ void logger_start()
 
 	bool ret = false;
 
-#ifndef STM32
+#ifdef LOGGER_SUPPORT
 	switch (config.logger.format)
 	{
 		case(LOGGER_IGC):
@@ -165,7 +165,7 @@ void logger_stop()
 
 	fc.logger_state = LOGGER_IDLE;
 
-#ifndef STM32
+#ifdef LOGGER_SUPPORT
 	switch (config.logger.format)
 	{
 		case(LOGGER_IGC):

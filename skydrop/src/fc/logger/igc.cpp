@@ -3,7 +3,7 @@
 #include "../../drivers/storage/storage.h"
 #include "sha256.h"
 
-#include <private_key.h>
+#include "private_key.h"
 
 Sha256Class sha256;
 
@@ -19,7 +19,7 @@ char igc_i2c(uint8_t n)
 void igc_writeline(char * line)
 {
 	uint8_t l = strlen(line);
-	uint16_t wl;
+	unsigned int wl;
 
 //	DEBUG("IGC:%s\n", line);
 
@@ -55,7 +55,9 @@ bool igc_start(char * path)
 
 	IGC_PRIVATE_KEY_ADD;
 
+#ifdef GPS_SUPPORT
 	datetime_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 	//XXX
 	#define device_uid "DRP"
@@ -139,7 +141,9 @@ void igc_step()
 	uint8_t min;
 	uint8_t hour;
 
+#ifdef GPS_SUPPORT
 	time_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour);
+#endif
 
 	float decimal;
 	float deg;
@@ -147,26 +151,37 @@ void igc_step()
 	char c;
 	char tmp1[32];
 
+#ifdef GPS_SUPPORT
 	c = (fc.gps_data.latitude < 0) ? 'S' : 'N';
 	decimal = abs(fc.gps_data.latitude);
+#endif
+
 	deg = floor(decimal);
 	fmin = (decimal - deg) * 60 * 1000;
 	sprintf_P(tmp1, PSTR("%02.0f%05.0f%c"), deg, fmin, c);
 
 	char tmp2[32];
 
+#ifdef GPS_SUPPORT
 	c = (fc.gps_data.longtitude < 0) ? 'W' : 'E';
 	decimal = abs(fc.gps_data.longtitude);
+#endif
+
 	deg = floor(decimal);
 	fmin = (decimal - deg) * 60 * 1000;
 	sprintf_P(tmp2, PSTR("%03.0f%05.0f%c"), deg, fmin, c);
 
+#ifdef GPS_SUPPORT
 	c = (fc.gps_data.valid) ? 'A' : 'V';
+#endif
 
 	uint16_t alt = fc_press_to_alt(fc.pressure, 101325);
 
+#ifdef GPS_SUPPORT
 	//B record
 	sprintf_P(line, PSTR("B%02d%02d%02d%s%s%c%05d%05.0f"), hour, min, sec, tmp1, tmp2, c, alt, fc.gps_data.altitude);
+#endif
+
 	igc_writeline(line);
 }
 

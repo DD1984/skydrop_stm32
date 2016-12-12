@@ -5,7 +5,7 @@
 void kml_writeline(char * line)
 {
 	uint8_t l = strlen(line);
-	uint16_t wl;
+	unsigned int wl;
 
 //	DEBUG("KML:%s\n", line);
 
@@ -32,7 +32,9 @@ bool kml_start(char * path)
 	char line[79];
 	char id[32];
 
+#ifdef GPS_SUPPORT
 	datetime_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour, &day, &wday, &month, &year);
+#endif
 
 	sprintf_P(filename, PSTR("/%s/%02d-%02d%02d.KML"), path, logger_flight_number, hour, min);
 	DEBUG("KML filename %s\n", filename);
@@ -97,12 +99,14 @@ bool kml_start(char * path)
 
 void kml_step()
 {
+#ifdef GPS_SUPPORT
 	if (fc.gps_data.valid)
 	{
 		char line[79];
 		sprintf_P(line, PSTR("%0.6f,%0.6f,%0.0f"), fc.gps_data.longtitude, fc.gps_data.latitude, fc.altitude1);
 		kml_writeline(line);
 	}
+#endif
 }
 
 void kml_stop()

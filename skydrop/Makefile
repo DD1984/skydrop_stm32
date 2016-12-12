@@ -8,8 +8,9 @@ TARGET = SkyDrop
 ######################################
 # Posibilities
 ######################################
-GPS_SUPPORT=n
-
+LOGGER_SUPPORT=y
+STORAGE_SUPPORT=y
+#GPS_SUPPORT=y
 
 ######################################
 # MCU
@@ -67,6 +68,7 @@ C_SOURCES += src/hal/stm32f1xx_it.c
 C_SOURCES += src/hal/syscalls.c
 
 C_SOURCES += src/hal/clock.c
+
 C_SOURCES += src/drivers/storage/spi_flash.c
 C_SOURCES += src/drivers/storage/spi_flash_io.c
 C_SOURCES += src/drivers/storage/spi_ctrl.c
@@ -101,7 +103,13 @@ CPP_SOURCES += src/fc/fc.cpp
 CPP_SOURCES += src/fc/conf.cpp
 CPP_SOURCES += src/fc/vario.cpp
 CPP_SOURCES += src/fc/kalman.cpp
+
+ifeq ($(LOGGER_SUPPORT),y)
 CPP_SOURCES += src/fc/logger/logger.cpp
+CPP_SOURCES += src/fc/logger/igc.cpp
+CPP_SOURCES += src/fc/logger/kml.cpp
+CPP_SOURCES += src/fc/logger/sha256.cpp
+endif
 
 CPP_SOURCES += src/tasks/tasks.cpp
 CPP_SOURCES += src/tasks/task_active.cpp
@@ -122,7 +130,10 @@ CPP_SOURCES += src/drivers/audio/buzzer.cpp
 CPP_SOURCES += src/drivers/audio/sequencer.cpp
 CPP_SOURCES += src/drivers/audio/vario.cpp
 CPP_SOURCES += src/drivers/time.cpp
+
+ifeq ($(STORAGE_SUPPORT),y)
 CPP_SOURCES += src/drivers/storage/storage.cpp
+endif
 
 CPP_SOURCES += src/data/fonts.cpp
 
@@ -203,8 +214,21 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 
 CFLAGS += -DSTM32
 CFLAGS += -DMS5611_SUPPORT
-CFLAGS += -DSTORAGE_SUPPORT
+
 CFLAGS += -DUSB_SUPPORT
+
+ifeq ($(LOGGER_SUPPORT),y)
+	CFLAGS += -DLOGGER_SUPPORT
+endif
+
+ifeq ($(STORAGE_SUPPORT),y)
+CFLAGS += -DSTORAGE_SUPPORT
+endif
+
+ifeq ($(GPS_SUPPORT),y)
+CFLAGS += -DGPS_SUPPORT
+endif
+	
 #CFLAGS += -DILI9163C
 
 #######################################
