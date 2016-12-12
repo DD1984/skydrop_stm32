@@ -30,7 +30,7 @@
 #include "sht21.h"
 #endif
 
-#ifdef GPS_L80_SUPPORT
+#ifdef GPS_SUPPORT
 #include "gps_l80.h"
 #endif
 

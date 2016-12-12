@@ -10,7 +10,7 @@ TARGET = SkyDrop
 ######################################
 LOGGER_SUPPORT=y
 STORAGE_SUPPORT=y
-#GPS_SUPPORT=y
+GPS_SUPPORT=y
 
 ######################################
 # MCU
@@ -121,6 +121,11 @@ CPP_SOURCES += src/drivers/uart.cpp
 
 CPP_SOURCES += src/drivers/sensors/devices.cpp
 CPP_SOURCES += src/drivers/sensors/ms5611.cpp
+
+ifeq ($(GPS_SUPPORT),y)
+CPP_SOURCES += src/drivers/sensors/gps_l80.cpp
+endif
+
 CPP_SOURCES += src/drivers/buttons.cpp
 CPP_SOURCES += src/drivers/lcd_disp.cpp
 #CPP_SOURCES += src/drivers/ILI9163C.cpp
@@ -156,6 +161,11 @@ CPP_SOURCES += src/gui/widgets/altitude.cpp
 CPP_SOURCES += src/gui/widgets/time.cpp
 CPP_SOURCES += src/gui/widgets/ctrl.cpp
 
+ifeq ($(GPS_SUPPORT),y)
+CPP_SOURCES += src/gui/widgets/gps.cpp
+CPP_SOURCES += src/gui/widgets/flight.cpp
+endif
+
 CPP_SOURCES += src/gui/settings/set_widgets.cpp
 CPP_SOURCES += src/gui/settings/settings.cpp
 CPP_SOURCES += src/gui/settings/set_system.cpp
@@ -172,6 +182,11 @@ CPP_SOURCES += src/gui/settings/set_debug.cpp
 CPP_SOURCES += src/gui/settings/set_altimeters.cpp
 CPP_SOURCES += src/gui/settings/set_logger.cpp
 CPP_SOURCES += src/gui/settings/set_time.cpp
+
+ifeq ($(GPS_SUPPORT),y)
+CPP_SOURCES += src/gui/settings/set_gps.cpp
+CPP_SOURCES += src/gui/settings/set_gps_detail.cpp
+endif
 
 
 #asm

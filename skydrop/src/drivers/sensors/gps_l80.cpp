@@ -3,6 +3,7 @@
 
 #include "../../fc/fc.h"
 
+#ifndef STM32
 Usart gps_uart;
 
 CreateStdOut(gps_out, gps_uart.Write);
@@ -11,6 +12,9 @@ ISR(GPS_TIMER_INT)
 {
 	DEBUG("GPS_TIMER_INT\n");
 }
+#else
+FILE *gps_out;
+#endif
 
 #define GPS_IDLE	0
 #define GPS_DATA	1
@@ -203,7 +207,10 @@ void gps_parse_rmc()
 	{
 		char tmp[NMEA_MAX_LEN];
 		sprintf(tmp, "$%s", gps_parser_buffer);
+
+#ifdef BT_SUPPORT
 		bt_send(tmp);
+#endif
 	}
 }
 
@@ -250,7 +257,10 @@ void gps_parse_gga()
 	{
 		char tmp[NMEA_MAX_LEN];
 		sprintf(tmp, "$%s", gps_parser_buffer);
+
+#ifdef BT_SUPPORT
 		bt_send(tmp);
+#endif
 	}
 }
 
@@ -338,7 +348,9 @@ void gps_set_baudrate()
 {
 	DEBUG("set_baudrate\n");
 	fprintf_P(gps_out, PSTR("$PMTK251,115200*1F\r\n"));
+#ifndef STM32
 	gps_uart.FlushTxBuffer();
+#endif
 	_delay_ms(1);
 }
 
@@ -349,8 +361,10 @@ void gps_set_baudrate()
 
 void gps_change_uart_baudrate()
 {
+#ifndef STM32
 	gps_uart.Stop();
 	gps_uart.Init(GPS_UART, 115200);
+#endif
 }
 
 
@@ -371,9 +385,17 @@ void gps_parse_sys()
 		gps_normal();
 }
 
+#ifndef STM32
 void gps_parse(Usart * c_uart)
+#else
+void gps_parse(void)
+#endif
 {
-	uint8_t c = c_uart->Read();
+	uint8_t c;
+
+#ifndef STM32
+	c = c_uart->Read();
+#endif
 
 //	DEBUG("%c", c);
 
@@ -481,6 +503,7 @@ void gps_parse(Usart * c_uart)
 
 void gps_start()
 {
+#ifndef STM32
 	GPS_UART_PWR_ON;
 	gps_uart.Init(GPS_UART, 9600);
 	gps_uart.SetInterruptPriority(MEDIUM);
@@ -500,6 +523,7 @@ void gps_start()
 	GpioWrite(GPS_RESET, LOW);
 	_delay_ms(20);
 	GpioWrite(GPS_RESET, HIGH);
+#endif
 
 	gps_parser_state = GPS_IDLE;
 	fc.gps_data.valid = false;
@@ -517,7 +541,9 @@ void gps_init()
 {
 	DEBUG("gps init\n");
 
+#ifndef STM32
 	gps_uart.InitBuffers(250, 40);
+#endif
 }
 
 bool gps_selftest()
@@ -527,20 +553,27 @@ bool gps_selftest()
 
 void gps_stop()
 {
+#ifndef STM32
 	GpioSetDirection(GPS_EN, INPUT);
 	GpioSetDirection(GPS_RESET, INPUT);
+#endif
 
 	fc.gps_data.valid = false;
 	fc.gps_data.fix = 0;
 	fc.gps_data.fix_cnt = 0;
 
 	gps_init_ok = false;
+
+#ifndef STM32
 	gps_uart.Stop();
 	GPS_UART_PWR_OFF;
+#endif
 }
 
 void gps_step()
 {
+#ifndef STM32
 	while (!gps_uart.isRxBufferEmpty())
 		gps_parse(&gps_uart);
+#endif
 }

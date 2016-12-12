@@ -14,7 +14,13 @@ void gps_init();
 void gps_change_uart_baudrate();
 void gps_start();
 void gps_stop();
+
+#ifndef STM32
 void gps_parse(Usart *);
+#else
+void gps_parse(void);
+#endif
+
 void gps_step();
 void gps_set_baudrate();
 
