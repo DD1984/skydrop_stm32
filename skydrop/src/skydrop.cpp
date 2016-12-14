@@ -28,6 +28,8 @@ void Setup()
 	SystemClock_Config();
 #endif
 
+	uart_init();
+
 	//load device id
 	GetID();
 
@@ -49,7 +51,7 @@ void Setup()
 
 	//load configuration from EE
 	cfg_load();
-	uart_init();
+	//uart_init();
 	battery_init();
 
 
@@ -61,30 +63,7 @@ void Post()
 	DEBUG("\n *** POST *** \n");
 
 	//Reset reason
-#ifndef STM32
 	print_reset_reason();
-
-#else
-	DEBUG("RCC:\n");
-	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST))
-		DEBUG("\tPIN reset\n");
-	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST))
-		DEBUG("\tSoftware Reset\n");
-	if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
-		DEBUG("\tIndependent Watchdog reset\n");
-	 __HAL_RCC_CLEAR_RESET_FLAGS();
-
-	DEBUG("PWR:\n");
-	if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB)) {
-		DEBUG("\tResumed from StandBy mode\n");
-		__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
-	}
-	if (__HAL_PWR_GET_FLAG(PWR_FLAG_WU)) {
-		DEBUG("\tWake Up event\n");
-		__HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
-	}
-	//
-#endif	
 
 	//App name
 	print_fw_info();

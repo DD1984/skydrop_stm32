@@ -2,7 +2,6 @@
 
 #ifdef STM32
 RTC_HandleTypeDef RtcHandle;
-//void time_set_actual(uint32_t t);
 #endif
 
 uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -11,11 +10,11 @@ uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 #define TIME_FLAG_B		0xEF01
 #define TIME_FLAG_B_GPS	0xEF02
 
-#ifndef STM32
 volatile uint16_t unix_time_set_flag_a __attribute__ ((section (".noinit")));
+#ifndef STM32
 volatile uint32_t unix_time __attribute__ ((section (".noinit")));
-volatile uint16_t unix_time_set_flag_b __attribute__ ((section (".noinit")));
 #endif
+volatile uint16_t unix_time_set_flag_b __attribute__ ((section (".noinit")));
 
 #define LEAP_YEAR(_year) ((_year%4)==0)
 
@@ -23,39 +22,33 @@ volatile uint16_t unix_time_set_flag_b __attribute__ ((section (".noinit")));
 
 bool time_is_set()
 {
-#ifndef STM32
 	if (unix_time_set_flag_a == TIME_FLAG_A && unix_time_set_flag_b == TIME_FLAG_B)
 		return true;
 	else
 		return false;
-#else
-	return true;
-#endif	
 }
 
 bool time_need_set()
 {
-#ifndef STM32
 	if (unix_time_set_flag_a == TIME_FLAG_A)
 		if (unix_time_set_flag_b == TIME_FLAG_B || unix_time_set_flag_b == TIME_FLAG_B_GPS)
 			return false;
-#endif
 	return true;
 }
 
 void time_wait_for_gps()
 {
-#ifndef STM32	
 	unix_time_set_flag_a = TIME_FLAG_A;
 	unix_time_set_flag_b = TIME_FLAG_B_GPS;
-#endif	
 }
 
 void time_set_default()
 {
-#ifndef STM32	
+#ifndef STM32
 	unix_time = TIME_MIN_DATE;
-#endif	
+#else
+	HAL_RTC_SetTimeCounter(&RtcHandle, TIME_MIN_DATE);
+#endif
 }
 
 uint32_t datetime_to_epoch(uint8_t sec, uint8_t min, uint8_t hour, uint8_t day, uint8_t month, uint16_t year)
@@ -193,10 +186,8 @@ void time_init()
 
 void time_set_flags()
 {
-#ifndef STM32	
 	unix_time_set_flag_a = TIME_FLAG_A;
 	unix_time_set_flag_b = TIME_FLAG_B;
-#endif	
 }
 
 void time_set_local(uint32_t t)
@@ -225,9 +216,9 @@ uint32_t time_get_local()
 
 uint32_t time_get_utc()
 {
-#ifndef STM32
+#ifdef STM32
+	uint32_t unix_time;
+	HAL_RTC_GetTimeCounter(&RtcHandle, &unix_time);
+#endif
 	return unix_time - (config.system.time_zone * 1800ul);
-#else
-	return time_get_local();
-#endif	
 }

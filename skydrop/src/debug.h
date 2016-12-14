@@ -27,7 +27,7 @@ void debug_log(char * msg);
 #define assert(cond) \
 	do{ \
 	if (!(cond)) \
-		DEBUG("Assertion failed %S@%d!\n", PSTR(__FILE__), __LINE__); \
+		DEBUG("Assertion failed %s:%s[%d]!\n", PSTR(__FILE__), __func__, __LINE__); \
 	} while(0); \
 
 extern uint32_t debug_last_pc;

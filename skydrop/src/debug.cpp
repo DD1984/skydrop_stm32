@@ -25,11 +25,15 @@ bool debug_done = false;
 
 bool debug_disabled()
 {
+#ifndef STM32
 	if (config.system.debug_log == DEBUG_MAGIC_ON && storage_ready())
 		return false;
 	if (config.connectivity.uart_function == UART_FORWARD_DEBUG)
 		return false;
 	return true;
+#else
+	return false;
+#endif
 }
 
 void debug_uart_send(char * msg)
@@ -40,6 +44,8 @@ void debug_uart_send(char * msg)
 		uart_send(msg);
 		uart.FlushTxBuffer();
 	}
+#else
+	printf("%s", msg);
 #endif	
 }
 
