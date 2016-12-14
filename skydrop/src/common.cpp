@@ -348,7 +348,7 @@ bool StoreEEPROM()
 
 	f_close(&ee_file);
 	DEBUG("File closed\n");
-
+#endif
 	return true;
 }
 

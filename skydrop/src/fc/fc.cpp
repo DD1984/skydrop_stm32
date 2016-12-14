@@ -469,6 +469,7 @@ ISR(FC_MEAS_TIMER_CMPC)
 	{
 		fc.temp_cnt++;
 	}
+#endif
 
 //	DEBUG("$;%d;%d;%d", fc.acc_data.x, fc.acc_data.y, fc.acc_data.z);
 //	DEBUG(";%d;%d;%d", fc.mag_data.x, fc.mag_data.y, fc.mag_data.z);
@@ -563,7 +564,6 @@ void fc_sync_gps_time()
 
 void fc_step()
 {
-<<<<<<< HEAD
 	//using fake data
 	#ifdef FAKE_ENABLE
 		return;

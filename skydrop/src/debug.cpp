@@ -34,11 +34,13 @@ bool debug_disabled()
 
 void debug_uart_send(char * msg)
 {
+#ifndef STM32	
 	if (config.connectivity.uart_function == UART_FORWARD_DEBUG)
 	{
 		uart_send(msg);
 		uart.FlushTxBuffer();
 	}
+#endif	
 }
 
 void debug_print_ram()
