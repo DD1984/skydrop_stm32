@@ -8,7 +8,11 @@ bool gui_format_sd()
 	gui_showmessage_P(PSTR("Formating..."));
 	gui_force_loop();
 	ewdt_reset();
-	uint8_t ret = f_mkfs("", 0, 0);
+
+	uint8_t ret;
+#ifndef STM32	
+	ret = f_mkfs("", 0, 0);
+#endif	
 	assert(ret == RES_OK);
 	DEBUG("ret = %u\n", ret);
 	if (ret == RES_OK)

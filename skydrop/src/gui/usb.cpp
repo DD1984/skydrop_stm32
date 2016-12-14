@@ -17,10 +17,12 @@ void gui_usb_loop()
 {
 	char tmp[16];
 
+#ifdef LED_SUPPORT
 	if (battery_per == BATTERY_FULL)
 		led_set(0, USB_LED_MAX, 0);
 	else
 		led_set(USB_LED_MAX, 0, 0);
+#endif
 
 	disp.LoadFont(F_TEXT_L);
 	uint8_t f_h = disp.GetTextHeight();

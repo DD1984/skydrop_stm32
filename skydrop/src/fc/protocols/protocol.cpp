@@ -3,7 +3,9 @@
 #include "digifly.h"
 #include "LK8EX1.h"
 #include "bluefly.h"
+#ifdef SKYBEAN_PROTOCOL_SUPPROT
 #include "skybean/skybean.h"
+#endif
 
 #include "generic.h"
 
@@ -16,8 +18,9 @@ uint16_t protocol_tx_index = 0;
 
 uint32_t protocol_next_step = 0;
 
+#ifndef STM32
 CreateStdOut(protocol_tx, protocol_tx_write);
-
+#endif
 
 void protocol_tx_write(uint8_t c)
 {
@@ -42,14 +45,18 @@ void protocol_tx_flush()
 	if (config.connectivity.uart_function > UART_FORWARD_OFF)
 		uart_send(protocol_tx_index, protocol_tx_buffer);
 
+#ifdef BT_SUPPORT
 	bt_send(protocol_tx_index, protocol_tx_buffer);
+#endif
 
 	protocol_tx_index = 0;
 }
 
 void protocol_init()
 {
+#ifdef SKYBEAN_PROTOCOL_SUPPROT
 	protocol_skybean_init();
+#endif	
 	protocol_generic_init();
 }
 
@@ -77,9 +84,11 @@ void protocol_step()
 			protocol_bluefly_step();
 		break;
 
+#ifdef SKYBEAN_PROTOCOL_SUPPROT
 		case(PROTOCOL_SKYBEAN):
 			protocol_skybean_step();
 		break;
+#endif		
 	}
 }
 
@@ -87,9 +96,11 @@ void protocol_rx(char c)
 {
 	switch (config.connectivity.protocol)
 	{
+#ifdef SKYBEAN_PROTOCOL_SUPPROT
 		case(PROTOCOL_SKYBEAN):
 			protocol_skybean_rx(c);
 		break;
+#endif
 
 		default:
 			protocol_generic_rx(c);

@@ -194,7 +194,6 @@ void debug_timer_init()
 
 void debug_log(char * msg)
 {
-#ifndef STM32	
 	if (config.system.debug_log == DEBUG_MAGIC_ON && storage_ready())
 		debug_log_storage.Write(strlen(msg), (uint8_t *)msg);
 }
@@ -215,7 +214,7 @@ void debug_step()
 		return;
 
 	uint8_t res;
-	uint16_t wt;
+	UINT wt;
 	uint16_t len;
 
 	if (!storage_ready())
@@ -296,7 +295,6 @@ void debug_step()
 		f_close(&debug_file);
 		debug_file_open = false;
 	}
-#endif	
 }
 
 void ewdt_init()

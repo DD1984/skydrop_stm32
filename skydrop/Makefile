@@ -109,6 +109,11 @@ CPP_SOURCES += src/fc/logger/logger.cpp
 CPP_SOURCES += src/fc/logger/igc.cpp
 CPP_SOURCES += src/fc/logger/kml.cpp
 CPP_SOURCES += src/fc/logger/sha256.cpp
+CPP_SOURCES += src/fc/logger/raw.cpp
+CPP_SOURCES += src/fc/logger/aero.cpp
+
+CPP_SOURCES += src/fc/protocols/protocol.cpp
+CPP_SOURCES += src/fc/protocols/generic.cpp
 endif
 
 CPP_SOURCES += src/tasks/tasks.cpp
@@ -140,6 +145,8 @@ ifeq ($(STORAGE_SUPPORT),y)
 CPP_SOURCES += src/drivers/storage/storage.cpp
 endif
 
+CPP_SOURCES += src/fc/wind.cpp
+
 CPP_SOURCES += src/data/fonts.cpp
 
 CPP_SOURCES += src/gui/gui.cpp
@@ -150,6 +157,8 @@ CPP_SOURCES += src/gui/splash.cpp
 CPP_SOURCES += src/gui/factory_test.cpp
 CPP_SOURCES += src/gui/gui_list.cpp
 CPP_SOURCES += src/gui/usb.cpp
+CPP_SOURCES += src/gui/gui_text.cpp
+CPP_SOURCES += src/gui/gui_storage.cpp
 
 CPP_SOURCES += src/gui/widgets/layouts/layouts.cpp
 CPP_SOURCES += src/gui/widgets/widgets.cpp
@@ -160,6 +169,8 @@ CPP_SOURCES += src/gui/widgets/vario.cpp
 CPP_SOURCES += src/gui/widgets/altitude.cpp
 CPP_SOURCES += src/gui/widgets/time.cpp
 CPP_SOURCES += src/gui/widgets/ctrl.cpp
+
+CPP_SOURCES += src/gui/widgets/wind.cpp
 
 ifeq ($(GPS_SUPPORT),y)
 CPP_SOURCES += src/gui/widgets/gps.cpp
@@ -182,6 +193,7 @@ CPP_SOURCES += src/gui/settings/set_debug.cpp
 CPP_SOURCES += src/gui/settings/set_altimeters.cpp
 CPP_SOURCES += src/gui/settings/set_logger.cpp
 CPP_SOURCES += src/gui/settings/set_time.cpp
+CPP_SOURCES += src/gui/settings/set_advanced.cpp
 
 ifeq ($(GPS_SUPPORT),y)
 CPP_SOURCES += src/gui/settings/set_gps.cpp

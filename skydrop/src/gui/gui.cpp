@@ -97,9 +97,11 @@ void (* gui_init_array[])() = {
 	gui_set_menu_audio_init,
 	gui_text_init,
 	gui_set_advanced_init,
+#ifdef LSM303D_SUPPORT
 	gui_set_calib_init,
 	gui_accelerometer_calib_init,
 	gui_mag_calib_init
+#endif
 };
 
 void (* gui_stop_array[])() = {
@@ -139,9 +141,11 @@ void (* gui_stop_array[])() = {
 	gui_set_menu_audio_stop,
 	gui_text_stop,
 	gui_set_advanced_stop,
+#ifdef LSM303D_SUPPORT
 	gui_set_calib_stop,
 	gui_accelerometer_calib_stop,
 	gui_mag_calib_stop
+#endif	
 };
 
 void (* gui_loop_array[])() = {
@@ -181,9 +185,11 @@ void (* gui_loop_array[])() = {
 	gui_set_menu_audio_loop,
 	gui_text_loop,
 	gui_set_advanced_loop,
+#ifdef LSM303D_SUPPORT	
 	gui_set_calib_loop,
 	gui_accelerometer_calib_loop,
 	gui_mag_calib_loop
+#endif	
 };
 
 void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
@@ -223,9 +229,11 @@ void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
 	gui_set_menu_audio_irqh,
 	gui_text_irqh,
 	gui_set_advanced_irqh,
+#ifdef LSM303D_SUPPORT	
 	gui_set_calib_irqh,
 	gui_accelerometer_calib_irqh,
 	gui_mag_calib_irqh
+#endif	
 };
 
 #define GUI_ANIM_STEPS	20

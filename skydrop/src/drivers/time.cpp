@@ -2,7 +2,7 @@
 
 #ifdef STM32
 RTC_HandleTypeDef RtcHandle;
-void time_set_actual(uint32_t t);
+//void time_set_actual(uint32_t t);
 #endif
 
 uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -187,7 +187,7 @@ void time_init()
 	HAL_RTC_Init(&RtcHandle);
 
 	if (time_get_local() < TIME_MIN_DATE)
-		time_set_actual(TIME_MIN_DATE);
+		time_set_local(TIME_MIN_DATE);
 #endif
 }
 

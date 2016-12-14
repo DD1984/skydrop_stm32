@@ -43,9 +43,11 @@ void aero_step()
 
 	uint32_t g_value;
 
+#ifdef LSM303D_SUPPORT
 	g_value =  (int32_t)fc.acc_data.x * (int32_t)fc.acc_data.x;
 	g_value += (int32_t)fc.acc_data.y * (int32_t)fc.acc_data.y;
 	g_value += (int32_t)fc.acc_data.z * (int32_t)fc.acc_data.z;
+#endif	
 
 //	DEBUG("aero_step\n");
 //	DEBUG(" diff %u\n", diff);
@@ -57,7 +59,7 @@ void aero_step()
 //	DEBUG("writing\n");
 
 	uint8_t line[5];
-	uint16_t wl;
+	UINT wl;
 	uint8_t l = 5;
 
 	if (aero_last_time == 0)

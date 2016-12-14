@@ -35,9 +35,11 @@ widget widget_array[NUMBER_OF_WIDGETS] = {
 #endif
 		w_ctrl_audio,
 		w_ctrl_wlift,
+#ifdef GPS_SUPPORT
 		w_wspd,
 		w_wdir,
 		w_wdir_arrow
+#endif
 };
 
 const uint8_t PROGMEM widget_sorted[NUMBER_OF_SORTED_WIDGETS] =

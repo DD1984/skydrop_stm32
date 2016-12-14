@@ -67,15 +67,18 @@ void task_active_init()
 	ewdt_reset();
 	fc_init();
 
-
+#ifdef LED_SUPPORT
 	led_notify_enable();
+#endif	
 }
 
 void task_active_stop()
 {
 	StoreEEPROM();
 
+#ifdef LED_SUPPORT
 	led_notify_disable();
+#endif
 
 	fc_deinit();
 

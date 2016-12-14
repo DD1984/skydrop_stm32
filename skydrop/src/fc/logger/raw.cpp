@@ -32,7 +32,7 @@ bool raw_start(char * path)
 void raw_step()
 {
 	uint8_t line[35];
-	uint16_t wl;
+	UINT wl;
 	uint8_t l = 35;
 
 	line[0] = 0xAA;
@@ -40,9 +40,14 @@ void raw_step()
 	uint32_t time = task_get_ms_tick();
 	memcpy(line + 1, &time, 4);
 
+#ifdef LSM303D_SUPPORT
 	memcpy(line + 5, (void *)&fc.acc_data, 6);
-	memcpy(line + 11, (void *)&fc.gyro_data, 6);
 	memcpy(line + 17, (void *)&fc.mag_data, 6);
+#endif
+
+#ifdef L3GD20_SUPPORT	
+	memcpy(line + 11, (void *)&fc.gyro_data, 6);
+#endif	
 
 	memcpy(line + 23, (void *)&fc.altitude1, 4);
 

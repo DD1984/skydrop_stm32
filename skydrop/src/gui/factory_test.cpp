@@ -22,7 +22,9 @@ void gui_factory_test_init()
 {
 	DEBUG(" *** Factory test ***\n");
 	fc_pause();
+#ifdef LED_SUPPORT	
 	led_notify_disable();
+#endif
 
 #ifdef BT_SUPPORT
 	//We need to test gps and bt module
