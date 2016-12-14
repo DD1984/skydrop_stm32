@@ -135,7 +135,10 @@ extern float widget_menu_fvalue1;
 #ifdef GPS_SUPPORT
 #include "flight.h"
 #endif
+
 #include "ctrl.h"
+
+#include "wind.h"
 
 
 enum {
@@ -150,6 +153,7 @@ enum {
 	WIDGET_VARIO,
 	WIDGET_AVG_VARIO,
 	WIDGET_VARIO_BAR,
+	WIDGET_VARIO_HISTORY,
 
 	//altitude.h
 	WIDGET_ALT1,
@@ -160,11 +164,12 @@ enum {
 
 #ifdef LSM303D_SUPPORT
 	//acc.h
-	WIDGET_ACCX,
+	WIDGET_ACC_TOT,
 #endif
 
 	//time.h
 	WIDGET_TIME,
+	WIDGET_DATE,
 	WIDGET_FTIME,
 
 	//temperature.h
@@ -175,6 +180,8 @@ enum {
 	WIDGET_GHEADING,
 	WIDGET_GROUND_SPD,
 	WIDGET_POSITION,
+	WIDGET_GHEADING_ARROW,
+	WIDGET_GCOMPASS,
 #endif
 
 	//battery.h
@@ -193,6 +200,7 @@ enum {
 	WIDGET_WIND_SPD,
 	WIDGET_WIND_DIR,
 	WIDGET_WIND_DIR_ARROW,
+	
 
 	//
 	WIDGET_END,

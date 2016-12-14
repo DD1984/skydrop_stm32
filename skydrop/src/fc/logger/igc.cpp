@@ -189,6 +189,7 @@ void igc_step()
 		c = 'A';
 	}
 	else
+#endif	
 	{
 		if (fc.logger_state == LOGGER_WAIT_FOR_GPS)
 			return;

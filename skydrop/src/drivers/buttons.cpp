@@ -63,10 +63,12 @@ void buttons_init()
 
 void buttons_deinit()
 {
+#ifndef STM32
 	GpioSetPull(SWITCH1, gpio_totem);
 //	Middle need to be active to wake up the device
 //	GpioSetPull(SWITCH2, gpio_totem);
 	GpioSetPull(SWITCH3, gpio_totem);
+#endif
 }
 
 

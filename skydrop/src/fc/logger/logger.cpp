@@ -207,7 +207,8 @@ void logger_start()
 			fc.logger_state = aero_start(path);
 		break;
 	}
-#endif	
+#endif
+}
 
 //logger is active or it is waiting for gps
 bool logger_active()

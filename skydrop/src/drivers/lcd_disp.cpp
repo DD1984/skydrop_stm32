@@ -248,14 +248,21 @@ void lcd_display::sendcommand(unsigned char cmd)
 /**
  * Set display to active mode
  */
+#ifndef STM32
 void lcd_display::Init(Spi * spi)
+#else
+void lcd_display::Init()
+#endif
 {
 #ifdef STM32
 
 	SpiInitMaster();
 	LCD_InitPins();
 #endif
+
+#ifndef STM32
 	this->spi = spi;
+#endif
 
 	CreateSinTable();
 

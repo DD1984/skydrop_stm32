@@ -1,7 +1,9 @@
 #include "gui.h"
 
 #include "../drivers/audio/sequencer.h"
+#ifdef BT_SUPPORT
 #include "../drivers/bluetooth/bt.h"
+#endif
 #include "gui_storage.h"
 
 #include "widgets/widgets.h"
@@ -385,13 +387,14 @@ void gui_fit_text(char * in, char * out, uint8_t size)
 
 void gui_init()
 {
-	LCD_SPI_PWR_ON;
 #ifdef STM32
 	extern FILE *lcd_out;
 	lcd_out = fopen("lcd", "w+");
 	setvbuf(lcd_out, NULL, _IONBF, 0);
 	disp.Init();
 #else
+
+	LCD_SPI_PWR_ON;
 
 	gui_disp_spi.InitMaster(LCD_SPI);
 	gui_disp_spi.SetDivider(spi_div_64);
@@ -441,8 +444,8 @@ void gui_stop()
 	disp.Stop();
 #ifndef STM32
 	gui_disp_spi.Stop();
-#endif
 	LCD_SPI_PWR_OFF;
+#endif
 }
 
 uint8_t fps_counter = 0;
@@ -518,7 +521,9 @@ void gui_loop()
 				&& gui_task != GUI_SPLASH
 				&& gui_task != GUI_FTEST
 				&& gui_task != GUI_SET_VAL
+#ifdef UPDATE_SUPPORT				
 				&& gui_task != GUI_UPDATE
+#endif				
 				&& gui_task != GUI_TEXT
 				&& gui_task != GUI_SET_CALIB
 				&& gui_task != GUI_SET_CALIB_ACC
@@ -533,7 +538,11 @@ void gui_loop()
 		if (gui_task == GUI_PAGES)
 		{
 			//Power off if not in flight, auto power off is enabled and bluetooth device is not connected
+#ifdef BT_SUPPORT			
 			if (fc.flight_state != FLIGHT_FLIGHT && config.system.auto_power_off > 0 && !bt_device_active())
+#else
+			if (fc.flight_state != FLIGHT_FLIGHT && config.system.auto_power_off > 0)
+#endif
 			{
 				if (task_get_ms_tick() - gui_idle_timer > (uint32_t)config.system.auto_power_off * 60ul * 1000ul)
 				{
@@ -629,7 +638,7 @@ void gui_loop()
 	if (config.system.record_screen && storage_ready())
 	{
 		FIL fimg;
-		uint16_t wb;
+		unsigned int wb;
 		char fname[32];
 
 		sprintf_P(fname, PSTR("/REC/%08d"), gui_record_cnt);

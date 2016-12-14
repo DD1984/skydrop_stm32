@@ -36,6 +36,7 @@
 #ifndef _MASS_STORAGE_H_
 #define _MASS_STORAGE_H_
 
+#ifndef STM32
 	/* Includes: */
 		#include <avr/io.h>
 		#include <avr/wdt.h>
@@ -75,6 +76,7 @@
 		#endif
 
 	void MassStorage_Loop(void);
+#endif	
 
 #define USB_IDLE	0
 #define USB_ENUM	1

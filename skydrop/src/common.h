@@ -67,6 +67,7 @@ inline void system_power_save(void)
 #define memcpy_P memcpy
 
 #define abs(x) ((x)>0?(x):-(x))
+#define min(a,b) ((a)<(b)?(a):(b))
 
 #endif
 
@@ -328,6 +329,9 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define IO2						portr0
 #define SD_SS					portr1
 #else
+
+#define BAT_CHARGING			0
+#define BAT_FULL				0
 
 #define USB_CONNECTED usb_connected()
 

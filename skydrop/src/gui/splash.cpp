@@ -48,7 +48,7 @@ void gui_splash_init()
 			DEBUG("Custom logo found!\n");
 
 			FIL logo_fil;
-			uint16_t rd;
+			unsigned int rd;
 
 			if (f_open(&logo_fil, "LOGO", FA_READ) != FR_OK)
 			{

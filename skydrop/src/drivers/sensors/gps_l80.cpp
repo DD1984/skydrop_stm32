@@ -610,7 +610,9 @@ void gps_stop()
 	fc.gps_data.fix = 0;
 	fc.gps_data.fix_cnt = 0;
 
+#ifndef STM32
 	GpioSetPull(GPS_TIMER, gpio_totem);
+#endif	
 
 	gps_init_ok = false;
 

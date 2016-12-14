@@ -6,7 +6,6 @@ uint8_t widget_menu_param1;
 float widget_menu_fvalue1;
 
 widget widget_array[NUMBER_OF_WIDGETS] = {
-<<<<<<< HEAD
 		w_dummy,
 		w_debug_etc,
 #if defined(LSM303D_SUPPORT) || defined(L3GD20_SUPPORT)

@@ -131,7 +131,9 @@ void battery_init()
 #endif
 	bat_en_low(BAT_EN_ADC);
 
+#ifndef STM32
 	GpioSetPull(CHARGING, gpio_pull_up);
+#endif	
 }
 
 #ifdef STM32

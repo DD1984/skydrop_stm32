@@ -131,9 +131,11 @@ uint32_t task_get_ms_tick_once()
 {
 	uint32_t res;
 
+#ifndef STM32
 	cli();
 	res = (task_timer_high) + (uint32_t)(task_timer.GetValue() / 125);
 	sei();
+#endif	
 
 	if (res < old_tick)
 	{

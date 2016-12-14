@@ -12,6 +12,9 @@ extern Usart sd_spi_usart;
 #include "usbd_msc.h"
 
 #include "../../drivers/storage/usbd_storage.h"
+#include "MassStorage/MassStorage.h"
+
+uint8_t usb_int_state = 4; //USB_READY
 
 USBD_HandleTypeDef USBD_Device;
 
@@ -81,7 +84,6 @@ void task_usb_init()
 	else
 	{
 		DEBUG("Error\n");
-#endif
 
 		sd_spi_usart.Stop();
 		USB_PWR_OFF;
@@ -89,6 +91,7 @@ void task_usb_init()
 		SD_EN_OFF;
 		GpioSetDirection(SD_SS, INPUT);
 	}
+#endif
 
 	//init gui
 	gui_init();
@@ -151,12 +154,11 @@ void task_usb_loop()
 		gui_loop();
 	}
 
+#ifndef STM32
 	for (uint8_t i=0; i < 128; i++)
 	{
-#ifndef STM32
 		if (task_usb_sd_ready)
 			MassStorage_Loop();
-#endif
 
 		ewdt_reset();
 	}
@@ -165,6 +167,7 @@ void task_usb_loop()
 		usb_lock.Unlock();
 	else
 		usb_lock.Lock();
+#endif
 }
 
 

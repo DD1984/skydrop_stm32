@@ -36,8 +36,10 @@ SHT21 sht21;
 uint8_t mems_i2c_rx_buffer[MEMS_I2C_RX_SIZE];
 uint8_t mems_i2c_tx_buffer[MEMS_I2C_TX_SIZE];
 
+#ifndef STM32
 RingBufferSmall mems_i2c_rx(MEMS_I2C_RX_SIZE, mems_i2c_rx_buffer);
 RingBufferSmall mems_i2c_tx(MEMS_I2C_TX_SIZE, mems_i2c_tx_buffer);
+#endif
 
 bool mems_i2c_ok = false;
 
