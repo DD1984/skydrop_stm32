@@ -48,7 +48,11 @@ public:
 	float get_cos(uint16_t angle);
 	float get_sin(uint16_t angle);
 
+#ifndef STM32
 	void Init(Spi * spi);
+#else
+	void Init();
+#endif	
 	void Stop();
 
 	void SetContrast(uint8_t val); //0-127
