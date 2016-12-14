@@ -57,6 +57,8 @@ Timer task_timer;
 volatile uint32_t task_timer_high;
 volatile uint8_t task_sleep_lock = 0;
 
+volatile uint32_t fine_timer_high;
+
 volatile uint8_t actual_task = NO_TASK;
 volatile uint8_t new_task = TASK_POWERDOWN;
 //volatile uint8_t new_task = TASK_ACTIVE;
@@ -96,15 +98,19 @@ bool SleepLock::Active()
 }
 
 #ifndef STM32
-ISR(TASK_TIMER_OVF)
+ISR(TASK_TIMER_CMPA)
 {
-	if (SP<debug_min_stack_pointer)
+	if (SP < debug_min_stack_pointer)
 		debug_min_stack_pointer = SP;
 
 	if (debug_max_heap_pointer < freeRam())
 		debug_max_heap_pointer = freeRam();
 
 	task_timer_high += 512ul;
+	fine_timer_high += 64000ul;
+
+	uint16_t val = task_timer.GetValue();
+	task_timer.SetValue(val - 63999);
 }
 #endif
 
@@ -119,11 +125,42 @@ ISR(USB_CONNECTED_IRQ)
 #endif
 #endif
 
+uint32_t old_tick = 0;
+
+uint32_t task_get_ms_tick_once()
+{
+	uint32_t res;
+
+	cli();
+	res = (task_timer_high) + (uint32_t)(task_timer.GetValue() / 125);
+	sei();
+
+	if (res < old_tick)
+	{
+		assert(0);
+		DEBUG(" res=%lu\n", res);
+		DEBUG(" old=%lu\n", old_tick);
+	}
+
+	old_tick = res;
+
+	return res;
+}
+
 uint32_t task_get_ms_tick()
 {
-#ifndef STM32
+	return old_tick;
+}
 
-	uint32_t res = (task_timer_high) + (uint32_t)(task_timer.GetValue() / 125);
+
+uint32_t fine_timer_get()
+{
+#ifndef STM32
+	uint32_t res;
+
+	cli();
+	res = (fine_timer_high) + (uint32_t)(task_timer.GetValue());
+	sei();
 
 	return res;
 #else
@@ -142,10 +179,12 @@ void task_timer_setup(bool full_speed)
 		task_timer.Init(TASK_TIMER, timer_div4);
 
 	task_timer.Stop();
-	task_timer.EnableInterrupts(timer_overflow);
+	task_timer.SetInterruptPriority(HIGH);
+	task_timer.EnableInterrupts(timer_compareA);
 	task_timer.SetValue(0);
-	task_timer.SetTop(63999); //125 == 1ms
+	task_timer.SetCompare(timer_A, 63999); //125 == 1ms
 	task_timer_high = 0;
+	old_tick = 0;
 
 	task_timer.Start();
 #endif	
@@ -192,7 +231,6 @@ void task_set(uint8_t task)
 void task_loop()
 {
 	ewdt_reset();
-
 	if (actual_task != NO_TASK)
 		task_loop_array[actual_task]();
 }
@@ -213,12 +251,16 @@ void task_system_loop()
 
 			//XXX: this will guarantee that task switched from the powerdown task will be vanilla
 			if (new_task == TASK_POWERDOWN)
+			{
 				SystemReset();
+			}
 
 #ifdef USB_SUPPORT
 			//XXX: usb is bit unstable when it is switched from another task, this is hack
 			if (new_task == TASK_USB && actual_task != NO_TASK)
+			{
 				SystemReset();
+			}
 #endif				
 		}
 
@@ -232,6 +274,8 @@ void task_system_loop()
 	if (usb_state != USB_CONNECTED)
 	{
 		usb_state = USB_CONNECTED;
+
+		battery_force_update();
 		task_irqh(TASK_IRQ_USB, &usb_state);
 	}
 #endif	
@@ -239,18 +283,40 @@ void task_system_loop()
 	buttons_step();
 	if (powerdown_lock.Active() == false)
 	{
-		battery_step();
+		if (battery_step())
+			task_irqh(TASK_IRQ_BAT, NULL);
 	}
 }
 
+uint16_t wake_ups = 0;
+uint32_t wake_next = 0;
+
+uint32_t fine_last = 0;
+uint32_t fine_acc = 0;
+
 void task_sleep()
 {
-	io_write(0, HIGH);
+	fine_acc += fine_timer_get() - fine_last;
+
 	if (task_sleep_lock == 0)
 	{
 		SystemPowerIdle();
 	}
-	io_write(0, LOW);
+
+	task_get_ms_tick_once();
+	fine_last = fine_timer_get();
+	wake_ups++;
+
+	if (wake_next < task_get_ms_tick())
+	{
+		uint8_t usage = fine_acc / 6250;
+//		DEBUG("CPU: %3u%% (%u irq)\n", usage, wake_ups / 5);
+
+		wake_ups = 0;
+		fine_acc = 0;
+
+		wake_next = task_get_ms_tick() + 5000;
+	}
 }
 
 void task_irqh(uint8_t type, uint8_t * buff)

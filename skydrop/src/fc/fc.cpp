@@ -3,6 +3,8 @@
 #include "../drivers/sensors/devices.h"
 #include "../drivers/uart.h"
 #include "../drivers/audio/audio.h"
+#include "../drivers/audio/sequencer.h"
+
 
 #include "kalman.h"
 #include "vario.h"
@@ -12,6 +14,7 @@
 #include "logger/logger.h"
 
 #include "../gui/gui_dialog.h"
+#include "../gui/widgets/acc.h"
 
 volatile flight_data_t fc;
 
@@ -30,7 +33,12 @@ enum {FCT_MEAS_TEMP, FCT_MEAS_PRES, FCT_MEAS_END};
 
 uint8_t fc_meas_timer_state = FCT_MEAS_TEMP;
 
-extern KalmanFilter * kalmanFilter;
+extern KalmanFilter kalmanFilter;
+
+MK_SEQ(gps_ready, ARR({750, 0, 750, 0, 750, 0}), ARR({250, 150, 250, 150, 250, 150}));
+
+#define FC_LOG_BATTERY_EVERY	(5 * 60 * 1000ul)
+uint32_t fc_log_battery_next = 0;
 
 void fc_init()
 {
@@ -44,15 +52,26 @@ void fc_init()
 	//reset flight status
 	fc_reset();
 
+	//using fake data
+	#ifdef FAKE_ENABLE
+		return;
+	#endif
+
 #ifdef SHT21_SUPPORT
 	//temperature state machine
 	fc.temp_step = 0;
 #endif
 
+#ifndef STM32
+	//init DMA
+	DMA_PWR_ON;
+#endif
 	//init calculators
 	vario_init();
 	audio_init();
 	logger_init();
+	protocol_init();
+	wind_init();
 
 #ifdef GPS_SUPPORT
 	gps_init();
@@ -81,9 +100,7 @@ void fc_init()
 	if (!mems_i2c_init())
 	{
 		DEBUG("ERROR I2C, Wrong board rev? (%02X)\n", hw_revision);
-#ifdef LED_SUPPORT
-		led_set(0xFF, 0, 0);
-#endif
+
 		hw_revision = HW_REW_1504;
 		eeprom_busy_wait();
 		eeprom_update_byte(&config_ro.hw_revision, hw_revision);
@@ -109,6 +126,7 @@ void fc_init()
 			mems_i2c_init();
 		}
 	}
+
 
 	if (!mems_i2c_init())
 	{
@@ -138,6 +156,9 @@ void fc_init()
 #endif	
 
 #ifdef L3GD20_SUPPORT
+	//Acceleration calculation init
+	accel_calc_init();
+
 	//Gyro
 	l3gd20_settings l3g_cfg;
 	l3g_cfg.enabled = true;
@@ -147,6 +168,7 @@ void fc_init()
 #endif	
 
 #ifdef SHT21_SUPPORT
+	//SHT21
 	sht21_settings sht_cfg;
 	sht_cfg.rh_enabled = true;
 	sht_cfg.temp_enabled = true;
@@ -171,13 +193,25 @@ void fc_init()
 	//Measurement timer
 	FC_MEAS_TIMER_PWR_ON;
 
-	fc_meas_timer.Init(FC_MEAS_TIMER, timer_div256); //125 == 1ms
+	fc_meas_timer.Init(FC_MEAS_TIMER, timer_div1024);
 	fc_meas_timer.SetInterruptPriority(MEDIUM);
 	fc_meas_timer.EnableInterrupts(timer_overflow | timer_compareA | timer_compareB | timer_compareC);
-	fc_meas_timer.SetTop(125 * 10); // == 10ms
-	fc_meas_timer.SetCompare(timer_A, 100); // == 0.64ms
-	fc_meas_timer.SetCompare(timer_B, 430); // == 2.7ms
-	fc_meas_timer.SetCompare(timer_C, 555); // == 3.7ms
+
+	//tight timing!	      1 tick 0.032 ms
+	//MS pressure conversion     9.040 ms
+	//   temperature conversion  0.600 ms
+	//MAG read 					 0.152 ms
+	//ACC read					 1.600 ms
+	//Gyro read					 1.000 ms
+	fc_meas_timer.SetTop(313); // == 10ms
+	fc_meas_timer.SetCompare(timer_A, 27); // == 0.78 ms
+	fc_meas_timer.SetCompare(timer_B, 70); // == 2 ms
+	fc_meas_timer.SetCompare(timer_C, 200); // == 6 ms
+
+	ms5611.StartTemperature();
+	lsm303d.StartReadMag(); //it takes 152us to transfer
+	_delay_ms(1);
+
 	fc_meas_timer.Start();
 #else
 	fc_meas_timer.Instance = TIM4;
@@ -191,7 +225,6 @@ void fc_init()
 #endif
 
 	DEBUG(" *** FC init done ***\n");
-
 }
 
 void fc_deinit()
@@ -204,11 +237,18 @@ void fc_deinit()
 		fc_landing();
 
 	eeprom_busy_wait();
-	//store altimeter info
+	//store altimeter settings
 	eeprom_update_float(&config_ee.altitude.QNH1, config.altitude.QNH1);
 	eeprom_update_float(&config_ee.altitude.QNH2, config.altitude.QNH2);
 
-
+#ifdef BT_SUPPORT
+	if (config.connectivity.use_bt)
+		bt_stop();
+#endif
+#ifdef GPS_SUPPORT
+	if (config.connectivity.use_gps)
+		gps_stop();
+#endif
 	for (uint8_t i=0; i<NUMBER_OF_ALTIMETERS; i++)
 	{
 		eeprom_update_word((uint16_t *)&config_ee.altitude.altimeter[i].delta, config.altitude.altimeter[i].delta);
@@ -271,6 +311,9 @@ void fc_meas_timer_ovf(void)
 }
 #endif
 
+uint8_t calib_cnt;
+uint16_t calib_rtc_cnt;
+
 #ifndef STM32
 //First fc meas period
 // * Read pressure from ms5611
@@ -280,10 +323,10 @@ void fc_meas_timer_ovf(void)
 ISR(FC_MEAS_TIMER_OVF)
 {
 	BT_SUPRESS_TX
-	io_write(1, HIGH);
 
 #ifdef MS5611_SUPPORT
 	ms5611.ReadPressure();
+
 	ms5611.StartTemperature();
 #endif
 
@@ -291,11 +334,35 @@ ISR(FC_MEAS_TIMER_OVF)
 	lsm303d.StartReadMag(); //it takes 152us to transfer
 #endif	
 
-#ifdef MS5611_SUPPORT
-	ms5611.CompensatePressure();
-#endif
+	calib_cnt++;
+	if (calib_cnt == 10)
+	{
+		calib_cnt = 0;
 
-	io_write(1, LOW);
+		uint16_t rtc = RtcGetValue();
+		if (rtc > calib_rtc_cnt)
+		{
+			uint16_t delta = rtc - calib_rtc_cnt;
+			uint8_t cala = DFLLRC32M.CALA & 0b01111111;
+
+			if (delta < 3274)
+			{
+				if (cala > 0)
+					cala--;
+
+				DFLLRC32M.CALA = cala & 0b01111111;
+			}
+			else if (delta > 3281)
+			{
+				if (cala < 127)
+					cala++;
+				DFLLRC32M.CALA = cala & 0b01111111;
+			}
+		}
+		calib_rtc_cnt = rtc;
+	}
+
+
 	BT_ALLOW_TX
 }
 
@@ -310,7 +377,6 @@ ISR(FC_MEAS_TIMER_OVF)
 ISR(FC_MEAS_TIMER_CMPA)
 {
 	BT_SUPRESS_TX
-	io_write(1, HIGH);
 
 #ifdef LSM303D_SUPPORT
 	lsm303d.ReadMag(&fc.mag_data.x, &fc.mag_data.y, &fc.mag_data.z);
@@ -318,6 +384,7 @@ ISR(FC_MEAS_TIMER_CMPA)
 
 #ifdef MS5611_SUPPORT	
 	ms5611.ReadTemperature();
+
 	ms5611.StartPressure();
 #endif
 
@@ -326,17 +393,15 @@ ISR(FC_MEAS_TIMER_CMPA)
 #endif	
 
 #ifdef MS5611_SUPPORT
-	vario_calc(ms5611.pressure);
+	ms5611.CompensateTemperature();
+	ms5611.CompensatePressure();
 #endif
 
+	//vario loop
+	vario_calc(ms5611.pressure);
 	//audio loop
 	audio_step();
 
-#ifdef MS5611_SUPPORT
-	ms5611.CompensateTemperature();
-#endif	
-
-	io_write(1, LOW);
 	BT_ALLOW_TX
 }
 
@@ -346,7 +411,6 @@ ISR(FC_MEAS_TIMER_CMPA)
 ISR(FC_MEAS_TIMER_CMPB)
 {
 	BT_SUPRESS_TX
-	io_write(1, HIGH);
 
 #ifdef LSM303D_SUPPORT
 	lsm303d.ReadAccStreamAvg(&fc.acc_data.x, &fc.acc_data.y, &fc.acc_data.z, 16);
@@ -354,7 +418,9 @@ ISR(FC_MEAS_TIMER_CMPB)
 #ifdef L3GD20_SUPPORT	
 	l3gd20.StartReadGyroStream(7); //it take 1000us to transfer
 #endif
-	io_write(1, LOW);
+	 fc.acc_tot = accel_calc_total();	//calculate (live) total acceleration
+	 fc.acc_tot_gui_filtered = gui_accel_filter(fc.acc_tot);  //filter total acceleration for widget
+
 	BT_ALLOW_TX
 }
 
@@ -364,15 +430,16 @@ ISR(FC_MEAS_TIMER_CMPB)
 ISR(FC_MEAS_TIMER_CMPC)
 {
 	BT_SUPRESS_TX
-	io_write(1, HIGH);
 
 #ifdef L3GD20_SUPPORT
 	l3gd20.ReadGyroStreamAvg(&fc.gyro_data.x, &fc.gyro_data.y, &fc.gyro_data.z, 7); //it take 1000us to transfer
 #endif	
 
 #ifdef SHT21_SUPPORT
-	if (fc.temp_next < task_get_ms_tick())
+	if (fc.temp_cnt >= FC_TEMP_PERIOD)
 	{
+		fc.temp_cnt = 0;
+
 		switch (fc.temp_step)
 		{
 			case(0):
@@ -396,16 +463,17 @@ ISR(FC_MEAS_TIMER_CMPC)
 				fc.temperature = sht21.temperature;
 			break;
 		}
-		fc.temp_next = task_get_ms_tick() + FC_TEMP_PERIOD;
 		fc.temp_step = (fc.temp_step + 1) % 6;
 	}
-#endif
+	else
+	{
+		fc.temp_cnt++;
+	}
 
-	io_write(1, LOW);
-
-//	DEBUG("A;%d;%d;%d\n", fc.acc_data.x, fc.acc_data.y, fc.acc_data.z);
-//	DEBUG("M;%d;%d;%d\n", fc.mag_data.x, fc.mag_data.y, fc.mag_data.z);
-//	DEBUG("G;%d;%d;%d\n", fc.gyro_data.x, fc.gyro_data.y, fc.gyro_data.z);
+//	DEBUG("$;%d;%d;%d", fc.acc_data.x, fc.acc_data.y, fc.acc_data.z);
+//	DEBUG(";%d;%d;%d", fc.mag_data.x, fc.mag_data.y, fc.mag_data.z);
+//	DEBUG(";%d;%d;%d", fc.gyro_data.x, fc.gyro_data.y, fc.gyro_data.z);
+//	DEBUG(";%0.0f\n", ms5611.pressure);
 
 	BT_ALLOW_TX
 }
@@ -419,11 +487,14 @@ void fc_takeoff()
 	gui_showmessage_P(PSTR("Take off"));
 
 	fc.flight_state = FLIGHT_FLIGHT;
-	fc.flight_timer = time_get_actual();
+	fc.flight_timer = task_get_ms_tick();
 
 	//reset timer and altitude for autoland
 	fc.autostart_altitude = fc.altitude1;
-	fc.autostart_timer = time_get_actual();
+	fc.autostart_timer = task_get_ms_tick();
+
+	//reset battery info timer
+	fc_log_battery_next = 0;
 
 	//zero altimeters at take off
 	for (uint8_t i = 0; i < NUMBER_OF_ALTIMETERS; i++)
@@ -431,27 +502,27 @@ void fc_takeoff()
 		if (config.altitude.altimeter[i].flags & ALT_AUTO_ZERO)
 			fc_zero_alt(i + 1);
 	}
-
-	logger_start();
 }
 
-uint8_t fc_landing_old_gui;
+uint8_t fc_landing_old_gui_task;
 
 void fc_landing_cb(uint8_t ret)
 {
-	gui_switch_task(fc_landing_old_gui);
+	gui_switch_task(fc_landing_old_gui_task);
 }
 
 void fc_landing()
 {
-//	gui_showmessage_P(PSTR("Landing"));
+	DEBUG("Landing\n");
 
 	gui_dialog_set_P(PSTR("Landing"), PSTR(""), GUI_STYLE_STATS, fc_landing_cb);
-	fc_landing_old_gui = gui_task;
+	fc_landing_old_gui_task = gui_task;
 	gui_switch_task(GUI_DIALOG);
 
 	fc.flight_state = FLIGHT_LAND;
-	fc.flight_timer = time_get_actual() - fc.flight_timer;
+	fc.autostart_timer = task_get_ms_tick();
+
+	fc.flight_timer = task_get_ms_tick() - fc.flight_timer;
 
 	audio_off();
 
@@ -460,8 +531,8 @@ void fc_landing()
 
 void fc_reset()
 {
-	//autostart timer
-	fc.autostart_timer = time_get_actual();
+	//autostart timer reset
+	fc.autostart_timer = task_get_ms_tick();
 	fc.flight_state = FLIGHT_WAIT;
 
 	//statistic
@@ -475,27 +546,29 @@ void fc_reset()
 #ifdef GPS_SUPPORT
 void fc_sync_gps_time()
 {
-	uint32_t diff = 0;
-
-	if (time_get_actual() == (fc.gps_data.utc_time + (config.system.time_zone * 3600ul) / 2))
+	if (time_get_local() == (fc.gps_data.utc_time + config.system.time_zone * 1800ul))
 		return;
 
-	//do not change flight time during update
-	if (fc.flight_state == FLIGHT_FLIGHT)
-		diff = time_get_actual() - fc.flight_timer;
+	DEBUG("Syncing time\n");
+	DEBUG(" local    %lu\n", time_get_local());
+	DEBUG(" gps + tz %lu\n", fc.gps_data.utc_time + config.system.time_zone * 1800ul);
 
-	time_set_actual(fc.gps_data.utc_time + (config.system.time_zone * 3600ul) / 2);
-
-	//do not change flight time during update
-	if (fc.flight_state == FLIGHT_FLIGHT)
-		fc.flight_timer = time_get_actual() - diff;
+	time_set_utc(fc.gps_data.utc_time);
 
 	gui_showmessage_P(PSTR("GPS Time set"));
+
+	time_set_flags();
 }
 #endif
 
 void fc_step()
 {
+<<<<<<< HEAD
+	//using fake data
+	#ifdef FAKE_ENABLE
+		return;
+	#endif
+
 #ifdef GPS_SUPPORT	
 	gps_step();
 #endif	
@@ -510,49 +583,87 @@ void fc_step()
 
 	logger_step();
 
-	//auto start
-	// baro valid, waiting to take off, and enabled auto start
-	if (fc.baro_valid && fc.flight_state == FLIGHT_WAIT && config.autostart.start_sensititvity > 0)
+	wind_step();
+
+	//logger always enabled
+	if (config.autostart.flags & AUTOSTART_ALWAYS_ENABLED)
 	{
-		if (abs(fc.altitude1 - fc.autostart_altitude) > config.autostart.start_sensititvity)
+		if (fc.baro_valid && fc.flight_state == FLIGHT_WAIT)
 		{
 			fc_takeoff();
 		}
-		else
-		{
-			//reset wait timer
-			if (time_get_actual() - fc.autostart_timer > config.autostart.timeout)
-			{
-				fc.autostart_timer = time_get_actual();
-				fc.autostart_altitude = fc.altitude1;
-			}
-		}
 	}
-
-	//auto land
-	// flying and auto land enabled
-	if (fc.flight_state == FLIGHT_FLIGHT && config.autostart.land_sensititvity > 0)
+	else
 	{
-		if (abs(fc.altitude1 - fc.autostart_altitude) < config.autostart.land_sensititvity)
+		//auto start
+		// baro valid, waiting to take off or landed, and enabled auto start
+		if (fc.baro_valid && (fc.flight_state == FLIGHT_WAIT || fc.flight_state == FLIGHT_LAND) && config.autostart.start_sensititvity > 0)
 		{
-			if (time_get_actual() - fc.autostart_timer > config.autostart.timeout)
+			if (abs(fc.altitude1 - fc.autostart_altitude) > config.autostart.start_sensititvity)
 			{
-				fc_landing();
+				fc_takeoff();
+			}
+			else
+			{
+				uint32_t t = task_get_ms_tick();
+
+				if(t < fc.autostart_timer)
+				{
+					assert(0);
+					DEBUG("old %lu\n", fc.autostart_timer);
+					DEBUG("act %lu\n", t);
+				}
+
+				//reset wait timer
+				if (t - fc.autostart_timer > (uint32_t)config.autostart.timeout * 1000ul)
+				{
+					fc.autostart_timer = t;
+					fc.autostart_altitude = fc.altitude1;
+				}
 			}
 		}
-		else
-		{
-			fc.autostart_altitude = fc.altitude1;
-			fc.autostart_timer = time_get_actual();
-		}
 
+		//auto land
+		// flying and auto land enabled
+		if (fc.flight_state == FLIGHT_FLIGHT && config.autostart.land_sensititvity > 0)
+		{
+			if (abs(fc.altitude1 - fc.autostart_altitude) < config.autostart.land_sensititvity)
+			{
+				uint32_t tick = task_get_ms_tick();
+
+				if (tick < fc.autostart_timer)
+				{
+					assert(0);
+					DEBUG("TT %lu\n", tick);
+					DEBUG("AT %lu\n", fc.autostart_timer);
+				}
+				else
+				if (tick - fc.autostart_timer > (uint32_t)config.autostart.timeout * 1000ul)
+				{
+					//reduce timeout from flight time
+					fc.flight_timer += (uint32_t)config.autostart.timeout * 1000ul;
+
+					gui_reset_timeout();
+					fc_landing();
+				}
+			}
+			else
+			{
+				fc.autostart_altitude = fc.altitude1;
+				fc.autostart_timer = task_get_ms_tick();
+			}
+		}
 	}
 
 #ifdef GPS_SUPPORT
 	//gps time sync
 	if ((config.system.time_flags & TIME_SYNC) && fc.gps_data.fix_cnt == GPS_FIX_TIME_SYNC)
 	{
+		if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_GPS)
+			seq_start(&gps_ready, config.gui.alert_volume);
+
 		fc_sync_gps_time();
+		fc.gps_data.fix_cnt++;
 	}
 
 	//glide ratio
@@ -569,6 +680,15 @@ void fc_step()
 		fc.glide_ratio_valid = false;
 	}
 #endif
+
+	//flight logger
+	if (config.logger.enabled)
+	{
+		if (fc.flight_state == FLIGHT_FLIGHT && !logger_active() && time_is_set() && !logger_error())
+		{
+			logger_start();
+		}
+	}
 
 	//flight statistic
 	if (fc.flight_state == FLIGHT_FLIGHT)
@@ -607,23 +727,43 @@ void fc_zero_alt(uint8_t index)
 	index -= 1;
 
 	if (config.altitude.altimeter[index].flags & ALT_DIFF)
-		{
-			uint8_t a_index = config.altitude.altimeter[index].flags & 0x0F;
+	{
+		uint8_t a_index = config.altitude.altimeter[index].flags & 0x0F;
 
-			if (a_index == 0)
-				config.altitude.altimeter[index].delta = -fc.altitude1;
-			else
-				config.altitude.altimeter[index].delta = -fc.altitudes[a_index];
+		if (a_index == 0)
+			config.altitude.altimeter[index].delta = -fc.altitude1;
+		else
+			config.altitude.altimeter[index].delta = -fc.altitudes[a_index];
 
-		}
+	}
 }
 
 void fc_manual_alt0_change(float val)
 {
-    kalmanFilter->setXAbs(val);
-    if (fc.flight_state == FLIGHT_WAIT)
+	kalmanFilter.reset(val);
+
+    if (fc.flight_state == FLIGHT_WAIT || fc.flight_state == FLIGHT_LAND)
     {
     	fc.autostart_altitude = val;
+    	fc.altitude1 = val;
     }
 }
 
+void fc_log_battery()
+{
+	if (fc_log_battery_next > task_get_ms_tick())
+		return;
+
+	fc_log_battery_next = task_get_ms_tick() + FC_LOG_BATTERY_EVERY;
+
+	char text[32];
+
+	if (battery_per == BATTERY_CHARGING)
+		sprintf_P(text, PSTR("bat: chrg"));
+	else if (battery_per == BATTERY_FULL)
+		sprintf_P(text, PSTR("bat: full"));
+	else
+		sprintf_P(text, PSTR("bat: %u%% (%u)"), battery_per, battery_adc_raw);
+
+	logger_comment(text);
+}

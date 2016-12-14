@@ -81,7 +81,7 @@ void buzzer_set_freq(uint16_t freq_hz)
 #ifndef STM32
 	uint16_t buzzer_period = 31250 / freq_hz;
 
-	buzzer_timer.SetCompare(timer_A, buzzer_period / 5); //20% duty cycle = battery saving
+	buzzer_timer.SetCompare(timer_A, buzzer_period / 2); //20% duty cycle = battery saving
 	buzzer_timer.SetTop(buzzer_period);
 	if (buzzer_timer.GetValue() > buzzer_period)
 		buzzer_timer.SetValue(1);

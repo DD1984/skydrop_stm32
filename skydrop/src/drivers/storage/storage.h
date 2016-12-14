@@ -18,7 +18,9 @@
 
 bool storage_init();
 void storage_deinit();
-bool storage_selftest();
+
+bool storage_card_in();
+bool storage_ready();
 void storage_step();
 
 #endif /* STORAGE_H_ */

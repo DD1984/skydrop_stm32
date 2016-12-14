@@ -15,6 +15,9 @@ void task_powerdown_init()
 	//disable other oscilators
 	OSC.CTRL = 0b00000001;
 #endif
+
+	buttons_deinit();
+
 	uart_stop();
 	_delay_ms(10);
 
@@ -32,7 +35,6 @@ void task_powerdown_init()
 	powerdown_lock.Lock();
 
 	task_timer_setup(false);
-
 #ifndef STM32
 	SD_EN_OFF;
 
@@ -49,9 +51,9 @@ void task_powerdown_stop()
 #ifndef STM32
 	uart_stop();
 	Setup();
+
 	task_timer_setup();
 	DEBUG("Restoring full speed uart\n");
-//	Post();
 #endif
 	powerdown_lock.Unlock();
 }
@@ -63,10 +65,9 @@ void powerdown_sleep()
 {
 	_delay_ms(31);
 #ifndef STM32
+	task_timer_stop();
 	do
 	{
-		task_timer_stop();
-
 		//allow rtc irq handler but do not wake up
 		time_rtc_irq = false;
 
@@ -74,11 +75,14 @@ void powerdown_sleep()
 		SystemPowerSave();
 
 		if (time_rtc_irq)
-			ewdt_reset();
+			wdt_reset();
 
-		//start task timer in low speed mode
-		task_timer_setup(false);
+
 	} while (time_rtc_irq == true);
+
+	//start task timer in low speed mode
+	task_timer_setup(false);
+
 #else
 	HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
 	DEBUG("STM32 - enter in standby mode\n");
@@ -94,8 +98,6 @@ void task_powerdown_loop()
 	if ((task_sleep_lock == 1 && powerdown_lock.Active()) && powerdown_loop_break == false)
 	{
 		DEBUG("PD sleep\n");
-		
-
 		uart_stop();
 
 		powerdown_sleep();

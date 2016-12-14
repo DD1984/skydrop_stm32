@@ -1,6 +1,29 @@
 #include "battery.h"
 #include "../tasks/tasks.h"
 
+#define BATTERY_STATE_IDLE		0
+#define BATTERY_STATE_PREPARE	1
+#define BATTERY_STATE_START		2
+#define BATTERY_STATE_RESULT	3
+
+#define BATTERY_MEAS_AVG 		16
+#define BATTERY_MEAS_PERIOD 	10000
+#define BATTERY_STABILISE 		100
+
+#define BAT_ADC_MIN				(3200)
+
+uint32_t battery_next_meas = 0;
+uint8_t  battery_meas_state = BATTERY_STATE_PREPARE;
+
+uint16_t battery_meas_acc = 0;
+uint8_t  battery_meas_cnt = 0;
+
+uint16_t battery_adc_raw = 0;
+int8_t battery_per = 0;
+
+uint16_t bat_adc_max;
+uint16_t bat_adc_dif;
+
 #ifdef STM32
 ADC_HandleTypeDef    AdcHandle;
 __IO uint16_t   aADCxConvertedValues[1];
@@ -34,9 +57,30 @@ static void ADC_Config(void)
 }
 #endif
 
+void battery_reset_calibration()
+{
+	if (bat_adc_max == BAT_ADC_MIN)
+		return;
+
+	bat_adc_max = BAT_ADC_MIN;
+
+	DEBUG("Resetting max ADC value\n");
+
+	eeprom_busy_wait();
+	eeprom_update_word(&config_ro.bat_adc_max, bat_adc_max);
+}
+
 void battery_init()
 {
 #ifndef STM32
+	eeprom_busy_wait();
+	bat_adc_max = eeprom_read_word(&config_ro.bat_adc_max);
+
+	if (bat_adc_max > 4095)
+		battery_reset_calibration();
+
+	bat_adc_dif = bat_adc_max - BAT_ADC_MIN;
+
 	BATTERY_ADC_PWR_ON;
 	BATTERY_ADC_ENABLE;
 
@@ -46,6 +90,7 @@ void battery_init()
 	AdcPipeSetSource(pipea0, BAT_SNS_ADC);
 
 	GpioSetDirection(BAT_EN, OUTPUT);
+
 #else
 	GPIO_InitTypeDef          GPIO_InitStruct;
 
@@ -85,67 +130,95 @@ void battery_init()
 	HAL_ADCEx_Calibration_Start(&AdcHandle);
 #endif
 	bat_en_low(BAT_EN_ADC);
+
+	GpioSetPull(CHARGING, gpio_pull_up);
 }
-
-
-#define BATT_THOLD	VDC2ADC(2.2)
-
-#define BATTERY_STATE_IDLE		0
-#define BATTERY_STATE_PREPARE	1
-#define BATTERY_STATE_START		2
-#define BATTERY_STATE_RESULT	3
-
-#define BATTERY_MEAS_AVG 		16
-//#define BATTERY_MEAS_PERIOD 	10000
-#define BATTERY_MEAS_PERIOD 	1000
-#define BATTERY_STABILISE 		100
-
-
-uint32_t battery_next_meas = 0;
-uint8_t  battery_meas_state = BATTERY_STATE_PREPARE;
-
-uint16_t battery_meas_acc = 0;
-uint8_t  battery_meas_cnt = 0;
-
-int16_t battery_adc_raw = 0;
-int8_t battery_per = 0;
 
 #ifdef STM32
 uint8_t battery_charge_stat;
 uint8_t battery_vbus;
 #endif
 
-//#define BATT_COEF_A	(0.291950711)
-//#define BATT_COEF_B  (-672.1273455619)
 
-
-//#define BATT_COEF_A	(0.2147782473)
-//#define BATT_COEF_B  (-681.4132446547)
-
-#define BATT_COEF_A	(0.2147782473)
-#define BATT_COEF_B  (-660.7532446547)
-
-uint8_t battery_get_per()
+void battery_force_update()
 {
-	return battery_per;
+	battery_next_meas = 0;
+	battery_meas_state = BATTERY_STATE_PREPARE;
+	battery_meas_acc = 0;
+	battery_meas_cnt = 0;
 }
+
+uint16_t bat_charge_discharge_ratio = 0;
 
 bool battery_step()
 {
+	#ifdef FAKE_ENABLE
+		return false;
+	#endif
+
 	if (battery_next_meas > task_get_ms_tick())
 		return false;
+
+	if (USB_CONNECTED)
+	{
+		if (BAT_CHARGING)
+		{
+			if (bat_charge_discharge_ratio > 1)
+				bat_charge_discharge_ratio--;
+		}
+		else
+		{
+			if (bat_charge_discharge_ratio <= 500)
+				bat_charge_discharge_ratio += 5;
+		}
+
+//		DEBUG("BAT c/d %u\n", bat_charge_discharge_ratio);
+
+		if (bat_charge_discharge_ratio > 500)
+		{
+			battery_per = BATTERY_FULL;
+			battery_reset_calibration();
+		}
+
+		if (bat_charge_discharge_ratio < 10)
+		{
+			battery_per = BATTERY_CHARGING;
+		}
+
+		return true;
+	}
+
+	if (bat_charge_discharge_ratio != 0)
+	{
+		bat_charge_discharge_ratio = 0;
+		battery_force_update();
+	}
 
 	switch (battery_meas_state)
 	{
 	case(BATTERY_STATE_IDLE):
+		//read adc value
 		battery_adc_raw = battery_meas_acc / BATTERY_MEAS_AVG;
-		battery_per = round(((float)battery_adc_raw * BATT_COEF_A) + BATT_COEF_B);
+
+		if (bat_adc_max < battery_adc_raw)
+		{
+			bat_adc_max = battery_adc_raw;
+			bat_adc_dif = bat_adc_max - BAT_ADC_MIN;
+
+			DEBUG("Updating max ADC value to %u\n", bat_adc_max);
+
+			eeprom_busy_wait();
+			eeprom_update_word(&config_ro.bat_adc_max, bat_adc_max);
+		}
+
+		//5% is planned overshoot
+		battery_per = (((int32_t)battery_adc_raw - (int32_t)BAT_ADC_MIN) * 105) / bat_adc_dif;
 		if (battery_per > 100)
 			battery_per = 100;
 		if (battery_per < 0)
 			battery_per = 0;
 
-//		DEBUG("adc %u (%3d%%)\n", battery_adc_raw, battery_per);
+//		DEBUG("BAT val %lu %u %u\n", task_get_ms_tick(), battery_per, battery_adc_raw);
 
 		battery_meas_state = BATTERY_STATE_PREPARE;
 		battery_next_meas = task_get_ms_tick() + BATTERY_MEAS_PERIOD;
@@ -184,6 +257,7 @@ bool battery_step()
 			DEBUG("adc not ready\n");
 			return false;
 		}
+
 		uint16_t tmp = AdcPipeValue(pipea0);
 #else
 		uint16_t tmp = aADCxConvertedValues[0];

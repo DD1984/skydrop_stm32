@@ -1,20 +1,23 @@
 #include "uart.h"
+#include "../fc/conf.h"
+
+#define HW_UART_TX_SIZE	64
+uint8_t hw_uart_tx_buffer[HW_UART_TX_SIZE];
 
 #ifndef STM32
-Usart uart;
+Usart uart(0, NULL, HW_UART_TX_SIZE, hw_uart_tx_buffer);
+
+CreateStdIn(uart_in, uart.Read);
+CreateStdOut(uart_out, uart.Write);
 #else
 UART_HandleTypeDef Uart;
 #endif
 
-#ifndef STM32
-CreateStdIn(uart_in, uart.Read);
-CreateStdOut(uart_out, uart.Write);
-#endif
-
-void uart_init_buffers()
+void uart_send(uint16_t len, uint8_t * data)
 {
 #ifndef STM32
-	uart.InitBuffers(0, BUFFER_SIZE);
+	for (uint16_t i = 0; i < len; i++)
+		uart.Write(data[i]);
 #endif
 }
 
@@ -38,9 +41,34 @@ void uart_init()
 	DEBUG_UART_PWR_ON;
 
 	//init uart
-	uart.Init(DEBUG_UART, 921600ul);
+	switch (config.connectivity.uart_function)
+	{
+		case(UART_FORWARD_DEBUG):
+			uart.Init(DEBUG_UART, 921600ul);
+		break;
+		case(UART_FORWARD_OFF):
+			DEBUG_UART_PWR_OFF;
+			return;
+		break;
+		case(UART_FORWARD_9600):
+			uart.Init(DEBUG_UART, 9600ul);
+		break;
+		case(UART_FORWARD_19200):
+			uart.Init(DEBUG_UART, 19200ul);
+		break;
+		case(UART_FORWARD_38400):
+			uart.Init(DEBUG_UART, 38400ul);
+		break;
+		case(UART_FORWARD_57600):
+			uart.Init(DEBUG_UART, 57600ul);
+		break;
+		case(UART_FORWARD_115200):
+			uart.Init(DEBUG_UART, 115200ul);
+		break;
+	}
+
 	uart.SetInterruptPriority(HIGH);
-	uart.dbg = true;
+//	uart.dbg = true;
 
 	SetStdIO(uart_in, uart_out);
 #else

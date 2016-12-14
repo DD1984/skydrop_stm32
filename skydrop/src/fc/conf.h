@@ -11,6 +11,14 @@
 #include "../gui/widgets/widgets.h"
 #include "fc.h"
 
+typedef uint8_t		uint8_t_arr;
+typedef uint16_t	uint16_t_arr;
+typedef uint32_t	uint32_t_arr;
+
+typedef int8_t		int8_t_arr;
+typedef int16_t		int16_t_arr;
+typedef int32_t		int32_t_arr;
+
 struct cfg_gui_layout
 {
 	uint8_t type;
@@ -24,8 +32,7 @@ struct cfg_gui_layout
 #define CFG_AUDIO_MENU_SPLASH	0b10000000
 #define CFG_AUDIO_MENU_PAGES	0b01000000
 #define CFG_AUDIO_MENU_BUTTONS	0b00100000
-
-
+#define CFG_AUDIO_MENU_GPS		0b00010000
 
 struct cfg_gui
 {
@@ -43,6 +50,8 @@ struct cfg_gui
 	uint8_t alert_volume;
 
 	uint8_t number_of_pages;
+	uint8_t silent;
+	uint8_t hide_label;
 	cfg_gui_layout pages[MAX_NUMBER_OF_PAGES];
 };
 
@@ -100,6 +109,50 @@ struct cfg_audio_profile
 #define TIME_DST	0b00000001
 #define TIME_SYNC	0b00000010
 
+//prevent fake true (0xFF) on not loaded eeprom
+#define DEBUG_MAGIC_ON		0b10100101
+
+struct cfg_system
+{
+	uint8_t time_flags;
+	int8_t time_zone;
+
+	uint8_t debug_log;
+	uint8_t debug_gps;
+	uint8_t record_screen;
+
+	uint8_t auto_power_off; //in minutes
+};
+
+#define AUTOSTART_SUPRESS_AUDIO		0b00000001
+#define AUTOSTART_ALWAYS_ENABLED	0b00000010
+
+struct cfg_autostart
+{
+	uint8_t start_sensititvity;
+	uint8_t land_sensititvity;
+	uint8_t timeout;
+	uint8_t flags;
+};
+
+#define LOGGER_IGC	0
+#define LOGGER_KML	1
+#define LOGGER_RAW	2
+#define LOGGER_AERO	3
+
+#define NUMBER_OF_FORMATS	4
+#define LOG_TEXT_LEN		50
+
+struct cfg_logger
+{
+	uint8_t enabled;
+	uint8_t format;
+
+	char pilot[LOG_TEXT_LEN];
+	char glider_type[LOG_TEXT_LEN];
+	char glider_id[LOG_TEXT_LEN];
+};
+
 #define GPS_FORMAT_MASK	0b00001100
 
 #define GPS_DDdddddd	0b00000000
@@ -116,41 +169,21 @@ struct cfg_audio_profile
 #define PROTOCOL_DIGIFLY	0
 #define PROTOCOL_LK8EX1		1
 #define PROTOCOL_BLUEFLY	2
-#define PROTOCOL_FLYNET		3
+#define PROTOCOL_SKYBEAN	3
 
-//FlyNet is disabled for now
-#define NUMBER_OF_PROTOCOLS	3
+#define NUMBER_OF_PROTOCOLS	4
 
-#define LOGGER_IGC	0
-#define LOGGER_KML	1
+#define UART_FORWARD_DEBUG	0
+#define UART_FORWARD_OFF	1
+#define UART_FORWARD_9600	2
+#define UART_FORWARD_19200	3
+#define UART_FORWARD_38400	4
+#define UART_FORWARD_57600	5
+#define UART_FORWARD_115200	6
 
-#define NUMBER_OF_FORMATS	2
+#define NUMBER_OF_UART_FORWARD	7
 
-//prevent fake true (0xFF) on not loaded eeprom
-#define DEBUG_MAGIC_ON		0b10100101
-
-struct cfg_system
-{
-	uint8_t time_flags;
-	int8_t time_zone;
-
-	uint8_t debug_log;
-	uint8_t auto_power_off; //in minutes
-};
-
-struct cfg_autostart
-{
-	uint8_t start_sensititvity;
-	uint8_t land_sensititvity;
-	uint8_t timeout;
-	uint8_t supress_audio;
-};
-
-struct cfg_logger
-{
-	uint8_t enabled;
-	uint8_t format;
-};
+#define LOGIN_PASSWORD_LEN 16
 
 struct cfg_connectivity
 {
@@ -160,8 +193,16 @@ struct cfg_connectivity
 	uint8_t gps_format_flags;
 
 	uint8_t use_bt;
+	uint8_t_arr bt_link_partner[6];
+	uint8_t_arr bt_link_key[16];
+	uint8_t_arr btle_mac[6];
+
 	uint8_t forward_gps;
 	uint8_t protocol;
+
+	uint8_t uart_function;
+
+	char password[LOGIN_PASSWORD_LEN];
 };
 
 //Main user configurations
@@ -214,7 +255,9 @@ struct cfg_ro_t
 
 	debug_info debug;				//+34		14
 
-	uint8_t reserved[80];			//+48
+	uint16_t bat_adc_max;			//+48		2
+
+	uint8_t reserved[78];			//+50		78
 };
 
 //configuration in RAM

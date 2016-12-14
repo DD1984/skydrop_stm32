@@ -35,11 +35,8 @@ void Setup()
 #ifdef LED_SUPPORT
 	led_init();
 #endif	
-	uart_init_buffers();
-	uart_init();
 	time_init();
 	buzzer_init();
-	battery_init();
 	buttons_init();
 
 	//basic power control
@@ -52,6 +49,9 @@ void Setup()
 
 	//load configuration from EE
 	cfg_load();
+	uart_init();
+	battery_init();
+
 
 	_delay_ms(100);
 }
@@ -60,31 +60,9 @@ void Post()
 {
 	DEBUG("\n *** POST *** \n");
 
+	//Reset reason
 #ifndef STM32
-	//Print reset reason
-	DEBUG("Reset reason ... ");
-
-	if (RST.STATUS & 0b00100000)
-		DEBUG("Software ");
-	else
-	if (RST.STATUS & 0b00010000)
-		DEBUG("Programming ");
-	else
-	if (RST.STATUS & 0b00001000)
-		DEBUG("Watchdog ");
-	else
-	if (RST.STATUS & 0b00000100)
-		DEBUG("Brownout ");
-	else
-	if (RST.STATUS & 0b00000010)
-		DEBUG("External ");
-	else
-	if (RST.STATUS & 0b00000001)
-		DEBUG("Power On ");
-	else
-		DEBUG("Unknown: %02X", RST.STATUS);
-
-	DEBUG("\n");
+	print_reset_reason();
 
 #else
 	DEBUG("RCC:\n");
@@ -113,14 +91,14 @@ void Post()
 
 	//Print actual time
 	DEBUG("Time is ... \n");
-	print_datetime(time_get_actual());
+	print_datetime(time_get_local());
 
 #ifndef STM32
 	DEBUG("Free RAM at start ... %d\n", free_ram_at_start);
 	test_memory();
 #endif
 
-	char id[22];
+	char id[23];
 	GetID_str(id);
 	DEBUG("Device serial number ... %s\n", id);
 
@@ -129,7 +107,6 @@ void Post()
 	//debug info
 	debug_last_dump();
 }
-
 
 int main()
 {

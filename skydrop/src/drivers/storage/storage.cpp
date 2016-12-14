@@ -3,8 +3,6 @@
 FATFS FatFs;		/* FatFs work area needed for each volume */
 
 #ifndef STM32
-//FIL Fil;			/* File object needed for each open file */
-
 extern Usart sd_spi_usart;
 #else
 #include "spi_flash.h"
@@ -16,6 +14,7 @@ uint32_t storage_space = 0;
 uint32_t storage_free_space = 0;
 
 bool sd_avalible = false;
+bool sd_error = false;
 
 #define SD_CARD_DETECT	(GpioRead(SD_IN) == LOW)
 
@@ -40,21 +39,11 @@ bool storage_init()
 
 	for (uint8_t i = 0; i < 5; i++)
 	{
-		//power spi & sdcard
-		SD_EN_ON;
-		SD_SPI_PWR_ON;
 
 		res = f_mount(&FatFs, "", 1);		/* Give a work area to the default drive */
 		DEBUG("%d ", i + 1);
 		if (res == RES_OK)
 			break;
-
-
-		sd_spi_usart.Stop();
-
-		//power spi & sdcard
-		SD_EN_OFF;
-		SD_SPI_PWR_OFF;
 
 		for (uint8_t j = 0; j < i +1; j++)
 			_delay_ms(10);
@@ -66,11 +55,17 @@ bool storage_init()
 
 		sd_spi_usart.Stop();
 
+		GpioSetDirection(SD_SS, INPUT);
+		GpioSetPull(SD_IN, gpio_totem);
+
 		//power spi & sdcard
 		SD_EN_OFF;
 		SD_SPI_PWR_OFF;
 
+		sd_error = true;
 		sd_avalible = false;
+
+		task_irqh(TASK_IRQ_MOUNT_ERROR, 0);
 
 		return false;
 	}
@@ -91,13 +86,13 @@ bool storage_init()
 
 	res = disk_ioctl(0, GET_SECTOR_SIZE, &sector_size);
 
-	storage_space = sector_count * sector_size;
+	storage_space = sector_count / 2;
 	storage_free_space = size * 4 * 1024;
 
 	DEBUG("Disk info\n");
-	DEBUG(" sector size  %12u\n", sector_size);
+	DEBUG(" sector size  %12u B\n", sector_size);
 	DEBUG(" sector count %12lu\n", sector_count);
-	DEBUG(" total space  %12lu\n", storage_space);
+	DEBUG(" total space  %12lu kB\n", storage_space);
 	DEBUG(" free space   %12lu\n", storage_free_space);
 #else
 	uint8_t ret;
@@ -150,6 +145,8 @@ bool storage_init()
 #endif
 #endif
 	sd_avalible = true;
+	sd_error = false;
+
 	return true;
 }
 
@@ -161,16 +158,21 @@ void storage_deinit()
 	if (!sd_avalible)
 		return;
 
-	uint8_t res;
-	res = f_mount(NULL, "", 1); //unmount
+	assert(f_mount(NULL, "", 1) == FR_OK); //unmount
 
 	sd_spi_usart.Stop();
 
 	sd_avalible = false;
 
+	GpioSetPull(SD_IN, gpio_totem);
+	GpioSetDirection(SD_SS, INPUT);
+
 	//power spi & sdcard
 	SD_EN_OFF;
 	SD_SPI_PWR_OFF;
+
+	//let it cool down :)
+	_delay_ms(100);
 #endif
 }
 
@@ -179,18 +181,24 @@ void storage_step()
 #ifndef STM32
 	if (SD_CARD_DETECT)
 	{
-		if (!sd_avalible)
+		if (!sd_avalible && !sd_error)
 			storage_init();
 	}
 	else
 	{
 		if (sd_avalible)
 			storage_deinit();
+		sd_error = false;
 	}
 #endif
 }
 
-bool storage_selftest()
+bool storage_card_in()
 {
 	return sd_avalible;
+}
+
+bool storage_ready()
+{
+	return sd_avalible && !sd_error;
 }

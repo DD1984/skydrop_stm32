@@ -14,9 +14,32 @@ Timer debug_timer;
 #endif
 uint32_t debug_last_pc;
 
+uint8_t debug_log_buffer[DEBUG_LOG_BUFFER_SIZE];
+
+DataBuffer debug_log_storage(DEBUG_LOG_BUFFER_SIZE, debug_log_buffer);
+
 volatile uint16_t debug_return_pointer;
 volatile uint16_t debug_min_stack_pointer = 0xFFFF;
 volatile uint16_t debug_max_heap_pointer = 0x0000;
+bool debug_done = false;
+
+bool debug_disabled()
+{
+	if (config.system.debug_log == DEBUG_MAGIC_ON && storage_ready())
+		return false;
+	if (config.connectivity.uart_function == UART_FORWARD_DEBUG)
+		return false;
+	return true;
+}
+
+void debug_uart_send(char * msg)
+{
+	if (config.connectivity.uart_function == UART_FORWARD_DEBUG)
+	{
+		uart_send(msg);
+		uart.FlushTxBuffer();
+	}
+}
 
 void debug_print_ram()
 {
@@ -77,7 +100,7 @@ void debug_timeout_handler()
 
 	//store this info
 	eeprom_busy_wait();
-	eeprom_update_dword(&config_ro.debug.time, time_get_actual());
+	eeprom_update_dword(&config_ro.debug.time, time_get_local());
 	eeprom_update_word(&config_ro.debug.build_number, BUILD_NUMBER);
 	eeprom_update_dword(&config_ro.debug.program_counter, ra);
 	eeprom_update_word(&config_ro.debug.min_stack, debug_min_stack_pointer);
@@ -121,9 +144,11 @@ ISR(DEBUG_TIMER_OVF, ISR_NAKED)
 		"push r30" "\n\t"
 		"push r31" "\n\t"
 		::);
+
 	debug_return_pointer = SP + 17; // 16x push (IRQ prologue) + 1 (SP is pointing to next available location)
 
 	sei(); //enable interrupts since handler is using uart and spi
+
 	debug_timeout_handler();
 
 	asm volatile(
@@ -168,15 +193,34 @@ void debug_timer_init()
 void debug_log(char * msg)
 {
 #ifndef STM32	
-	if (config.system.debug_log != DEBUG_MAGIC_ON)
-		return;
+	if (config.system.debug_log == DEBUG_MAGIC_ON && storage_ready())
+		debug_log_storage.Write(strlen(msg), (uint8_t *)msg);
+}
 
-	if (!storage_selftest())
+void debug_end()
+{
+	debug_done = true;
+	DEBUG("=== CLOSING FILE ===\n");
+	while(debug_log_storage.Length())
+		debug_step();
+	debug_done = false;
+}
+
+
+void debug_step()
+{
+	if (config.system.debug_log != DEBUG_MAGIC_ON)
 		return;
 
 	uint8_t res;
 	uint16_t wt;
-	uint8_t len;
+	uint16_t len;
+
+	if (!storage_ready())
+		return;
+
+	if (debug_log_storage.Length() < DEBUG_LOG_BUFFER_CHUNK && !debug_done)
+		return;
 
 	//Append file if not opened
 	if (!debug_file_open)
@@ -199,9 +243,9 @@ void debug_log(char * msg)
 		uint16_t year;
 		char tmp[64];
 
-		datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+		datetime_from_epoch(time_get_local(), &sec, &min, &hour, &day, &wday, &month, &year);
 
-		sprintf_P(tmp, PSTR(" *** %02d.%02d.%04d %02d:%02d.%02d ***\n"), day, month, year, hour, min, sec);
+		sprintf_P(tmp, PSTR("\n\n === APPEND %02d.%02d.%04d %02d:%02d.%02d ===\n"), day, month, year, hour, min, sec);
 
 		len = strlen(tmp);
 		res = f_write(&debug_file, tmp, len, &wt);
@@ -213,13 +257,28 @@ void debug_log(char * msg)
 
 		//file is ready
 		debug_file_open = true;
-
-		debug_last_dump();
+//
+//		char id[23];
+//		GetID_str(id);
+//		DEBUG("=========================================\n");
+//
+//		DEBUG("Device serial number ... %s\n", id);
+//
+//		DEBUG("Board rev ... %u\n", (hw_revision == HW_REW_1504) ? 1504 : 1406);
+//		print_fw_info();
+//
+//		print_reset_reason();
+//
+//		debug_last_dump();
+//
+//		DEBUG("=========================================\n");
 	}
 
+	uint8_t ** tmp = 0;
+
 	//write content
-	len = strlen(msg);
-	res = f_write(&debug_file, msg, len, &wt);
+	len = debug_log_storage.Read(DEBUG_LOG_BUFFER_CHUNK, tmp);
+	res = f_write(&debug_file, *tmp, len, &wt);
 	if (res != FR_OK || wt != len)
 	{
 		f_close(&debug_file);

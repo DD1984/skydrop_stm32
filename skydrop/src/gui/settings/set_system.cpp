@@ -2,17 +2,18 @@
 
 #include "../gui_list.h"
 #include "../gui_value.h"
+#include "../gui_dialog.h"
+#include "../gui_storage.h"
 
 #include "../../fc/conf.h"
+#include "../../drivers/storage/storage.h"
 
 enum {
 	SET_SYSTEM_TIME,
 	SET_SYSTEM_DISPLAY,
 	SET_SYSTEM_AUDIO,
-#ifdef USB_SUPPORT
-	SET_SYSTEM_MASS_STORAGE,
-#endif
 	SET_SYSTEM_AUTO_OFF,
+	SET_SYSTEM_ADVANCED,
 	//
 	SET_SYSTEM_END,
 	//
@@ -62,17 +63,13 @@ void gui_set_system_action(uint8_t index)
 		gui_switch_task(GUI_SET_AUDIO);
 	break;
 
-#ifdef USB_SUPPORT
-	case(SET_SYSTEM_MASS_STORAGE):
-		config.connectivity.usb_mode = !config.connectivity.usb_mode;
-		eeprom_busy_wait();
-		eeprom_update_byte(&config_ee.connectivity.usb_mode, config.connectivity.usb_mode);
-	break;
-#endif
-
 	case(SET_SYSTEM_AUTO_OFF):
 		gui_value_conf_P(PSTR("Auto power-off"), GUI_VAL_NUMBER_DISABLE, PSTR("%0.0f min"), config.system.auto_power_off, 0, 120, 1, gui_set_system_auto_power_off_cb);
 		gui_switch_task(GUI_SET_VAL);
+	break;
+
+	case(SET_SYSTEM_ADVANCED):
+		gui_switch_task(GUI_SET_ADVANCED);
 	break;
 	}
 }
@@ -87,7 +84,7 @@ void gui_set_system_item(uint8_t index, char * text, uint8_t * flags, char * sub
 	uint8_t month;
 	uint16_t year;
 
-	datetime_from_epoch(time_get_actual(), &sec, &min, &hour, &day, &wday, &month, &year);
+	datetime_from_epoch(time_get_local(), &sec, &min, &hour, &day, &wday, &month, &year);
 
 	switch (index)
 	{
@@ -106,16 +103,6 @@ void gui_set_system_item(uint8_t index, char * text, uint8_t * flags, char * sub
 			*flags |= GUI_LIST_FOLDER;
 		break;
 
-#ifdef USB_SUPPORT
-		case (SET_SYSTEM_MASS_STORAGE):
-			sprintf_P(text, PSTR("Mass Storage"));
-			if (config.connectivity.usb_mode == USB_MODE_MASSSTORAGE)
-				*flags |= GUI_LIST_CHECK_ON;
-			else
-				*flags |= GUI_LIST_CHECK_OFF;
-		break;
-#endif
-
 		case (SET_SYSTEM_AUTO_OFF):
 			sprintf_P(text, PSTR("Auto power-off"));
 			*flags |= GUI_LIST_SUB_TEXT;
@@ -125,6 +112,9 @@ void gui_set_system_item(uint8_t index, char * text, uint8_t * flags, char * sub
 				sprintf_P(sub_text, PSTR("disabled"));
 		break;
 
+		case (SET_SYSTEM_ADVANCED):
+			sprintf_P(text, PSTR("Advanced"));
+		break;
 	}
 }
 

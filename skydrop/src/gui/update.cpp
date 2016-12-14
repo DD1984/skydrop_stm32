@@ -20,8 +20,8 @@ uint8_t update_file_crc;
 
 volatile uint8_t update_eeprom_only = false;
 
-#define UPDATE_CHUNK	(1024*5)
 #define UPDATE_CRC 		0x9B
+#define UPDATE_CHUNK	DEBUG_LOG_BUFFER_SIZE
 
 void gui_update_cb(uint8_t ret)
 {
@@ -38,7 +38,7 @@ void gui_update_cb(uint8_t ret)
 
 void gui_update_fail_cb(uint8_t ret)
 {
-	SystemReset();
+	task_set(TASK_POWERDOWN);
 }
 
 void gui_update_done_cb(uint8_t ret)
@@ -47,7 +47,7 @@ void gui_update_done_cb(uint8_t ret)
 
 	gui_stop();
 
-	SystemReset();
+	task_set(TASK_POWERDOWN);
 }
 
 void gui_update_eeprom_cb(uint8_t ret)
@@ -59,14 +59,17 @@ void gui_update_eeprom_cb(uint8_t ret)
 		update_state = UPDATE_CHECK_EE;
 	}
 	else
-		SystemReset();
+	{
+		assert(f_unlink("SKYDROP.FW") == FR_OK);
+		task_set(TASK_POWERDOWN);
+	}
 }
 
 void gui_update_fail(uint16_t line)
 {
 	update_state = UPDATE_FAIL;
 
-	char tmp1[6], tmp2[32];
+	char tmp1[16], tmp2[64];
 
 	if (line != 0)
 	{
@@ -74,11 +77,12 @@ void gui_update_fail(uint16_t line)
 		sprintf_P(tmp2, PSTR("Update failed!\n#%d"), line);
 		gui_dialog_set(tmp1, tmp2, GUI_STYLE_OK, gui_update_fail_cb);
 
-		f_unlink("SKYDROP.FW");
-		f_unlink("UPDATE.FW");
+		assert(f_unlink("SKYDROP.FW") == FR_OK);
+		assert(f_unlink("UPDATE.FW") == FR_OK);
 	}
 	else
 	{
+		DEBUG("Same version\n");
 		strcpy_P(tmp1, PSTR("Update"));
 		sprintf_P(tmp2, PSTR("Same version\nRestore default\nconfiguration?"), line);
 		gui_dialog_set(tmp1, tmp2, GUI_STYLE_OKCANCEL, gui_update_eeprom_cb);
@@ -87,7 +91,11 @@ void gui_update_fail(uint16_t line)
 	gui_switch_task(GUI_DIALOG);
 }
 
-void gui_update_init() {}
+void gui_update_init()
+{
+	//Temporarily disable logging on SD card
+	config.system.debug_log = false;
+}
 
 void gui_update_stop() {}
 
@@ -130,21 +138,33 @@ void gui_update_loop()
 {
 	uint16_t rd, wr;
 	uint16_t to_read;
-	uint8_t buff[UPDATE_CHUNK];
+
+	//steal some buffer from debug
+	extern uint8_t debug_log_buffer[DEBUG_LOG_BUFFER_SIZE];
+
+	uint8_t * buff = debug_log_buffer;
 	uint16_t i;
 
 //	DEBUG(" *** update loop start ***\n");
 
 	gui_update_bar();
 
-	DEBUG("update_state %d\n", update_state);
-	DEBUG("update_file_pos %d\n", update_file_pos);
+	DEBUG("update_state %u\n", update_state);
+	DEBUG("update_file_pos %lu\n", update_file_pos);
 
 	switch (update_state)
 	{
 		case(UPDATE_IDLE):
-			update_file = new FIL;
-			update_file_out = new FIL;
+			//update task is special case
+			//update files are used only during update
+			//we can "steal" them from other tasks
+			extern FIL log_file;
+			extern FIL skybean_file_handle;
+
+			assert(f_unlink("UPDATE.FW") == FR_OK);
+
+			update_file = &log_file;				//stolen from IGC/KML logger
+			update_file_out = &skybean_file_handle;	//stolen from Skybean protocol handler
 
 			update_state = UPDATE_CHECK_EE;
 			update_file_pos = 0;

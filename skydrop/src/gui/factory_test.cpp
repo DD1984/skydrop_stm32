@@ -22,10 +22,11 @@ void gui_factory_test_init()
 {
 	DEBUG(" *** Factory test ***\n");
 	fc_pause();
+	led_notify_disable();
 
 #ifdef BT_SUPPORT
 	//We need to test gps and bt module
-	if (!bt_selftest())
+	if (!bt_ready())
 	{
 		DEBUG("Force enable BT\n");
 		bt_module_init();
@@ -157,6 +158,7 @@ void gui_factory_test_loop()
 		{
 			disp.GotoXY(4, f_h * 3.5 + 3);
 			fprintf_P(lcd_out, PSTR("I2C ERROR"));
+			assert(0);
 		}
 		err = true;
 	}
@@ -169,6 +171,7 @@ void gui_factory_test_loop()
 		{
 			disp.GotoXY(4, f_h * 2 + 3);
 			fprintf_P(lcd_out, PSTR("MS5611:%s"), (res) ? "OK" : "ERR");
+			assert(res);
 		}
 #endif
 
@@ -179,6 +182,7 @@ void gui_factory_test_loop()
 		{
 			disp.GotoXY(4, f_h * 3 + 3);
 			fprintf_P(lcd_out, PSTR("LSM303:%s"), (res) ? "OK" : "ERR");
+			assert(res);
 		}
 #endif
 
@@ -189,6 +193,7 @@ void gui_factory_test_loop()
 		{
 			disp.GotoXY(4, f_h * 4 + 3);
 			fprintf_P(lcd_out, PSTR("L3GD20:%s"), (res) ? "OK" : "ERR");
+			assert(res);
 		}
 #endif
 
@@ -199,15 +204,17 @@ void gui_factory_test_loop()
 		{
 			disp.GotoXY(4, f_h * 5 + 3);
 			fprintf_P(lcd_out, PSTR("SHT21:%s"), (res) ? "OK" : "ERR");
+			assert(res);
 		}
 #endif
 	}
 
 #ifdef BT_SUPPORT
-	res = bt_selftest();
+	res = bt_ready();
 	if (!res) err = true;
 	if (res || blik)
 	{
+		assert(res);
 		disp.GotoXY(4, f_h * 6 + 3);
 		if (!res)
 		{
@@ -224,12 +231,13 @@ void gui_factory_test_loop()
 #endif
 
 #ifdef STORAGE_SUPPORT
-	res = storage_selftest();
+	res = storage_ready();
 	if (!res) err = true;
 	if (res || blik)
 	{
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 2 + 3);
 		fprintf_P(lcd_out, PSTR("SD:%s"), (res) ? "OK" : "ERR");
+		assert(res);
 	}
 #endif
 
@@ -240,6 +248,7 @@ void gui_factory_test_loop()
 	{
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 3 + 3);
 		fprintf_P(lcd_out, PSTR("GPS:%s"), (res) ? "OK" : "ERR");
+		assert(res);
 	}
 #endif
 
@@ -249,7 +258,9 @@ void gui_factory_test_loop()
 	{
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 4 + 3);
 		fprintf_P(lcd_out, PSTR("BUT:%d %d %d"), f_test_button_test & (1 << 0), (f_test_button_test & (1 << 1)) >> 1, (f_test_button_test & (1 << 2)) >> 2);
+		assert(res);
 	}
+
 
 	res = battery_adc_raw != 0;
 	if (!res) err = true;
@@ -257,15 +268,18 @@ void gui_factory_test_loop()
 	{
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 5 + 3);
 		fprintf_P(lcd_out, PSTR("ADC:%d"), battery_adc_raw);
+		assert(res);
 	}
 
 	res = battery_per > 0;
-//	if (!res) err = true;
+
 	if (res || blik)
 	{
 		disp.GotoXY(GUI_DISP_WIDTH / 2, f_h * 6 + 3);
 		fprintf_P(lcd_out, PSTR("BAT:%d%%"), battery_per);
+		assert(res);
 	}
+
 
 	if (!err)
 	{
@@ -281,8 +295,9 @@ void gui_factory_test_loop()
 		eeprom_update_byte(&config_ee.gui.contrast, f_test_lcd_cont);
 		eeprom_busy_wait();
 
-		SystemReset();
+		task_set(TASK_POWERDOWN);
 	}
+
 }
 
 void gui_factory_test_irqh(uint8_t type, uint8_t * buff)

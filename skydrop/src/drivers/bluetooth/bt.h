@@ -27,6 +27,7 @@
 #define BT_UNKNOWN	0xFF
 
 void bt_init();
+void bt_stop();
 void bt_step();
 
 void bt_module_reset();
@@ -35,9 +36,18 @@ void bt_module_deinit();
 bool bt_device_active();
 
 void bt_send(char * str);
-void bt_irgh(uint8_t type, uint8_t * buf);
+void bt_send(uint16_t len, uint8_t * data);
+void bt_irqh(uint8_t type, uint8_t * buf);
 
-bool bt_selftest();
+bool bt_ready();
 uint8_t bt_get_module_type();
+
+extern RingBuffer bt_output;
+
+#define BT_MOD_STATE_OFF	0
+#define BT_MOD_STATE_INIT	1
+#define BT_MOD_STATE_OK		2
+
+extern volatile uint8_t bt_module_state;
 
 #endif /* BT_H_ */

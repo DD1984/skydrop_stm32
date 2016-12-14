@@ -11,6 +11,35 @@ struct app_info fw_info;
 
 uint8_t hw_revision = HW_REW_UNKNOWN;
 
+void print_reset_reason()
+{
+	//Print reset reason
+	DEBUG("Reset reason ... ");
+
+	if (system_rst & 0b00100000)
+		DEBUG("Software ");
+	else
+	if (system_rst & 0b00010000)
+		DEBUG("Programming ");
+	else
+	if (system_rst & 0b00001000)
+		DEBUG("Watchdog ");
+	else
+	if (system_rst & 0b00000100)
+		DEBUG("Brownout ");
+	else
+	if (system_rst & 0b00000010)
+		DEBUG("External ");
+	else
+	if (system_rst & 0b00000001)
+		DEBUG("Power On ");
+	else
+		DEBUG("Unknown: %02X", system_rst);
+
+	DEBUG("\n");
+}
+
+
 void print_fw_info()
 {
 #ifndef STM32
@@ -58,14 +87,14 @@ void turnoff_subsystems()
 
 //----------------------------------------------------------
 
-DataBuffer::DataBuffer(uint16_t size)
+DataBuffer::DataBuffer(uint16_t size, uint8_t * buffer)
 {
 	this->size = size;
 	this->length = 0;
 	this->write_index = 0;
 	this->read_index = 0;
 
-	this->data = new uint8_t[size];
+	this->data = buffer;
 	if (this->data == NULL)
 	{
 		this->size = 0;
@@ -74,13 +103,7 @@ DataBuffer::DataBuffer(uint16_t size)
 
 DataBuffer::~DataBuffer()
 {
-	test_memory();
-	if (this->size)
-	{
-		DEBUG("Doing nothing!\n");
-		delete[] this->data;
-	}
-	test_memory();
+
 }
 
 uint16_t DataBuffer::Read(uint16_t len, uint8_t * * data)
@@ -176,6 +199,7 @@ void GetID() //11 b
 		COORDY1,    // Wafer Coordinate Y Byte 1
 	};
 
+	NVM.CMD = NVM_CMD_READ_CALIB_ROW_gc;
 	device_id[0] = pgm_read_byte(LOTNUM0);
 	device_id[1] = pgm_read_byte(LOTNUM1);
 	device_id[2] = pgm_read_byte(LOTNUM2);
@@ -240,38 +264,35 @@ bool LoadEEPROM()
 	{
 		DEBUG("EE update found.\n");
 
-		FIL * ee_file;
-		ee_file = new FIL;
+		FIL ee_file;
 
-		f_open(ee_file, "UPDATE.EE", FA_READ);
+		f_open(&ee_file, "UPDATE.EE", FA_READ);
 		uint16_t rd = 0;
 
 		byte4 tmp;
 
-		f_read(ee_file, tmp.uint8, sizeof(tmp), &rd);
+		f_read(&ee_file, tmp.uint8, sizeof(tmp), &rd);
 		if (tmp.uint32 != BUILD_NUMBER)
 		{
 			gui_showmessage_P(PSTR("UPDATE.EE is not\ncompatibile!"));
 			DEBUG("Rejecting update file %lu != %lu\n", tmp.uint32, BUILD_NUMBER);
-			delete ee_file;
 			return false;
 		}
 
 		//rewind the file
-		f_lseek(ee_file, 0);
+		f_lseek(&ee_file, 0);
 
 		for (uint16_t i = 0; i < fno.fsize; i += rd)
 		{
 			uint8_t buf[256];
 
-			f_read(ee_file, buf, sizeof(buf), &rd);
+			f_read(&ee_file, buf, sizeof(buf), &rd);
 
 			eeprom_busy_wait();
 			eeprom_update_block(buf, (uint8_t *)(APP_INFO_EE_offset + i), rd);
 		}
 
 		gui_showmessage_P(PSTR("UPDATE.EE\napplied."));
-		delete ee_file;
 		return true;
 	}
 #endif	
@@ -285,19 +306,17 @@ bool StoreEEPROM()
 
 	DEBUG("Storing settings\n");
 
-	if (!storage_selftest())
+	if (!storage_ready())
 	{
 		DEBUG("Error: Storage not available\n");
 		return false;
 	}
 
-	FIL * ee_file;
-	ee_file = new FIL;
+	FIL ee_file;
 
-	if (f_open(ee_file, "CFG.EE", FA_WRITE | FA_CREATE_ALWAYS) != FR_OK)
+	if (f_open(&ee_file, "CFG.EE", FA_WRITE | FA_CREATE_ALWAYS) != FR_OK)
 	{
 		DEBUG("Unable to create file\n");
-		delete ee_file;
 
 		return false;
 	}
@@ -322,16 +341,14 @@ bool StoreEEPROM()
 		eeprom_read_block(buf, (uint8_t *)(APP_INFO_EE_offset + i), wd);
 
 
-		assert(f_write(ee_file, buf, wd, &rwd) == FR_OK);
+		assert(f_write(&ee_file, buf, wd, &rwd) == FR_OK);
 
 		i += wd;
 	} while (i < sizeof(cfg_t));
 
-	f_close(ee_file);
+	f_close(&ee_file);
 	DEBUG("File closed\n");
 
-	delete ee_file;
-#endif	
 	return true;
 }
 
@@ -455,4 +472,124 @@ void mems_power_off()
 #else
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); //ms5611
 #endif
+}
+
+float mul_to_sec(float mul)
+{
+	if (mul == 0)
+		return 1;
+	else
+		return 1.0 / (mul * 100.0);
+}
+
+float sec_to_mul(float sec)
+{
+	if (sec == 0.0)
+		return 1;
+	else
+		return 1.0 / (sec * 100.0);
+}
+
+uint8_t hex_to_num(uint8_t c)
+{
+	if (c >= 'A')
+		return c - 'A' + 10;
+	else
+		return c - '0';
+}
+
+uint32_t pow_ten(uint8_t pow)
+{
+	uint32_t ret = 1;
+	uint8_t i;
+
+	for (i = 0; i < pow; i++)
+		ret *= 10;
+
+	return ret;
+}
+
+
+uint32_t atoi_n(char * str, uint8_t n)
+{
+	uint32_t tmp = 0;
+    uint8_t i;
+
+	for (i=0; i < n; i++)
+	{
+		if (str[i] == ',')
+			return tmp;
+		if (str[i] == '.')
+		{
+			n++;
+			continue;
+		}
+
+		tmp += (uint32_t)(str[i] - '0') * pow_ten(n - i - 1);
+	}
+
+	return tmp;
+}
+
+uint8_t atoi_c(char * str)
+{
+	uint8_t tmp = 0;
+	uint8_t i = 0;
+
+	while(str[i] != ',' && str[i] != '*' && str[i] != 0)
+	{
+		tmp *= 10;
+		tmp += str[i] - '0';
+		i++;
+	}
+
+	return tmp;
+}
+
+float atoi_f(char * str)
+{
+	float tmp = 0;
+	uint8_t dot = 0;
+	uint8_t i = 0;
+
+	while(str[i] != ',')
+	{
+		if (str[i] == '.')
+		{
+			dot = i;
+			i++;
+		}
+
+		if (dot == 0)
+		{
+			tmp *= 10;
+			tmp += str[i] - '0';
+		}
+		else
+		{
+			tmp += (str[i] - '0') / pow(10, i - dot);
+		}
+
+		i++;
+	}
+
+	return tmp;
+}
+
+char * find_comma(char * str)
+{
+	while ((*str) != ',')
+		str++;
+
+	return (str + 1);
+}
+
+uint8_t nmea_checksum(char *s)
+{
+	uint8_t c = 0;
+
+    while(*s)
+        c ^= *s++;
+
+    return c;
 }

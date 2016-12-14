@@ -87,7 +87,7 @@ void lcd_display::SetDrawLayer(uint8_t layer)
  * Set on screen position for next character
  *
  */
-void lcd_display::GotoXY(uint8_t x, uint8_t y)
+void lcd_display::GotoXY(uint8_t x, uint16_t y)
 {
 	text_x = x;
 	text_y = y;
@@ -99,6 +99,9 @@ void lcd_display::GotoXY(uint8_t x, uint8_t y)
  */
 void lcd_display::Write(uint8_t ascii=0)
 {
+	if (text_x >= lcd_width)
+		return;
+
 	if (ascii < font_begin || ascii > font_end)
 	{
 		text_x += font_spacing;
@@ -131,20 +134,20 @@ void lcd_display::Write(uint8_t ascii=0)
 			}
 
 			text_x++;
-			if (text_x >= lcd_width)
-			{
-				text_x = 0;
-				text_y += this->font_height;
-			}
+//			if (text_x >= lcd_width)
+//			{
+//				text_x = 0;
+//				text_y += this->font_height;
+//			}
 		}
 	}
 
 	text_x += font_spacing;
-	if (text_x >= lcd_width)
-	{
-		text_x = 0;
-		text_y += this->font_height;
-	}
+//	if (text_x >= lcd_width)
+//	{
+//		text_x = 0;
+//		text_y += this->font_height;
+//	}
 }
 
 uint8_t lcd_display::GetTextWidth(char * text)
@@ -155,7 +158,7 @@ uint8_t lcd_display::GetTextWidth(char * text)
 	{
 		if (*text < font_begin || *text > font_end)
 		{
-			ret += font_spacing;
+			ret += font_spacing * 2;
 		}
 		else
 		{
@@ -166,6 +169,33 @@ uint8_t lcd_display::GetTextWidth(char * text)
 
 			ret += font_spacing + width;
 		}
+
+		text++;
+	}
+
+	return ret;
+}
+
+uint8_t lcd_display::GetTextWidthN(char * text, uint8_t n)
+{
+	uint8_t ret = 0;
+
+	for (uint8_t i = 0; i < n && *text != 0; i++)
+	{
+		if (*text < font_begin || *text > font_end)
+		{
+			ret += font_spacing * 2;
+		}
+		else
+		{
+			uint16_t adr = 6 + (*text - font_begin) * 2;
+
+			uint16_t start = pgm_read_word(&this->font_data[adr]);
+			uint8_t width = pgm_read_word(&this->font_data[adr + 2]) - start;
+
+			ret += font_spacing + width;
+		}
+
 		text++;
 	}
 
@@ -217,23 +247,15 @@ void lcd_display::sendcommand(unsigned char cmd)
 
 /**
  * Set display to active mode
- *
- * \param i2c Pointer to i2c object
  */
-void lcd_display::Init()
+void lcd_display::Init(Spi * spi)
 {
-#ifndef STM32
-	LCD_SPI_PWR_ON;
+#ifdef STM32
 
-	this->spi = new Spi;
-
-	this->spi->InitMaster(LCD_SPI);
-	this->spi->SetDivider(spi_div_64);
-	this->spi->SetDataOrder(MSB);
-#else
 	SpiInitMaster();
 	LCD_InitPins();
 #endif
+	this->spi = spi;
 
 	CreateSinTable();
 
@@ -290,6 +312,9 @@ void lcd_display::Init()
 void lcd_display::SetContrast(uint8_t val) //0-127
 {
 	sendcommand(0x21); //Extended
+	if (val > 81)
+		val = 81;
+
 	sendcommand(0x80 | val);
 	sendcommand(0x20); //Basic
 }
@@ -312,15 +337,10 @@ void lcd_display::SetFlip(bool flip)
 void lcd_display::Stop()
 {
 #ifndef STM32
-	this->spi->Stop();
-	delete this->spi;
-
 	GpioSetDirection(LCD_RST, INPUT);
 	GpioSetDirection(LCD_DC, INPUT);
 	GpioSetDirection(LCD_CE, INPUT);
 	GpioSetDirection(LCD_VCC, INPUT);
-
-	LCD_SPI_PWR_OFF;
 #else
 	sendcommand(0x24); //lcd powerdown
 	LCD_PinSet(LCD_VDD_PORT, LCD_VDD_PIN, LOW);
@@ -391,9 +411,9 @@ void lcd_display::DrawLine(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint8_t c
  *
  * /param val -
  */
-void lcd_display::PutPixel(uint8_t x ,uint8_t  y ,uint8_t color)
+void lcd_display::PutPixel(uint8_t x ,uint16_t  y ,uint8_t color)
 {
-	if (x >= lcd_width || y >= lcd_height)
+	if (x >= lcd_width || y >= lcd_height )
 		return;
 
 	uint16_t index = ((y / 8) * lcd_width) + (x % lcd_width);
@@ -416,6 +436,7 @@ void lcd_display::InvertPixel(uint8_t x ,uint8_t  y)
 void lcd_display::DrawImage(const uint8_t *data,uint8_t x,uint8_t y)
 {
 	uint8_t cbuf;
+
 	cbuf = pgm_read_byte(&data[0]);
 
 	uint8_t imgwidth = (cbuf+x < lcd_width)?cbuf:lcd_width-x;
@@ -677,6 +698,11 @@ void lcd_display::CopyToLayer(uint8_t dst)
 	memcpy(this->layers[dst], this->active_buffer, (lcd_height / 8) * lcd_width);
 }
 
+uint8_t * lcd_display::GetActiveLayerPtr()
+{
+	return this->active_buffer;
+}
+
 void lcd_display::CopyToLayerPart(uint8_t dst, uint8_t row1, uint8_t col1, uint8_t row2, uint8_t col2)
 {
 	for (uint8_t j=row1;j<row2;j++)
@@ -733,4 +759,10 @@ float lcd_display::get_sin(uint16_t angle)
 	else if (angle < 270)
 		return -this->sin_table[angle - 180];
 	else return -this->sin_table[90 - (angle - 270)];
+}
+
+float lcd_display::get_cos(uint16_t angle)
+{
+	angle += 270;
+	return this->get_sin(angle);
 }

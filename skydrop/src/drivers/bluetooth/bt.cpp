@@ -11,19 +11,26 @@ uint8_t bt_module_type = BT_PAN1322;
 pan1026 bt_pan1026;
 pan1322 bt_pan1322;
 
-Usart bt_uart;
+#define BT_OUTPUT_SIZE	512
+uint8_t bt_output_buffer[BT_OUTPUT_SIZE];
+RingBuffer bt_output(BT_OUTPUT_SIZE, bt_output_buffer);
+
+#define BT_UART_RX_SIZE	128
+#define BT_UART_TX_SIZE	64
+uint8_t bt_uart_rx_buffer[BT_UART_RX_SIZE];
+uint8_t bt_uart_tx_buffer[BT_UART_TX_SIZE];
+Usart bt_uart(BT_UART_RX_SIZE, bt_uart_rx_buffer, BT_UART_TX_SIZE, bt_uart_tx_buffer);
+
+uint32_t bt_reset_counter = 0;
+uint8_t bt_reset_counter_step = 0;
 
 volatile bool bt_device_connected = false;
-
-#define BT_MOD_STATE_OFF	0
-#define BT_MOD_STATE_INIT	1
-#define BT_MOD_STATE_OK		2
 
 volatile uint8_t bt_module_state = BT_MOD_STATE_OFF;
 
 ISR(BT_CTS_PIN_INT)
 {
-//	DEBUG("CTS\n");
+//	DEBUG("BT CTS\n");
 	if (bt_module_type == BT_PAN1322)
 		bt_pan1322.TxResume();
 
@@ -50,7 +57,7 @@ void bt_module_deinit()
 	GpioWrite(BT_EN, LOW);
 	GpioWrite(BT_RESET, LOW);
 
-	bt_irgh(BT_IRQ_DEINIT, 0);
+	bt_irqh(BT_IRQ_DEINIT, 0);
 	bt_uart.Stop();
 	BT_UART_PWR_OFF;
 }
@@ -60,18 +67,18 @@ void bt_module_reset()
 	GpioWrite(BT_EN, LOW);
 	GpioWrite(BT_RESET, LOW);
 
-	_delay_ms(200);
-	GpioWrite(BT_EN, HIGH);
-	_delay_ms(200);
-	GpioWrite(BT_RESET, HIGH);
-	_delay_ms(300);
+	bt_uart.Stop();
+	BT_UART_PWR_OFF;
+
+	//clear output buffer
+	bt_output.Clear();
+
+	bt_reset_counter = task_get_ms_tick() + 4000;
+	bt_reset_counter_step = 0;
 }
 
 void bt_module_init()
 {
-	//enable bt uart
-	BT_UART_PWR_ON;
-
 	//module specific code
 	switch (bt_module_type)
 	{
@@ -100,9 +107,6 @@ void bt_init()
 	eeprom_busy_wait();
 	bt_module_type = eeprom_read_byte(&config_ro.bt_module_type);
 
-	//init bt_uart
-	bt_uart.InitBuffers(BUFFER_SIZE * 2, BUFFER_SIZE);
-
 	//pin init
 	GpioSetDirection(BT_EN, OUTPUT);
 	GpioSetDirection(BT_RESET, OUTPUT);
@@ -117,6 +121,13 @@ void bt_init()
 	GpioSetDirection(BT_CTS, INPUT);
 	GpioSetPull(BT_CTS, gpio_pull_down);
 	GpioSetInterrupt(BT_CTS, gpio_interrupt1, gpio_rising);
+}
+
+void bt_stop()
+{
+	bt_module_deinit();
+
+	GpioSetPull(BT_CTS, gpio_totem);
 }
 
 bool bt_device_active()
@@ -138,6 +149,42 @@ void bt_step()
 	if (bt_module_state == BT_MOD_STATE_OFF)
 		return;
 
+	if (bt_reset_counter)
+	{
+		if (bt_reset_counter > task_get_ms_tick())
+			return;
+
+		DEBUG("BT RESET STEP: %d\n", bt_reset_counter_step);
+
+		switch(bt_reset_counter_step)
+		{
+			case(0):
+				GpioWrite(BT_EN, HIGH);
+				bt_reset_counter = task_get_ms_tick() + 500;
+				bt_reset_counter_step = 1;
+			break;
+
+			case(1):
+				//enable bt uart
+				BT_UART_PWR_ON;
+				bt_uart.Init(BT_UART, 115200);
+				bt_uart.SetInterruptPriority(MEDIUM);
+				bt_uart.SetupRxDMA(BT_UART_DMA_CH, BT_UART_DMA_TRIGGER);
+
+				bt_reset_counter = task_get_ms_tick() + 10;
+				bt_reset_counter_step = 2;
+			break;
+
+			case(2):
+				GpioWrite(BT_RESET, HIGH);
+				bt_reset_counter_step = 0;
+				bt_reset_counter = 0;
+			break;
+		}
+
+		return;
+	}
+
 	if (bt_module_type == BT_PAN1322)
 		bt_pan1322.Step();
 
@@ -148,19 +195,47 @@ void bt_step()
 		bt_unknown_parser();
 }
 
-void bt_send(char * str)
+bool bt_full_warning = true;
+
+void bt_send(uint16_t len, uint8_t * data)
 {
 	if (!bt_device_connected)
 		return;
 
-	if (bt_module_type == BT_PAN1322)
-		bt_pan1322.SendString(str);
+	if (len + bt_output.Length() > bt_output.size)
+	{
+		if (bt_full_warning)
+		{
+			DEBUG("bt output buffer full!\n");
+			bt_full_warning = false;
+		}
+		return;
+	}
 
-	if (bt_module_type == BT_PAN1026)
-		bt_pan1026.SendString(str);
+	bt_full_warning = true;
+	bt_output.Write(len, data);
+
+//	DEBUG("\n--------\n");
+//	DEBUG("WI %d\n", bt_output.write_index);
+//	DEBUG("SI %d\n", bt_output.length);
+//
+//
+//	for (uint16_t i = 0; i < bt_output.Length(); i++)
+//	{
+//		uint16_t index = (i + bt_output.read_index) % bt_output.size;
+//
+//		DEBUG("%02X ", bt_output.buffer[index]);
+//	}
+//	DEBUG("\n--------\n");
 }
 
-void bt_irgh(uint8_t type, uint8_t * buf)
+void bt_send(char * str)
+{
+	uint16_t len = strlen(str);
+	bt_send(len, (uint8_t *)str);
+}
+
+void bt_irqh(uint8_t type, uint8_t * buf)
 {
 	uint8_t old_type;
 
@@ -178,6 +253,7 @@ void bt_irgh(uint8_t type, uint8_t * buf)
 		case(BT_IRQ_DEINIT):
 			DEBUG("BT_MOD_STATE_OFF\n");
 			bt_module_state = BT_MOD_STATE_OFF;
+			bt_device_connected = false;
 		break;
 		case(BT_IRQ_CONNECTED):
 			DEBUG("BT_IRQ_CONNECTED\n");
@@ -188,6 +264,7 @@ void bt_irgh(uint8_t type, uint8_t * buf)
 			DEBUG("BT_IRQ_DISCONNECTED\n");
 			gui_showmessage_P(PSTR("Bluetooth\ndisconnected"));
 			bt_device_connected = false;
+			bt_output.Clear();
 		break;
 		case(BT_IRQ_RESET):
 			DEBUG("BT_IRQ_RESET\n");
@@ -226,7 +303,7 @@ void bt_irgh(uint8_t type, uint8_t * buf)
 	}
 }
 
-bool bt_selftest()
+bool bt_ready()
 {
 	return (bt_module_state == BT_MOD_STATE_OK);
 }

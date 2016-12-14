@@ -7,11 +7,47 @@ void time_set_actual(uint32_t t);
 
 uint8_t monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+#define TIME_FLAG_A		0xABCD
+#define TIME_FLAG_B		0xEF01
+#define TIME_FLAG_B_GPS	0xEF02
+
 #ifndef STM32
+volatile uint16_t unix_time_set_flag_a __attribute__ ((section (".noinit")));
 volatile uint32_t unix_time __attribute__ ((section (".noinit")));
+volatile uint16_t unix_time_set_flag_b __attribute__ ((section (".noinit")));
 #endif
 
 #define LEAP_YEAR(_year) ((_year%4)==0)
+
+#define TIME_MIN_DATE	(1420113600) //1.1.2015 12:00.00
+
+bool time_is_set()
+{
+	if (unix_time_set_flag_a == TIME_FLAG_A && unix_time_set_flag_b == TIME_FLAG_B)
+		return true;
+	else
+		return false;
+}
+
+bool time_need_set()
+{
+	if (unix_time_set_flag_a == TIME_FLAG_A)
+		if (unix_time_set_flag_b == TIME_FLAG_B || unix_time_set_flag_b == TIME_FLAG_B_GPS)
+			return false;
+
+	return true;
+}
+
+void time_wait_for_gps()
+{
+	unix_time_set_flag_a = TIME_FLAG_A;
+	unix_time_set_flag_b = TIME_FLAG_B_GPS;
+}
+
+void time_set_default()
+{
+	unix_time = TIME_MIN_DATE;
+}
 
 uint32_t datetime_to_epoch(uint8_t sec, uint8_t min, uint8_t hour, uint8_t day, uint8_t month, uint16_t year)
 {
@@ -123,8 +159,6 @@ ISR(rtc_overflow_interrupt)
 }
 #endif
 
-#define TIME_MIN_DATE	(1420113600) //1.1.2015 12:00.00
-
 void time_init()
 {
 #ifndef STM32
@@ -132,11 +166,11 @@ void time_init()
 
 	unix_time += 1;
 
-	RtcSetPeriod(3);
-	RtcInit(rtc_1024Hz_tosc, rtc_div256); //f == 32Hz
+	RtcSetPeriod(32767); //do not forget -1 , since 0 count!
+	RtcInit(rtc_32kHz_tosc, rtc_div1); //f == 1024Hz
 	RtcEnableInterrupts(rtc_overflow); //ovf every sec
 
-	if (time_get_actual() < TIME_MIN_DATE)
+	if (time_get_local() < TIME_MIN_DATE)
 		unix_time = TIME_MIN_DATE;
 #else
 	RtcHandle.Instance = RTC;
@@ -148,8 +182,13 @@ void time_init()
 #endif
 }
 
+void time_set_flags()
+{
+	unix_time_set_flag_a = TIME_FLAG_A;
+	unix_time_set_flag_b = TIME_FLAG_B;
+}
 
-void time_set_actual(uint32_t t)
+void time_set_local(uint32_t t)
 {
 #ifndef STM32
 	unix_time = t;
@@ -158,12 +197,22 @@ void time_set_actual(uint32_t t)
 #endif
 }
 
+void time_set_utc(uint32_t t)
+{
+	time_set_local(t + config.system.time_zone * 1800ul);
+}
 
-uint32_t time_get_actual()
+
+uint32_t time_get_local()
 {
 #ifdef STM32
 	uint32_t unix_time;
 	HAL_RTC_GetTimeCounter(&RtcHandle, &unix_time);
 #endif
 	return unix_time;
+}
+
+uint32_t time_get_utc()
+{
+	return unix_time - (config.system.time_zone * 1800ul);
 }

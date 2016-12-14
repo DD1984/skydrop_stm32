@@ -10,13 +10,25 @@
 #include "protocol.h"
 #include "../../drivers/battery.h"
 
-void protocol_lk8ex1_step(char * buffer)
+void protocol_lk8ex1_step()
 {
-	char buff[256];
+	char tmp[83];
 
-	sprintf_P(buff, PSTR("$LK8EX1,%0.0f,99999,%0.0f,%d,%u,"), fc.pressure, (fc.vario * 100.0), fc.temperature, 1000 + (uint16_t)battery_per);
-	sprintf_P(buffer, PSTR("%s*%02X\n"), buff, protocol_nmea_checksum(buff));
+	uint16_t bat;
+
+	if (battery_per == BATTERY_CHARGING)
+		bat = 999;
+	else if (battery_per == BATTERY_FULL)
+		bat = 1100;
+	else
+		bat = 1000 + (uint16_t)battery_per;
+
+	sprintf_P(tmp, PSTR("LK8EX1,%0.0f,99999,%0.0f,%d,%u,"), fc.pressure, (fc.vario * 100.0), fc.temperature / 10, bat);
+	fprintf_P(protocol_tx, PSTR("$%s*%02X\r\n"), tmp, nmea_checksum(tmp));
 
 	//10Hz refresh
 	protocol_set_next_step(100);
+
+	//send the data
+	protocol_tx_flush();
 }

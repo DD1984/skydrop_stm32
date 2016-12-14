@@ -15,8 +15,6 @@
 #include "../../fc/fc.h"
 #include "../pages.h"
 
-
-
 #include "layouts/layouts.h"
 
 struct widget
@@ -56,57 +54,69 @@ struct widget
 		NULL, \
 		NULL, \
 		0, \
-	};
+	}; \
+
 
 extern uint8_t widget_menu_state;
 extern uint8_t widget_menu_param1;
 extern float widget_menu_fvalue1;
 
 #ifndef STM32
-#define WIDGET_OFF			0xFF
-#define WIDGET_EMPTY		0
-#define WIDGET_DEBUG_ETC	1
-#define WIDGET_DEBUG_IMU	2
+#define WIDGET_OFF				0xFF
+#define WIDGET_EMPTY			0
+#define WIDGET_DEBUG_ETC		1
+#define WIDGET_DEBUG_IMU		2
 #include "dummy.h"
 
-#define WIDGET_VARIO		3
-#define WIDGET_AVG_VARIO	4
-#define WIDGET_VARIO_BAR	5
+#define WIDGET_VARIO			3
+#define WIDGET_AVG_VARIO		4
+#define WIDGET_VARIO_BAR		5
+#define WIDGET_VARIO_HISTORY	6
 #include "vario.h"
 
-#define WIDGET_ALT1			6
-#define WIDGET_ALT2			7
-#define WIDGET_ALT3			8
-#define WIDGET_ALT4			9
-#define WIDGET_ALT5			10
+#define WIDGET_ALT1				7
+#define WIDGET_ALT2				8
+#define WIDGET_ALT3				9
+#define WIDGET_ALT4				10
+#define WIDGET_ALT5				11
 #include "altitude.h"
 
-#define WIDGET_ACCX			11
+#define WIDGET_ACC_TOT				12
 #include "acc.h"
 
-#define WIDGET_TIME			12
-#define WIDGET_FTIME		13
+#define WIDGET_TIME				13
+#define WIDGET_DATE				14
+#define WIDGET_FTIME			15
 #include "time.h"
 
-#define WIDGET_TEMPERATURE	14
+#define WIDGET_TEMPERATURE		16
 #include "temperature.h"
 
-#define WIDGET_GHEADING		15
-#define WIDGET_GROUND_SPD	16
-#define WIDGET_POSITION		17
+#define WIDGET_GHEADING			17
+#define WIDGET_GROUND_SPD		18
+#define WIDGET_POSITION			19
+#define WIDGET_GHEADING_ARROW	20
+#define WIDGET_GCOMPASS			21
 #include "gps.h"
 
-#define WIDGET_BATTERY		18
+#define WIDGET_BATTERY			22
 #include "battery.h"
 
-#define WIDGET_GLIDE_RATIO	19
+#define WIDGET_GLIDE_RATIO		23
 #include "flight.h"
 
-#define WIDGET_CTRL_AUDIO	20
-#define WIDGET_CTRL_WLIFT	21
+#define WIDGET_CTRL_AUDIO		24
+#define WIDGET_CTRL_WLIFT		25
 #include "ctrl.h"
 
-#define NUMBER_OF_WIDGETS	22
+#define WIDGET_WIND_SPD			26
+#define WIDGET_WIND_DIR			27
+#define WIDGET_WIND_DIR_ARROW	28
+#include "wind.h"
+
+#define NUMBER_OF_WIDGETS		29
+
+#define NUMBER_OF_SORTED_WIDGETS	27
 
 #else
 
@@ -179,6 +189,11 @@ enum {
 	WIDGET_CTRL_AUDIO,
 	WIDGET_CTRL_WLIFT,
 
+	//wind.h
+	WIDGET_WIND_SPD,
+	WIDGET_WIND_DIR,
+	WIDGET_WIND_DIR_ARROW,
+
 	//
 	WIDGET_END,
 	//
@@ -186,6 +201,10 @@ enum {
 };
 #define NUMBER_OF_WIDGETS	WIDGET_END
 #endif
+
+#define NUMBER_OF_SORTED_WIDGETS	27
+extern const uint8_t PROGMEM widget_sorted[NUMBER_OF_SORTED_WIDGETS];
+uint8_t widget_sorted_get_index(uint8_t pos);
 
 void widgets_draw(uint8_t page);
 
@@ -197,6 +216,8 @@ void widget_value_int_sub(char * value, char * sub, uint8_t x, uint8_t y, uint8_
 
 void widget_value_txt(char * value, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 void widget_value_txt2(char * value1, char * value2, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
+
+void widget_arrow(uint16_t angle, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 
 uint8_t layout_get_number_of_widgets(uint8_t type);
 void layout_get_widget_rect(uint8_t type, uint8_t widget, uint8_t * x, uint8_t * y, uint8_t * w, uint8_t * h);

@@ -36,11 +36,16 @@ void gui_force_loop();
 void gui_trigger_backlight();
 void gui_change_disp_cfg();
 void gui_update_disp_cfg();
+
 void gui_showmessage_P(const char * msg);
 void gui_showmessage(char * msg);
+void gui_forcemessage();
+void gui_hidemessage();
 
 void gui_dialog_P(const char * title);
 void gui_dialog(char * title);
+
+void gui_reset_timeout();
 
 #define GUI_DIALOG_TOP 		13
 #define GUI_DIALOG_LEFT 	2
@@ -54,6 +59,8 @@ void gui_raligh_text(char * text, uint8_t x, uint8_t y);
 
 void gui_caligh_text_P(const char * text, uint8_t x, uint8_t y);
 void gui_caligh_text(char * text, uint8_t x, uint8_t y);
+
+void gui_fit_text(char * in, char * out, uint8_t size);
 
 void gui_statusbar();
 
@@ -85,6 +92,11 @@ void gui_statusbar();
 #define GUI_UPDATE			23
 #define GUI_SET_WEEKLIFT	24
 #define GUI_SET_AUDIO_MENU	25
+#define GUI_TEXT			26
+#define GUI_SET_ADVANCED	27
+#define GUI_SET_CALIB		28
+#define GUI_SET_CALIB_ACC	29
+#define GUI_SET_CALIB_MAG	30
 #endif
 
 enum {
@@ -122,6 +134,12 @@ enum {
 #endif
 	GUI_SET_WEEKLIFT,
 	GUI_SET_AUDIO_MENU,
+	GUI_TEXT
+	GUI_SET_ADVANCED
+	GUI_SET_CALIB
+	GUI_SET_CALIB_ACC
+	GUI_SET_CALIB_MAG
+
 	//***
 	GUI_END,
 	//***

@@ -20,6 +20,9 @@
 #include <xlib/core/dac.h>
 #include <xlib/core/i2c.h>
 
+#include <xlib/ring.h>
+#include <xlib/stream.h>
+
 #else
 
 #include <stdio.h>
@@ -71,6 +74,7 @@ inline void system_power_save(void)
 #include "build_number.h"
 #include "debug.h"
 
+
 union byte8
 {
 	uint64_t uint64;
@@ -100,6 +104,13 @@ struct vector_i16_t
 	int16_t z;
 };
 
+struct vector_i32_t
+{
+	int32_t x;
+	int32_t y;
+	int32_t z;
+};
+
 struct vector_float_t
 {
 	float x;
@@ -127,6 +138,12 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define USB_PWR_OFF				PR.PRGEN |= 0b01000000;
 #define RTC_PWR_ON				PR.PRGEN &= 0b11111011;
 #define RTC_PWR_OFF				PR.PRGEN |= 0b00000100;
+
+#define DMA_PWR_ON   			PR.PRGEN &= 0b11111110; \
+								DMA.CTRL |= DMA_ENABLE_bm;
+
+#define DMA_PWR_OFF   			DMA.CTRL &= ~DMA_ENABLE_bm; \
+								PR.PRGEN |= 0b00000001;
 
 //---------------- PORTA ---------------------
 #define GPS_EN					porta0
@@ -179,7 +196,7 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define BT_CTS_PIN_INT			portb_interrupt1
 
 //suppress and allow uart communication from bt module
-#define BT_SUPRESS_TX			GpioWrite(BT_RTS, HIGH);
+#define BT_SUPRESS_TX			GpioWrite(BT_RTS, bt_module_state != BT_MOD_STATE_OFF);
 #define BT_ALLOW_TX				GpioWrite(BT_RTS, LOW);
 
 #define DAC_PWR_ON				PR.PRPB &= 0b11111011;
@@ -194,6 +211,9 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define LCD_DIN					portc5
 #define CHARGING				portc6
 #define LCD_CLK					portc7
+
+#define BAT_CHARGING			(GpioRead(CHARGING) == LOW)
+#define BAT_FULL				(GpioRead(CHARGING) == HIGH)
 
 #define DEBUG_UART				usartc0
 #define DEBUG_UART_PWR_ON		PR.PRPC &= 0b11101111;
@@ -212,13 +232,11 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define FC_MEAS_TIMER_PWR_OFF	PR.PRPC |= 0b00000001
 #define FC_MEAS_TIMER_PWR_ON	PR.PRPC &= 0b11111110
 
-
 #define TASK_TIMER				timerc1
 #define TASK_TIMER_OVF			timerc1_overflow_interrupt
+#define TASK_TIMER_CMPA			timerc1_compareA_interrupt
 #define TASK_TIMER_PWR_OFF		PR.PRPC |= 0b00000010
 #define TASK_TIMER_PWR_ON		PR.PRPC &= 0b11111101
-
-
 
 //---------------- PORTD ---------------------
 #define LCD_VCC					portd0
@@ -233,6 +251,8 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define BT_UART					usartd0
 #define BT_UART_PWR_ON			PR.PRPD &= 0b11101111;
 #define BT_UART_PWR_OFF			PR.PRPD |= 0b00010000;
+#define BT_UART_DMA_CH			&DMA.CH1
+#define BT_UART_DMA_TRIGGER		DMA_CH_TRIGSRC_USARTD0_RXC_gc
 
 //XXX: timerd0 should left unused so user can generate pwm.
 #define DEBUG_TIMER				timerd0
@@ -262,6 +282,8 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define GPS_UART				usarte0
 #define GPS_UART_PWR_ON			PR.PRPE &= 0b11101111;
 #define GPS_UART_PWR_OFF		PR.PRPE |= 0b00010000;
+#define GPS_UART_DMA_CH			&DMA.CH0
+#define GPS_UART_DMA_TRIGGER	DMA_CH_TRIGSRC_USARTE0_RXC_gc
 
 #define AUDIO_TIMER				timere0
 #define AUDIO_TIMER_OVF			timere0_overflow_interrupt
@@ -334,6 +356,7 @@ inline uint8_t usb_connected(void)
 //revision specific pins
 #define HW_REW_1504		0
 #define HW_REW_1506		1
+#define HW_REW_1512		2
 #define HW_REW_UNKNOWN	0xFF
 
 #define REV_1504_MEMS_EN_2		portb1
@@ -354,7 +377,7 @@ public:
 	uint16_t write_index;
 	uint16_t read_index;
 
-	DataBuffer(uint16_t size);
+	DataBuffer(uint16_t size, uint8_t * buffer);
 	~DataBuffer();
 
 	uint16_t Read(uint16_t len, uint8_t * * data);
@@ -375,12 +398,27 @@ bool cmpn(char * s1, const char * s2, uint8_t n);
 bool cmpn_p(char * s1, const char * s2, uint8_t n);
 uint8_t fast_flip(uint8_t in);
 
+float mul_to_sec(float mul);
+float sec_to_mul(float sec);
+uint8_t hex_to_num(uint8_t c);
+
+uint32_t pow_ten(uint8_t pow);
+
+uint32_t atoi_n(char * str, uint8_t n);
+uint8_t atoi_c(char * str);
+float atoi_f(char * str);
+
+char * find_comma(char * str);
+uint8_t nmea_checksum(char *s);
+
+
 //settings
 bool LoadEEPROM();
 bool StoreEEPROM();
 
 //system info
 void print_fw_info();
+void print_reset_reason();
 extern uint8_t hw_revision;
 extern uint8_t device_id[11];
 void GetID(); //11 b

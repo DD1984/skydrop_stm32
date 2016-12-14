@@ -16,12 +16,15 @@
 #include "../../common.h"
 #include "../../drivers/storage/storage.h"
 
-extern FIL * log_fil;
+extern FIL log_file;
 extern uint8_t logger_flight_number;
 
 void logger_init();
 void logger_step();
 void logger_start();
 void logger_stop();
+void logger_comment(char * text);
+bool logger_active();
+bool logger_error();
 
 #endif /* LOGGER_H_ */

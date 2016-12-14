@@ -24,8 +24,8 @@ void gui_list_draw()
 	uint8_t t_h = disp.GetTextHeight();
 
 	int16_t y = gui_list_y_offset;
-	uint8_t height;
-	uint8_t total_height = 0;
+	int8_t height;
+	int16_t total_height = 0;
 	uint8_t sub_height;
 
 	//emulate middle click
@@ -36,7 +36,6 @@ void gui_list_draw()
 			gui_switch_task(gui_list_back);
 			if (config.gui.menu_audio_flags & CFG_AUDIO_MENU_BUTTONS && gui_buttons_override == false)
 				seq_start(&snd_menu_exit, config.gui.menu_volume);
-
 		}
 	}
 	else
@@ -44,7 +43,7 @@ void gui_list_draw()
 
 	for (uint8_t i = 0; i < gui_list_size; i++)
 	{
-		height = 1+ t_h;
+		height = 1 + t_h;
 
 		flags = 0;
 		if (i < gui_list_size - 1)
@@ -70,8 +69,6 @@ void gui_list_draw()
 			break;
 		}
 
-		height += ((disp.GetTextWidth(tmp_text) + x_val) / GUI_DISP_WIDTH) * t_h;
-
 		if ((flags & GUI_LIST_T_MASK) == GUI_LIST_SUB_TEXT)
 		{
 			sub_height = disp.GetTextHeight();
@@ -85,8 +82,10 @@ void gui_list_draw()
 
 			if (y > GUI_DISP_HEIGHT - height)
 				gui_list_y_offset = -total_height + GUI_DISP_HEIGHT - height;
-
 		}
+
+		if (y > GUI_DISP_HEIGHT)
+			continue;
 
 		disp.GotoXY(x_val, y + 1);
 		fprintf_P(lcd_out, PSTR("%s"), tmp_text);

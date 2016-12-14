@@ -2,6 +2,7 @@
 
 #include "../drivers/audio/sequencer.h"
 #include "../drivers/bluetooth/bt.h"
+#include "gui_storage.h"
 
 #include "widgets/widgets.h"
 
@@ -31,6 +32,11 @@
 #include "update.h"
 #include "settings/set_weaklift.h"
 #include "settings/set_menu_audio.h"
+#include "gui_text.h"
+#include "settings/set_advanced.h"
+#include "settings/set_calib.h"
+#include "gui_accel_calib.h"
+#include "gui_mag_calib.h"
 
 
 lcd_display disp;
@@ -47,6 +53,10 @@ void lcd_write(uint8_t ch)
 
 volatile uint8_t gui_task = GUI_NONE;
 volatile uint8_t gui_new_task = GUI_SPLASH;
+
+#ifndef STM32
+Spi gui_disp_spi;
+#endif
 
 void (* gui_init_array[])() = {
 	gui_pages_init,
@@ -82,7 +92,12 @@ void (* gui_init_array[])() = {
 	gui_update_init,
 #endif
 	gui_set_weaklift_init,
-	gui_set_menu_audio_init
+	gui_set_menu_audio_init,
+	gui_text_init,
+	gui_set_advanced_init,
+	gui_set_calib_init,
+	gui_accelerometer_calib_init,
+	gui_mag_calib_init
 };
 
 void (* gui_stop_array[])() = {
@@ -119,7 +134,12 @@ void (* gui_stop_array[])() = {
 	gui_update_stop,
 #endif
 	gui_set_weaklift_stop,
-	gui_set_menu_audio_stop
+	gui_set_menu_audio_stop,
+	gui_text_stop,
+	gui_set_advanced_stop,
+	gui_set_calib_stop,
+	gui_accelerometer_calib_stop,
+	gui_mag_calib_stop
 };
 
 void (* gui_loop_array[])() = {
@@ -156,7 +176,12 @@ void (* gui_loop_array[])() = {
 	gui_update_loop,
 #endif
 	gui_set_weaklift_loop,
-	gui_set_menu_audio_loop
+	gui_set_menu_audio_loop,
+	gui_text_loop,
+	gui_set_advanced_loop,
+	gui_set_calib_loop,
+	gui_accelerometer_calib_loop,
+	gui_mag_calib_loop
 };
 
 void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
@@ -193,7 +218,12 @@ void (* gui_irqh_array[])(uint8_t type, uint8_t * buff) = {
 	gui_update_irqh,
 #endif
 	gui_set_weaklift_irqh,
-	gui_set_menu_audio_irqh
+	gui_set_menu_audio_irqh,
+	gui_text_irqh,
+	gui_set_advanced_irqh,
+	gui_set_calib_irqh,
+	gui_accelerometer_calib_irqh,
+	gui_mag_calib_irqh
 };
 
 #define GUI_ANIM_STEPS	20
@@ -209,6 +239,10 @@ void gui_switch_task(uint8_t new_task)
 	gui_new_task = new_task;
 }
 
+void gui_reset_timeout()
+{
+	gui_idle_timer = task_get_ms_tick();
+}
 
 uint32_t lcd_brightness_end = 0;
 
@@ -239,12 +273,14 @@ void gui_change_disp_cfg()
 
 char gui_message_line1[20];
 char gui_message_line2[20];
+char gui_message_line3[20];
 uint32_t gui_message_end = 0;
 #define MESSAGE_DURATION	5
+#define MESSAGE_FORCE_ON		0xFFFFFFFF
 
 void gui_showmessage_P(const char * msg)
 {
-	char tmp[40];
+	char tmp[63];
 	strcpy_P(tmp, msg);
 	gui_showmessage(tmp);
 }
@@ -256,14 +292,36 @@ void gui_showmessage(char * msg)
 	{
 		memcpy(gui_message_line1, msg, ptr - msg + 1);
 		gui_message_line1[ptr - msg] = 0;
-		strcpy(gui_message_line2, ptr + 1);
+		msg = ptr + 1;
+		if ((ptr = strchr(msg, '\n')) != NULL)
+		{
+			memcpy(gui_message_line2, msg, ptr - msg + 1);
+			gui_message_line2[ptr - msg] = 0;
+			strcpy(gui_message_line3, ptr + 1);
+		}
+		else
+		{
+			strcpy(gui_message_line2, msg);
+			gui_message_line3[0] = 0;
+		}
 	}
 	else
 	{
 		strcpy(gui_message_line1, msg);
 		gui_message_line2[0] = 0;
+		gui_message_line3[0] = 0;
 	}
 	gui_message_end = task_get_ms_tick() + MESSAGE_DURATION * 1000ul;
+}
+
+void gui_forcemessage()
+{
+	gui_message_end = MESSAGE_FORCE_ON;
+}
+
+void gui_hidemessage()
+{
+	gui_message_end = 0;
 }
 
 void gui_raligh_text_P(const char * text, uint8_t x, uint8_t y)
@@ -275,7 +333,10 @@ void gui_raligh_text_P(const char * text, uint8_t x, uint8_t y)
 
 void gui_raligh_text(char * text, uint8_t x, uint8_t y)
 {
-	disp.GotoXY(x - disp.GetTextWidth(text), y);
+	if (x >= disp.GetTextWidth(text))
+		disp.GotoXY(x - disp.GetTextWidth(text), y);
+	else
+		disp.GotoXY(0, y);
 	fprintf_P(lcd_out, PSTR("%s"), text);
 }
 
@@ -292,14 +353,51 @@ void gui_caligh_text(char * text, uint8_t x, uint8_t y)
 	fprintf_P(lcd_out, PSTR("%s"), text);
 }
 
+void gui_fit_text(char * in, char * out, uint8_t size)
+{
+	uint8_t width = disp.GetTextWidth(in);
+
+	if (width <= size)
+	{
+		strcpy(out, in);
+		return;
+	}
+
+	char tmp[4];
+
+	tmp[0] = '.';
+	tmp[1] = '.';
+	tmp[2] = '.';
+	tmp[3] = 0;
+
+	uint8_t tmp_len = disp.GetTextWidth(tmp);
+	uint8_t len = strlen(in);
+	uint8_t i = len - 1;
+
+	while ((width + tmp_len) - disp.GetTextWidth(in + i) > size)
+	{
+		i--;
+	}
+
+	memcpy(out, in, i);
+	strcpy(out + i, tmp);
+}
 
 void gui_init()
 {
-	disp.Init();
+	LCD_SPI_PWR_ON;
 #ifdef STM32
 	extern FILE *lcd_out;
 	lcd_out = fopen("lcd", "w+");
 	setvbuf(lcd_out, NULL, _IONBF, 0);
+	disp.Init();
+#else
+
+	gui_disp_spi.InitMaster(LCD_SPI);
+	gui_disp_spi.SetDivider(spi_div_64);
+	gui_disp_spi.SetDataOrder(MSB);
+
+	disp.Init(&gui_disp_spi);
 #endif
 	gui_load_eeprom();
 	gui_idle_timer = task_get_ms_tick();
@@ -326,9 +424,9 @@ void gui_load_eeprom()
 	if (lcd_contrast_max == 0xFF)
 		lcd_contrast_max = 127;
 
-	DEBUG("lcd_contrast_min %d\n", lcd_contrast_min);
-	DEBUG("lcd_contrast_max %d\n", lcd_contrast_max);
-	DEBUG("lcd_contrast %d\n", config.gui.contrast);
+//	DEBUG("lcd_contrast_min %d\n", lcd_contrast_min);
+//	DEBUG("lcd_contrast_max %d\n", lcd_contrast_max);
+//	DEBUG("lcd_contrast %d\n", config.gui.contrast);
 
 	if (config.gui.disp_flags == 0xFF)
 		config.gui.disp_flags = CFG_DISP_ANIM;
@@ -341,11 +439,17 @@ void gui_load_eeprom()
 void gui_stop()
 {
 	disp.Stop();
+#ifndef STM32
+	gui_disp_spi.Stop();
+#endif
+	LCD_SPI_PWR_OFF;
 }
 
 uint8_t fps_counter = 0;
 uint8_t fps_val = 0;
 uint32_t fps_timer = 0;
+
+uint16_t gui_record_cnt;
 
 uint32_t gui_loop_timer = 0;
 
@@ -378,13 +482,13 @@ void gui_update_disp_cfg()
 		//need to be outside of IRQ
 		lcd_new_cfg = false;
 
-		DEBUG(" ** gui_update_disp_cfg **\n");
-		DEBUG("lcd_contrast %d\n", config.gui.contrast);
+//		DEBUG(" ** gui_update_disp_cfg **\n");
+//		DEBUG("lcd_contrast %d\n", config.gui.contrast);
 
 
 		uint8_t new_contrast = lcd_contrast_min + ((lcd_contrast_max - lcd_contrast_min) * config.gui.contrast) / GUI_CONTRAST_STEPS;
 
-		DEBUG("new_contrast %d\n", new_contrast);
+//		DEBUG("new_contrast %d\n", new_contrast);
 
 		disp.SetContrast(new_contrast);
 		disp.SetInvert(config.gui.disp_flags & CFG_DISP_INVERT);
@@ -399,7 +503,8 @@ void gui_loop()
 	if (gui_loop_timer > task_get_ms_tick())
 		return;
 
-	gui_loop_timer = (uint32_t)task_get_ms_tick() + (uint32_t)50; //20 fps
+//	gui_loop_timer = (uint32_t)task_get_ms_tick() + (uint32_t)50; //20 fps
+	gui_loop_timer = (uint32_t)task_get_ms_tick() + (uint32_t)33; //30 fps
 
 	gui_update_disp_cfg();
 
@@ -407,11 +512,18 @@ void gui_loop()
 	if (actual_task == TASK_ACTIVE)
 	{
 		//return to main gui task, except for GPS detail page, dialog or splash
-#ifdef GPS_SUPPORT		
-		if (gui_task != GUI_PAGES && gui_task != GUI_SET_GPS_DETAIL && gui_task != GUI_DIALOG && gui_task != GUI_SPLASH)
-#else		
-		if (gui_task != GUI_PAGES && gui_task != GUI_DIALOG && gui_task != GUI_SPLASH)
-#endif		
+		if (gui_task != GUI_PAGES
+				&& gui_task != GUI_SET_GPS_DETAIL
+				&& gui_task != GUI_DIALOG
+				&& gui_task != GUI_SPLASH
+				&& gui_task != GUI_FTEST
+				&& gui_task != GUI_SET_VAL
+				&& gui_task != GUI_UPDATE
+				&& gui_task != GUI_TEXT
+				&& gui_task != GUI_SET_CALIB
+				&& gui_task != GUI_SET_CALIB_ACC
+				&& gui_task != GUI_SET_CALIB_MAG
+				)
 		{
 			if (task_get_ms_tick() - gui_idle_timer > GUI_IDLE_RETURN)
 				gui_switch_task(GUI_PAGES);
@@ -420,7 +532,8 @@ void gui_loop()
 		//no activity for a long time -> power off
 		if (gui_task == GUI_PAGES)
 		{
-			if (fc.flight_state != FLIGHT_FLIGHT && config.system.auto_power_off > 0)
+			//Power off if not in flight, auto power off is enabled and bluetooth device is not connected
+			if (fc.flight_state != FLIGHT_FLIGHT && config.system.auto_power_off > 0 && !bt_device_active())
 			{
 				if (task_get_ms_tick() - gui_idle_timer > (uint32_t)config.system.auto_power_off * 60ul * 1000ul)
 				{
@@ -444,6 +557,7 @@ void gui_loop()
 
 	gui_loop_array[gui_task]();
 
+	//display message pop-up
 	if (gui_message_end > task_get_ms_tick())
 	{
 		disp.LoadFont(F_TEXT_M);
@@ -458,6 +572,14 @@ void gui_loop()
 			h += disp.GetTextHeight();
 		}
 
+		if (gui_message_line3[0] != 0)
+		{
+			uint8_t tmp = disp.GetTextWidth(gui_message_line3);
+			if (tmp > w)
+				w = tmp;
+			h += disp.GetTextHeight();
+		}
+
 		uint8_t x = GUI_DISP_WIDTH / 2 - w / 2;
 		uint8_t y = GUI_DISP_HEIGHT / 2 - h / 2;
 
@@ -466,9 +588,9 @@ void gui_loop()
 
 		disp.DrawLine(x - pad,			y - 2 - pad, 		x + w + pad, 		y - 2 - pad, 		1);
 		disp.DrawLine(x - pad, 			y + h + 1 + pad, 	x + w + pad, 		y + h + 1 + pad, 	1);
-
 		disp.DrawLine(x - 1 - pad, 		y - 1 - pad, 		x - 1 - pad, 		y + h + pad, 	1);
 		disp.DrawLine(x + w + 1 + pad, 	y - 1 - pad, 		x + w + 1 + pad, 	y + h + pad, 	1);
+
 		disp.GotoXY(x, y);
 		fprintf_P(lcd_out, PSTR("%s"), gui_message_line1);
 
@@ -476,6 +598,12 @@ void gui_loop()
 		{
 			disp.GotoXY(x, y + disp.GetTextHeight());
 			fprintf_P(lcd_out, PSTR("%s"), gui_message_line2);
+		}
+
+		if (gui_message_line3[0] != 0)
+		{
+			disp.GotoXY(x, y + disp.GetTextHeight() * 2);
+			fprintf_P(lcd_out, PSTR("%s"), gui_message_line3);
 		}
 	}
 
@@ -498,12 +626,36 @@ void gui_loop()
 	// FPS end
 	disp.Draw();
 
+	if (config.system.record_screen && storage_ready())
+	{
+		FIL fimg;
+		uint16_t wb;
+		char fname[32];
+
+		sprintf_P(fname, PSTR("/REC/%08d"), gui_record_cnt);
+
+		uint8_t res = f_open(&fimg, fname, FA_WRITE | FA_CREATE_ALWAYS);
+		DEBUG("rec = %02X\n", res);
+
+		if (res == FR_OK)
+		{
+			f_write(&fimg, disp.GetActiveLayerPtr(), lcb_layer_size, &wb);
+			f_close(&fimg);
+
+			gui_record_cnt++;
+		}
+	}
+
+
 	if (gui_task != GUI_SPLASH)
+	{
 		if (buttons_read(B_LEFT) || buttons_read(B_RIGHT) || buttons_read(B_MIDDLE))
 		{
 			gui_trigger_backlight();
-			gui_idle_timer = task_get_ms_tick();
+			gui_reset_timeout();
 		}
+	}
+
 #ifdef LED_SUPPORT
 	if (lcd_brightness_end < task_get_ms_tick())
 		lcd_bckl(0);
@@ -512,21 +664,8 @@ void gui_loop()
 
 void gui_force_loop()
 {
-	disp.ClearBuffer();
-
-	gui_update_disp_cfg();
-
-	if (gui_new_task != gui_task)
-	{
-		if (gui_task != GUI_NONE)
-			gui_stop_array[gui_task]();
-		gui_task = gui_new_task;
-		gui_init_array[gui_task]();
-	}
-
-	gui_loop_array[gui_task]();
-
-	disp.Draw();
+	gui_loop_timer = 0;
+	gui_loop();
 }
 
 void gui_irqh(uint8_t type, uint8_t * buff)
@@ -544,7 +683,8 @@ void gui_irqh(uint8_t type, uint8_t * buff)
 		if (gui_message_end > task_get_ms_tick())
 		{
 			if (type == B_MIDDLE && (*buff == BE_CLICK || *buff == BE_LONG))
-				gui_message_end = 0;
+				if (gui_message_end != MESSAGE_FORCE_ON)
+					gui_hidemessage();
 
 			return;
 		}
@@ -552,10 +692,13 @@ void gui_irqh(uint8_t type, uint8_t * buff)
 
 	switch(type)
 	{
+		case(TASK_IRQ_MOUNT_ERROR):
+			gui_storage_mount_error();
+		break;
 
-	default:
-		if (gui_task != GUI_NONE)
-			gui_irqh_array[gui_task](type, buff);
+		default:
+			if (gui_task != GUI_NONE)
+				gui_irqh_array[gui_task](type, buff);
 	}
 }
 
@@ -583,13 +726,13 @@ void gui_statusbar()
 
 #ifdef BT_SUPPORT
 	//BT indicator
-	if (config.connectivity.use_bt)
+	if (bt_ready())
 	{
 		char tmp[3];
 		disp.LoadFont(F_TEXT_S);
 		sprintf_P(tmp, PSTR("B"));
 
-		if(bt_device_active())
+		if (bt_device_active())
 		{
 			gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 9);
 		}
@@ -602,21 +745,54 @@ void gui_statusbar()
 #endif
 
 	//LOG indicator
-	if (fc.logger_state == LOGGER_ACTIVE)
+	if (fc.logger_state != LOGGER_IDLE)
 	{
 		char tmp[3];
 		disp.LoadFont(F_TEXT_S);
-		sprintf_P(tmp, PSTR("L"));
 
-		gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 17);
+		if (fc.logger_state == LOGGER_ACTIVE)
+		{
+			sprintf_P(tmp, PSTR("L"));
+			gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 17);
+		}
+		else if (fc.logger_state == LOGGER_WAIT_FOR_GPS)
+		{
+			sprintf_P(tmp, PSTR("L"));
+			if (GUI_BLINK_TGL(1000))
+				gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 17);
+		}
+		else if (fc.logger_state == LOGGER_ERROR)
+		{
+			sprintf_P(tmp, PSTR("E"));
+			if (GUI_BLINK_TGL(500))
+				gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 17);
+		}
+	}
+
+	//Debug.log indicator
+	if (config.system.debug_log == DEBUG_MAGIC_ON)
+	{
+		char tmp[3];
+		disp.LoadFont(F_TEXT_S);
+		sprintf_P(tmp, PSTR("D"));
+
+		gui_raligh_text(tmp, GUI_DISP_WIDTH - 1, 25);
 	}
 
 	//battery indicator
 	uint8_t a = battery_per / 10;
 
+	if (battery_per == BATTERY_CHARGING)
+	{
+		a = 1 + (task_get_ms_tick() % 2000) / 200;
+	}
+
+	if (battery_per == BATTERY_FULL)
+		a = 10;
+
 	disp.DrawLine(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 13, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 13, 1);
 	disp.DrawRectangle(GUI_DISP_WIDTH - 6, GUI_DISP_HEIGHT - 12, GUI_DISP_WIDTH - 1, GUI_DISP_HEIGHT - 1, 1, 0);
-
+#if 0
 	if (battery_vbus) {
 		disp.LoadFont(F_TEXT_S);
 		if (!battery_charge_stat) {
@@ -629,5 +805,6 @@ void gui_statusbar()
 	else {
 		disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
 	}
-
+#endif
+	disp.DrawRectangle(GUI_DISP_WIDTH - 5, GUI_DISP_HEIGHT - 1 - a, GUI_DISP_WIDTH - 2, GUI_DISP_HEIGHT - 1, 1, 1);
 }

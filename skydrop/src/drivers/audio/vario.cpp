@@ -18,6 +18,9 @@ volatile uint16_t audio_vario_pause;
 volatile uint16_t audio_vario_length;
 volatile float audio_vario_freq = 0;
 
+int16_t vario_ivario_old = 0;
+bool vario_force_change = false;
+
 #ifndef STM32
 extern Timer audio_timer;
 #else
@@ -157,6 +160,8 @@ void audio_vario_apply()
 		break;
 
 		case(VARIO_PAUSE):
+			if (vario_force_change)
+				audio_vario_mode = VARIO_OFF;
 		break;
 
 		case(VARIO_CONT):
@@ -183,9 +188,10 @@ void audio_vario_apply()
 	}
 }
 
+
 void audio_vario_step(float vario)
 {
-	if (config.gui.vario_mute)
+	if (config.gui.vario_mute || config.gui.silent & (1 << active_page))
 	{
 		audio_off();
 		return;
@@ -193,6 +199,9 @@ void audio_vario_step(float vario)
 
 	//climb is float in m/s
 	int16_t ivario = vario * 100;
+
+	vario_force_change = (abs(ivario - vario_ivario_old) >= 10) ? true: false;
+	vario_ivario_old = ivario;
 
 	//buzzer
 	if (config.vario.weak_lift_enabled)
@@ -207,7 +216,7 @@ void audio_vario_step(float vario)
 			int16_t beep_freq = get_near(config.audio_profile.lift / 100.0, config.audio_profile.freq);
 			beep_freq -= config.audio_profile.weak_lift_freq;
 
-			freq = config.audio_profile.weak_lift_freq + (beep_freq * (ivario - buzz_thold)) / config.vario.weak_lift;
+			freq = config.audio_profile.weak_lift_freq + ((int32_t)beep_freq * (int32_t)(ivario - buzz_thold)) / (int32_t)config.vario.weak_lift;
 
 			if (audio_vario_freq != 0)
 				audio_vario_freq += ((float)freq - audio_vario_freq) / AUDIO_LOW_PASS;
@@ -225,7 +234,6 @@ void audio_vario_step(float vario)
 	if ((ivario >= config.audio_profile.lift || ivario <= config.audio_profile.sink) && (config.gui.vario_volume > 0))
 	{
 		//get frequency from the table
-
 		uint16_t freq = get_near(vario, config.audio_profile.freq);
 		if (audio_vario_freq != 0)
 			audio_vario_freq += ((float)freq - audio_vario_freq) / AUDIO_LOW_PASS;
@@ -252,5 +260,5 @@ void audio_vario_reset()
 	audio_vario_freq = 0;
 	//next vario sound will go from OFF state
 	audio_vario_mode = VARIO_OFF;
-}
 
+}

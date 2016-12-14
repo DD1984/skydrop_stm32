@@ -16,7 +16,7 @@ char igc_i2c(uint8_t n)
 	return 'A' + n;
 }
 
-void igc_writeline(char * line)
+void igc_writeline(char * line, bool sign = true)
 {
 	uint8_t l = strlen(line);
 	unsigned int wl;
@@ -26,12 +26,15 @@ void igc_writeline(char * line)
 	strcpy_P(line + l, PSTR("\r\n"));
 	l += 2;
 
-	assert(f_write(log_fil, line, l, &wl) == FR_OK);
+	assert(f_write(&log_file, line, l, &wl) == FR_OK);
 	assert(wl == l);
-	assert(f_sync(log_fil) == FR_OK);
+	assert(f_sync(&log_file) == FR_OK);
 
-	for (uint8_t i = 0; i < l; i++)
-		sha256.write(line[i]);
+#ifndef IGC_NO_PRIVATE_KEY
+	if (sign)
+		for (uint8_t i = 0; i < l; i++)
+			sha256.write(line[i]);
+#endif
 }
 
 IGC_PRIVATE_KEY_BODY
@@ -56,18 +59,17 @@ bool igc_start(char * path)
 	IGC_PRIVATE_KEY_ADD;
 
 #ifdef GPS_SUPPORT
-	datetime_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour, &day, &wday, &month, &year);
+	datetime_from_epoch(time_get_utc(), &sec, &min, &hour, &day, &wday, &month, &year);
 #endif
-
 	//XXX
 	#define device_uid "DRP"
 
 	sprintf_P(filename, PSTR("/%s/%02d-%02d%02d.IGC"), path, logger_flight_number, hour, min);
 	DEBUG("IGC filename %s\n", filename);
 
-	uint8_t res = f_open(log_fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
+	uint8_t res = f_open(&log_file, filename, FA_WRITE | FA_CREATE_ALWAYS);
 	assert(res == FR_OK);
-	DEBUG("res == %02X\n", res);
+	DEBUG("f_open res = %02X\n", res);
 
 	//cannot create file
 	if (res != FR_OK)
@@ -82,20 +84,23 @@ bool igc_start(char * path)
 	//H F DTE
 	sprintf_P(line, PSTR("HFDTE%02u%02u%02u"), day, month, year % 100);
 	igc_writeline(line);
-	//H F DTE
-	sprintf_P(line, PSTR("HFDTEDATE:%02u%02u%02u,%02u"), day, month, year  % 100, logger_flight_number);
-	igc_writeline(line);
-	//H F PLT PILOT IN CHARGE XXX
-	sprintf_P(line, PSTR("HFPLTPILOTINCHARGE:"));
+//	//H F DTE
+//	sprintf_P(line, PSTR("HFDTEDATE:%02u%02u%02u,%02u"), day, month, year  % 100, logger_flight_number);
+//	igc_writeline(line);
+	//H F PLT PILOT IN CHARGE
+	sprintf_P(line, PSTR("HFPLTPILOTINCHARGE: %s"), config.logger.pilot);
 	igc_writeline(line);
 	//H F CM2 CREW 2
 	sprintf_P(line, PSTR("HFCM2CREW2:"));
 	igc_writeline(line);
-	//H F GTY GLIDER TYPE XXX
-	sprintf_P(line, PSTR("HFGTYFLIDERTYPE:"));
+	//H F GTY GLIDER TYPE
+	sprintf_P(line, PSTR("HFGTYGLIDERTYPE: %s"), config.logger.glider_type);
 	igc_writeline(line);
-	//H F GID GLIDER ID XXX
-	sprintf_P(line, PSTR("HFGIDGLIDERID:"));
+	//H F GID GLIDER ID
+	sprintf_P(line, PSTR("HFGIDGLIDERID: %s"), config.logger.glider_id);
+	igc_writeline(line);
+	//H F DTM GPS DATUM
+	sprintf_P(line, PSTR("HFDTMGPSDATUM:WGS84"));
 	igc_writeline(line);
 	//H F RFW FIRMWARE VERSION
 	sprintf_P(line, PSTR("HFRFWFIRMWAREVERSION:build %d"), BUILD_NUMBER);
@@ -112,85 +117,34 @@ bool igc_start(char * path)
 	//H F PRS PRESS ALT SENSOR
 	sprintf_P(line, PSTR("HFPRSPRESSALTSENSOR:Measurement specialties,MS5611,25907m"));
 	igc_writeline(line);
-	//H F FSP
-	sprintf_P(line, PSTR("HFFSP:AL4"));
-	igc_writeline(line);
-	//H F ALG GEO
-	sprintf_P(line, PSTR("HFALGGEO"));
+	//H F ALG ALT GPS
+	sprintf_P(line, PSTR("HFALGALTGPS:GEO"));
 	igc_writeline(line);
 	//H F ALP
-	sprintf_P(line, PSTR("HFALPISA"));
+	sprintf_P(line, PSTR("HFALPALTPRESSURE:ISA"));
 	igc_writeline(line);
 
 #ifdef IGC_NO_PRIVATE_KEY
-	// Developer note: we cann't publish the private key for signing the IGC file
+	//Developer note: we can't publish the private key for signing the IGC file
 
 	//H F FRS
 	sprintf_P(line, PSTR("HFFRSSECSUSPECTUSEVALIPROG:This file is not valid. Private key not available!"));
 	igc_writeline(line);
 #endif
 
-	return true;
+	return (fc.gps_data.valid) ? LOGGER_ACTIVE : LOGGER_WAIT_FOR_GPS;
 }
 
-void igc_step()
+void igc_write_grecord()
 {
+#ifndef IGC_NO_PRIVATE_KEY
 	char line[79];
 
-	uint8_t sec;
-	uint8_t min;
-	uint8_t hour;
-
-#ifdef GPS_SUPPORT
-	time_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour);
-#endif
-
-	float decimal;
-	float deg;
-	float fmin;
-	char c;
-	char tmp1[32];
-
-#ifdef GPS_SUPPORT
-	c = (fc.gps_data.latitude < 0) ? 'S' : 'N';
-	decimal = abs(fc.gps_data.latitude);
-#endif
-
-	deg = floor(decimal);
-	fmin = (decimal - deg) * 60 * 1000;
-	sprintf_P(tmp1, PSTR("%02.0f%05.0f%c"), deg, fmin, c);
-
-	char tmp2[32];
-
-#ifdef GPS_SUPPORT
-	c = (fc.gps_data.longtitude < 0) ? 'W' : 'E';
-	decimal = abs(fc.gps_data.longtitude);
-#endif
-
-	deg = floor(decimal);
-	fmin = (decimal - deg) * 60 * 1000;
-	sprintf_P(tmp2, PSTR("%03.0f%05.0f%c"), deg, fmin, c);
-
-#ifdef GPS_SUPPORT
-	c = (fc.gps_data.valid) ? 'A' : 'V';
-#endif
-
-	uint16_t alt = fc_press_to_alt(fc.pressure, 101325);
-
-#ifdef GPS_SUPPORT
-	//B record
-	sprintf_P(line, PSTR("B%02d%02d%02d%s%s%c%05d%05.0f"), hour, min, sec, tmp1, tmp2, c, alt, fc.gps_data.altitude);
-#endif
-
-	igc_writeline(line);
-}
-
-void igc_stop()
-{
-	char line[79];
+	Sha256Class tmp_sha;
+	memcpy(&tmp_sha, &sha256, sizeof(tmp_sha));
 
 	//G record
-	uint8_t * res = sha256.result();
+	uint8_t * res = tmp_sha.result();
 	strcpy(line, "G");
 	for (uint8_t i = 0; i < 20; i++)
 	{
@@ -200,7 +154,68 @@ void igc_stop()
 		strcat(line, tmp);
 	}
 
-	igc_writeline(line);
+	igc_writeline(line, false);
 
-	assert(f_close(log_fil) == FR_OK);
+	//rewind pointer
+	uint32_t pos = f_tell(&log_file);
+	assert(f_lseek(&log_file, pos - 43) == FR_OK);
+#endif
+}
+
+uint32_t igc_last_timestamp = 0;
+
+void igc_step()
+{
+	char line[79];
+
+	uint8_t sec;
+	uint8_t min;
+	uint8_t hour;
+
+	char c;
+
+#ifdef GPS_SUPPORT
+	if (fc.gps_data.valid)
+	{
+		if (fc.logger_state == LOGGER_WAIT_FOR_GPS)
+			fc.logger_state = LOGGER_ACTIVE;
+
+		if (igc_last_timestamp == fc.gps_data.utc_time)
+			return;
+
+		igc_last_timestamp = fc.gps_data.utc_time;
+
+		time_from_epoch(fc.gps_data.utc_time, &sec, &min, &hour);
+		c = 'A';
+	}
+	else
+	{
+		if (fc.logger_state == LOGGER_WAIT_FOR_GPS)
+			return;
+
+		time_from_epoch(time_get_utc(), &sec, &min, &hour);
+		c = 'V';
+	}
+
+	uint16_t alt = fc_press_to_alt(fc.pressure, 101325);
+
+#ifdef GPS_SUPPORT
+	//B record
+	sprintf_P(line, PSTR("B%02d%02d%02d%s%s%c%05d%05.0f"), hour, min, sec, fc.gps_data.cache_igc_latitude, fc.gps_data.cache_igc_longtitude, c, alt, fc.gps_data.altitude);
+#endif
+	igc_writeline(line);
+	igc_write_grecord();
+}
+
+void igc_comment(char * text)
+{
+	char line[79];
+
+	sprintf_P(line, PSTR("L%S %s"), LOG_MID_P, text);
+	igc_writeline(line, false);
+}
+
+void igc_stop()
+{
+	assert(f_close(&log_file) == FR_OK);
 }

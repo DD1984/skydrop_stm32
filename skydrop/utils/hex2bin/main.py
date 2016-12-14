@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import sys
-import serial
 from intelhex import IntelHex
 import time
 import datetime
@@ -24,7 +23,7 @@ class Hex2BinConv():
         self.hex.loadfile(filename, "hex")
         
         size = self.hex.maxaddr() - self.hex.minaddr()
-        print " size: %0.2f KiB (%d B)" % (size/1024, size) 
+        print " size: %0.2f KiB (%d B)" % (size / 1024.0, size) 
 
     
     def conv(self, label):
@@ -91,7 +90,7 @@ number = int(f.readline())
 f.close()
     
 if (label == "" or label == "auto"):
-    label = "skydrop-build-%04d" % number
+    label = "skydrop-%04d" % number
     
 a = Hex2BinConv(out)
 a.batch(hex, label)

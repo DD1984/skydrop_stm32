@@ -15,11 +15,12 @@
 #include <stdio.h>
 #endif
 
-void uart_init_buffers();
 void uart_init();
 void uart_low_speed();
 void uart_stop();
+
 void uart_send(char * msg);
+void uart_send(uint16_t len, uint8_t * data);
 
 
 void DUMP_REG(uint8_t val);

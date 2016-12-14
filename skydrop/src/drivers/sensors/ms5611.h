@@ -65,7 +65,7 @@ public:
 
 	uint8_t address;
 
-	float temperature;
+	int32_t temperature;
 	float pressure;
 
 	uint32_t raw_temperature;

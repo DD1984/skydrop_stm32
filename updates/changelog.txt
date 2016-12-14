@@ -1,3 +1,265 @@
+Build 3248 - 14. 11. 2016
+========================================================
+FIX:
+ * Wind speed indication underflow
+ * blue LED and the „B“ on the display are only flashing if „BT_MOD_STATE_OK“ is OK #227
+
+Build 3246 - 14. 11. 2016
+========================================================
+FIX:
+ * Wind speed indication
+ * GPS compass arrow in configurator
+ 
+ADDED:
+ * Store/Load audio profile in configurator
+
+Build 3244 - 8. 11. 2016
+========================================================
+FIX:
+ * weak lift is not working correctly on higher settings #226
+ 
+ADDED:
+ * GPS compass widget
+ * Wind estimation during circling (beta)
+ * Wind speed, direction and direction arrow relative to heading widgets
+ 
+
+Build 3204 - 3. 11. 2016
+========================================================
+FIX:
+ * Bluetooth stability issues
+ 
+CHANGED:
+ * If you remove USB cable in USB mode it will go to powerdown instead of active mode
+ * DEBUG message performance tweeks
+
+Build 3136 - 18. 10. 2016
+========================================================
+FIX:
+ * Another bug in pan1322 driver causing no telemetry data flow
+ * Configurator was not exporting configuration correctly
+
+Build 3122 - 17. 10. 2016
+========================================================
+FIX:
+ * Coordinates value are wrong in KML File #209
+ * Bug in pan1026 driver causing connection timeout when updating notification settings
+ * Bug in pan1322 driver causing no telemetry data flow
+ 
+ADDED:
+ * Do not forward GPS until fix is acquired #217
+ * Suppress automatic switch off while Bluetooth is connected #225
+ * Configurator drag&drop screen configuration
+ * Vario volume control via bluetooth
+ 
+CHANGED:
+ * Configurator data holder rework
+
+
+Build 3092 - 13. 9. 2016
+========================================================
+FIX:
+ * Altitude change caused unexpected behavior #205
+
+Build 3079 - 26. 8. 2016
+========================================================
+FIX:
+ * pan1026 random disconnect
+ * Problems with MTU
+ * Faster GPS altitude updates #166
+ * Badly formed IGC file - multiple records for one time #203
+ * Custom logo
+ 
+CHANGED:
+ * GPS detail screen
+ * Bluetooth and GPS are using DMA
+ * All memory is allocated statically
+
+Build 2784 - 26. 7. 2016
+========================================================
+FIX:
+ * SystemReset replaced with task_switch
+ 
+ADDED:
+ * Automatic battery calibration
+ * G-record will be stored after every G-record to maintain validity during power or software failure
+
+Build 2650 - 30. 5. 2016
+========================================================
+FIX:
+ * IGC unwanted (and unjustified) IGC recorging start/stop during a single flight #185
+ * Font misalignment (letter Q)
+ * Digifly and LK8EX1 minor fixes
+ 
+ADDED:
+ * BTLE support for pan1026 (SPP over GAT)
+
+Build 2579 - 18. 5. 2016
+========================================================
+FIX:
+ * G Record missing #181
+ * Landing detection #182
+ * Font misalignment (letter t)
+
+
+Build 2491 - 10. 5. 2016
+========================================================
+FIX:
+ * IGC logging - bug at start-up #170
+ * Bluetooth module Pan1026 will no longer require to pair before every connection
+ * Logger problem when record always enabled
+
+ADDED:
+ * Vario history widget
+ * No labels option for pages
+ * 2 new layouts (21, 113)
+ * custom start-up logo support
+ * Set time/date promt
+ 
+CHANGED:
+ * Faster baro valid timer
+ * Increased PWM frequency for leds and backlight to remove flickering
+ * Default configuration
+ * % symbol in on battery widget
+ * IGC logger will wait for fix before it start the B-records recording
+ * Logger (L) symbol will blink when GPS fix is not acquired (KML, IGC)
+ * Error (E) symbol will blink when GPS log cannot be stored on sd card 
+
+
+Build 2320 - 15. 4. 2016
+========================================================
+FIX:
+ * Changes in IGC file header #168
+ 
+ADDED:
+ * continuous logging #160
+ * led behaviour according to manual
+ * battery charging indicator
+ 
+CHANGED:
+ * Battery value logger will now use 5 min timer
+ 
+
+Build 2288 - 8. 4. 2016
+========================================================
+FIX:
+ * Random GPS fix corruption - NMEA sentence GPRMC will be checked for length
+ * Sudden landing on GPS lock during flight - Autostart/autoland timer will be reset duriong gps time sync
+ 
+Build 2256 - 23. 3. 2016
+========================================================
+FIX:
+ * Unable to add IGC log to XC League http://xcleague.com/ - Required record is missing: "H" record (DTM) #147
+ * Prevent format change in logger during flight
+ 
+ADDED:
+ * Feature Request - add battery level to log file #134
+ * Quick and easy on/off of audio - no sound on one screen? #144
+ * GPS debugging
+ 
+CHANGED:
+ * Take-off will be detected after land automatically (no need to reset)
+
+Build 2239 - 1. 3. 2016
+========================================================
+FIX:
+ * Corrupt KML logs #143
+ 
+CHANGED:
+ * Configurator chart max Y is now 2000
+
+Build 2235 - 16. 2. 2016
+========================================================
+FIX:
+ * Configurator upgrade
+ * Changes made using SkyDrop 2222 not saved #137
+
+ADDED:
+ * RAW logging for IMU sensors
+ 
+CHANGED:
+ * Widget "GPS Heading Arrow" renamed to "GPS HDG Arrow"
+ * Default volume is now 80%
+ * GPS coordinates calculation optimisation
+
+Build 2222 - 26. 1. 2016
+========================================================
+FIX:
+ * GPS driver can parse unexpected parameters in RMC sentence
+
+ADDED:
+ * Autoland timeout is substracted form flight time in case of autoland
+ * Pilot name, glider type, glider ID to IGC log
+ * Text input screen (gui_text) for entering text
+ * SD card formatter
+ * Additional functionality to configurator
+ 
+CHANGED:
+ * Widget "GPS Heading Arrow" renamed to "GPS HDG Arrow"
+ * Default volume is now 80%
+ * GPS coordinates calculation optimisation
+
+Build 2097beta - 16. 12. 2015
+========================================================
+FIX:
+ * Configurator upgrade function
+ * Configurator will now accept any *.EE file
+ * WDT reset when debug.log is on
+ 
+CHANGED:
+ * Debug.log is now using RAM buffer
+
+Build 2078beta - 16. 12. 2015
+========================================================
+FIX:
+ * Landing detection #114
+ 
+ADDED:
+ * Heading2 - GPS heading as arrow widget 
+
+Build 2074beta - 14. 12. 2015
+========================================================
+FIX:
+ * USB timing (finally) fixed 
+ 
+Build 2054beta - 14. 12. 2015
+========================================================
+FIX:
+ * Weaklift / beep control
+ * Uart forward does not forward GPS data
+
+Build 2052beta - 11. 12. 2015
+========================================================
+FIX:
+ * DFLL calibration was causing strange sound from buzzer (variabile PWM), replace with custom code
+ * 1773beta values stuck after take off detection #113
+ * Gps speed widget is not accurate #111
+ * Logger enable/disable bug
+
+ADDED:
+ * NaN checks for pressure and altitude (it won't mess up the kalman filter now)
+ * Pressure corrections for temperatures bellow 20°C and -15°C
+ * Bluetooth output to UART #79
+ * Acoustig feedback when GPS signal has been found #46
+ * Updated configurator
+ 
+CHANGED:
+ * 10% step in volume control #88
+ * Debug.log is disabled by default 
+ * GUI refresh only every 2 seconds in USB mode
+ 
+REMOVED:
+ * HFDTEDATE H-record (not supported by few online scoring servers) #117
+ * Unused source code cfg.h, cfg.cpp
+
+Build 1773beta - 11. 11. 2015
+========================================================
+FIX:
+ * Bluetooth uart timing problem
+
+ADDED:
+ * 32MHz oscillator used as main clock is now calibrated over time using ext 32KHz TOSC
+
 Build 1714beta - 29. 10. 2015
 ========================================================
 FIX:
@@ -5,6 +267,7 @@ FIX:
  * Lockup Alt2 with Alt3 vice versa #98
  * GPS records are imperfect in IGC log #97 
  * Minor bug in FC init
+ * IGC date H-record
  
 ADDED:
  * sanity check for min date

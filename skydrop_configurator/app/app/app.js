@@ -5,25 +5,59 @@ function err(msg)
     alert(msg);
 }
 
-var app = angular.module('app', [
-    'ngRoute', "chart.js"]);
+function uint8_invert(data)
+{
+    var val = 0;
+    for (var i = 0; i<8; i++)
+    {
+        if (data & 1 << i)
+            val += 0;
+        else
+            val += (1 << i);
+    }
     
+    return val;
+}
+
+var app = angular.module('app', ["ngRoute", "chart.js", "ui.bootstrap-slider", 'ngAnimate', 'ui.bootstrap', 'uiSwitch', 'ngDraggable']);
+  
 //var memory = new MemoryHandler();
 
 app.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
-        when('/audio_profile', {
-            templateUrl: 'pages/audio_profile.html',
-        }).      
+	    when('/wizard', {
+	        templateUrl: 'pages/wizard.html',
+	    }).      
+	    when('/audio_profile', {
+	        templateUrl: 'pages/audio_profile.html',
+	    }).      
+	    when('/display', {
+	        templateUrl: 'pages/display.html',
+	    }).      
+	    when('/system', {
+	        templateUrl: 'pages/system.html',
+	    }).      
+	    when('/logger', {
+	        templateUrl: 'pages/logger.html',
+	    }).      
+	    when('/connectivity', {
+	        templateUrl: 'pages/connectivity.html',
+	    }).      
         when('/advanced', {
             templateUrl: 'pages/advanced.html',
-         }).      
+        }).      
+		when('/altimeters', {
+		    templateUrl: 'pages/altimeters.html',
+		}).      
         when('/var_list', {
             templateUrl: 'pages/var_list.html',
+		}).  
+		when('/screens', {
+            templateUrl: 'pages/screens.html',
         }).      
         otherwise({
-            redirectTo: '/advanced'
+            redirectTo: '/wizard'
         });
   }]);
   
@@ -31,18 +65,22 @@ app.controller("menuList", ["$scope", function ($scope) {
     $scope.menus = 
     [
         [
-            {"title": "Audio Profile editor", "ref": "audio_profile"},
-            {"title": "Advanced", "ref": "advanced"},
-            {"title": "All Values", "ref": "var_list"}
+	      	{"title": "Update wizard", "ref": "wizard"},
+	      	{"title": "Audio Profile editor", "ref": "audio_profile"},
+         	{"title": "Widget configuration", "ref": "screens"},
+	     	{"title": "Altimeters", "ref": "altimeters"},
+         	{"title": "Display", "ref": "display"},
+         	{"title": "Logger", "ref": "logger"},
+         	{"title": "Connectivity", "ref": "connectivity"},
+         	{"title": "System", "ref": "system"}
+        ],
+        [
+         	{"title": "Advanced", "ref": "advanced"},
+         	{"title": "All Values", "ref": "var_list"}
         ]
-//      ,
-//        [
-//            {"title": "Test", "ref": "test"},
-//            {"title": "Test", "ref": "test"}
-//        ]
     ];
     
-    $scope.activeMenu = "advanced";
+    $scope.activeMenu = "wizard";
     
     $scope.select = function(ref){
         $scope.activeMenu = ref;
@@ -54,7 +92,10 @@ app.controller("menuList", ["$scope", function ($scope) {
 
 }]);
 
-app.controller("controls", ["$scope", "memory", "$timeout", function ($scope, memory, $timeout) {
+app.controller("controls", ["$scope", "memory", "$timeout", "$q", function ($scope, memory, $timeout, $q) {
+	
+	$scope.hide_nav = true;
+	$scope.wizard_step = 0;
 	
     $scope.save = function(){
         var blob = new Blob([memory.getBlob()], {type: "application/octet-stream"});
@@ -64,20 +105,20 @@ app.controller("controls", ["$scope", "memory", "$timeout", function ($scope, me
     };
 
     $scope.load = function(){
+    	$scope.wizard_step = 0;
     	$scope.file_selector.click();
     };
     
     $scope.read_file = function(files){
-    	console.log(files[0]);
+//    	console.log(files[0]);
     	var file = files[0];
     	
-    	if (files.length != 1 || (file.name != "CFG.EE" && file.name != "OLD.EE"))
+    	if (files.length != 1 || (file.name.slice(-3) != ".EE"))
     	{
     		alert("Please select CFG.EE or OLD.EE file from SkyDrop root directory");
     		$scope.file_selector.val(null);
     		return;
     	}
-
     	
     	var reader = new FileReader();
     	reader.onload = function(e) 
@@ -94,7 +135,6 @@ app.controller("controls", ["$scope", "memory", "$timeout", function ($scope, me
     {
     	if (confirm('Restore default values for this build?\nYour changes will be discarted!'))
     		memory.restore_default();
-    	
     };
     
     $scope.is_old = function()
@@ -102,6 +142,11 @@ app.controller("controls", ["$scope", "memory", "$timeout", function ($scope, me
     	return memory.is_old_version();  	
     };
 
+    $scope.current_build = function()
+    {
+    	return memory.build_number;	
+    };    
+    
     $scope.newest = function()
     {
     	return memory.newest_build;  	
@@ -112,8 +157,20 @@ app.controller("controls", ["$scope", "memory", "$timeout", function ($scope, me
     	memory.upgrade();
     };
     
+    $scope.get_pack = function()
+    {
+    	var promise = memory.get_fw_pack();
+    	promise.then(function(pack){
+            var blob = new Blob([pack], {type: "application/octet-stream"});
+            
+            alert("Save this file as SKYDROP.FW on SkyDrop root directory.\n\nWARNING!\nFiles generated by browser like SKYDROP (2).FW, SKYDROP (3).FW, ... SKYDROP (12).FW will not be accepted by SkyDrop!");
+            saveAs(blob, "SKYDROP.FW");
+    	});
+    	
+    };    
+    
     //init memory handler
-    memory.getAllValues();
+	memory.getAllValues();
     
     $scope.file_selector = angular.element("#file-selector");
 }]);

@@ -10,8 +10,7 @@
 
 #define lcd_width		84
 #define lcd_height		48
-//#define lcd_width		102
-//#define lcd_height		68
+#define lcb_layer_size	((lcd_height / 8) * lcd_width)
 
 class lcd_display{
 private:
@@ -20,7 +19,7 @@ private:
 #endif
 	uint8_t * active_buffer;
 
-	uint8_t layers[DISP_LAYERS][(lcd_height / 8) * lcd_width];
+	uint8_t layers[DISP_LAYERS][lcb_layer_size];
 
 	void sendcommand(unsigned char cmd);
 	void SendChar(unsigned char data);
@@ -30,10 +29,9 @@ private:
 	void CreateSinTable();
 
 	float sin_table[91];
-	float get_sin(uint16_t angle);
 
 	uint8_t text_x;
-	uint8_t text_y;
+	uint16_t text_y;
 
 	const uint8_t * font_data;
 	uint8_t font_spacing;
@@ -47,7 +45,10 @@ private:
 
 	bool flip;
 public:
-	void Init();
+	float get_cos(uint16_t angle);
+	float get_sin(uint16_t angle);
+
+	void Init(Spi * spi);
 	void Stop();
 
 	void SetContrast(uint8_t val); //0-127
@@ -55,7 +56,7 @@ public:
 	void SetFlip(bool flip);
 
 	void ClearBuffer();
-	void PutPixel(uint8_t x ,uint8_t  y ,uint8_t color);
+	void PutPixel(uint8_t x ,uint16_t  y ,uint8_t color);
 	void DrawLine(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint8_t color);
 	void DrawCircle(uint8_t cx,uint8_t cy,uint8_t radius,uint8_t color);
 	void DrawRectangle(int8_t x1,int8_t y1,int8_t x2,int8_t y2,uint8_t color,uint8_t fill);
@@ -65,7 +66,7 @@ public:
 	void Write(uint8_t ascii);
 	void SetRowCol(unsigned char row,unsigned char col);
 	void Draw();
-	void GotoXY(uint8_t x, uint8_t y);
+	void GotoXY(uint8_t x, uint16_t y);
 	void InvertPixel(uint8_t x ,uint8_t  y);
 	void Invert(int8_t x1,int8_t y1,int8_t x2,int8_t y2);
 	void LoadFont(const uint8_t * font);
@@ -74,6 +75,7 @@ public:
 	void InvertPart(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2);
 
 	uint8_t GetTextWidth(char * text);
+	uint8_t GetTextWidthN(char * text, uint8_t n);
 	uint8_t GetTextHeight();
 	uint8_t GetAHeight();
 
@@ -82,6 +84,8 @@ public:
 	void CopyToLayer(uint8_t dst);
 
 	void SetDrawLayer(uint8_t layer);
+
+	uint8_t * GetActiveLayerPtr();
 };
 
 #endif /* OLEDDISPLAY_H_ */

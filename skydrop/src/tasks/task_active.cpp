@@ -16,7 +16,6 @@ void task_active_init()
 	{
 		gui_splash_set_mode(SPLASH_ON);
 		gui_switch_task(GUI_SPLASH);
-		gui_force_loop();
 	}
 	else
 	{
@@ -30,7 +29,6 @@ void task_active_init()
 	{
 #ifndef STM32
 		//Handle update files
-
 		FILINFO fno;
 
 		//new way to update FW if SKYDROP.FW file found
@@ -68,14 +66,23 @@ void task_active_init()
 	//init flight computer
 	ewdt_reset();
 	fc_init();
+
+
+	led_notify_enable();
 }
 
 void task_active_stop()
 {
 	StoreEEPROM();
 
+	led_notify_disable();
+
 	fc_deinit();
+
 	gui_stop();
+
+	debug_end();
+
 #ifdef STORAGE_SUPPORT
 	storage_deinit();
 #endif	
@@ -89,6 +96,7 @@ void task_active_loop()
 #ifdef STORAGE_SUPPORT
 	storage_step();
 #endif	
+	debug_step();
 }
 
 void task_active_irqh(uint8_t type, uint8_t * buff)
@@ -101,6 +109,10 @@ void task_active_irqh(uint8_t type, uint8_t * buff)
 			task_set(TASK_USB);
 		break;
 #endif		
+
+	case(TASK_IRQ_BAT):
+			fc_log_battery();
+		break;
 
 	default:
 		gui_irqh(type, buff);
