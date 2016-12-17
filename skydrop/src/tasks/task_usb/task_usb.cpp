@@ -20,17 +20,24 @@ USBD_HandleTypeDef USBD_Device;
 
 void USB_Init(void)
 {
-	  /* Init MSC Application */
-	  USBD_Init(&USBD_Device, &MSC_Desc, 0);
+	DEBUG("%s\n", __func__);
 
-	  /* Add Supported Class */
-	  USBD_RegisterClass(&USBD_Device, USBD_MSC_CLASS);
+	/* Init MSC Application */
+	USBD_Init(&USBD_Device, &MSC_Desc, 0);
 
-	  /* Add Storage callbacks for MSC Class */
-	  USBD_MSC_RegisterStorage(&USBD_Device, &USBD_DISK_fops);
+	/* Add Supported Class */
+	USBD_RegisterClass(&USBD_Device, USBD_MSC_CLASS);
 
-	  /* Start Device Process */
-	  USBD_Start(&USBD_Device);
+	/* Add Storage callbacks for MSC Class */
+	USBD_MSC_RegisterStorage(&USBD_Device, &USBD_DISK_fops);
+
+	/* Start Device Process */
+	USBD_Start(&USBD_Device);
+}
+
+void USB_Disable(void)
+{
+	DEBUG("%s\n", __func__);
 }
 #endif
 
@@ -48,9 +55,11 @@ void task_usb_init()
 	USB_PWR_ON;
 	SD_SPI_PWR_ON;
 	SD_EN_ON;
+#endif
 
 	DEBUG("This is USB task\n");
 
+#ifndef STM32
 	usb_lock.Lock();
 
 	cli();
@@ -84,13 +93,15 @@ void task_usb_init()
 	else
 	{
 		DEBUG("Error\n");
-
 		sd_spi_usart.Stop();
 		USB_PWR_OFF;
 		SD_SPI_PWR_OFF;
 		SD_EN_OFF;
 		GpioSetDirection(SD_SS, INPUT);
 	}
+#else
+	task_usb_sd_ready = true;
+	USB_Init();
 #endif
 
 	//init gui
@@ -103,9 +114,9 @@ void task_usb_init()
 
 void task_usb_stop()
 {
-#ifndef STM32
 	USB_Disable();
 
+#ifndef STM32
 	cli();
 	//Stop 32MHz DFLL
 	assert(XMEGACLK_StopDFLL(CLOCK_SRC_INT_RC32MHZ));
@@ -128,13 +139,17 @@ void task_usb_stop()
 	sei();
 
 	usb_lock.Unlock();
+#endif
 
+#ifdef LED_SUPPORT
 	led_set(0, 0, 0);
+#endif
 
 	gui_stop();
 
 	if (task_usb_sd_ready)
 	{
+#ifndef STM32
 		sd_spi_usart.Stop();
 
 		USB_PWR_OFF;
@@ -142,9 +157,8 @@ void task_usb_stop()
 		SD_EN_OFF;
 		GpioSetDirection(SD_SS, INPUT);
 		_delay_ms(200);
-	}
-
 #endif
+	}
 }
 
 void task_usb_loop()
