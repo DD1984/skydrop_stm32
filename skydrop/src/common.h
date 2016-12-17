@@ -330,8 +330,8 @@ extern struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 #define SD_SS					portr1
 #else
 
-#define BAT_CHARGING			0
-#define BAT_FULL				0
+#define BAT_CHARGING			(uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10)
+#define BAT_FULL				(uint8_t)HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7)
 
 #define USB_CONNECTED usb_connected()
 

@@ -17,11 +17,6 @@ extern uint32_t battery_next_meas;
 
 extern uint16_t bat_adc_max;
 
-#ifdef STM32
-extern uint8_t battery_charge_stat;
-extern uint8_t battery_vbus;
-#endif
-
 #define BATTERY_CHARGING	(101)
 #define BATTERY_FULL		(102)
 

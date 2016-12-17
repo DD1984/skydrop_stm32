@@ -136,12 +136,6 @@ void battery_init()
 #endif	
 }
 
-#ifdef STM32
-uint8_t battery_charge_stat;
-uint8_t battery_vbus;
-#endif
-
-
 void battery_force_update()
 {
 	battery_next_meas = 0;
@@ -226,10 +220,6 @@ bool battery_step()
 		battery_next_meas = task_get_ms_tick() + BATTERY_MEAS_PERIOD;
 		battery_meas_acc = 0;
 		battery_meas_cnt = 0;
-#ifdef STM32
-		 battery_charge_stat = ((uint8_t)HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7));
-		 battery_vbus = ((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10));
-#endif
 		return true;
 	break;
 
