@@ -231,6 +231,8 @@ void fc_deinit()
 {
 #ifndef STM32	
 	fc_meas_timer.Stop();
+#else
+	HAL_TIM_Base_Stop_IT(&fc_meas_timer);
 #endif	
 
 	if (fc.flight_state == FLIGHT_FLIGHT)

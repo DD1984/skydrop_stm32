@@ -26,9 +26,9 @@ void Setup()
 #else
 	HAL_Init();
 	SystemClock_Config();
-#endif
-
 	uart_init();
+	printf("SystemCoreClock: %dHz\n", SystemCoreClock);
+#endif
 
 	//load device id
 	GetID();
@@ -51,7 +51,9 @@ void Setup()
 
 	//load configuration from EE
 	cfg_load();
-	//uart_init();
+#ifndef STM32
+	uart_init();
+#endif
 	battery_init();
 
 

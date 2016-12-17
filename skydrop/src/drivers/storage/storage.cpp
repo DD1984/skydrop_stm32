@@ -152,7 +152,6 @@ bool storage_init()
 
 void storage_deinit()
 {
-#ifndef STM32
 	DEBUG("storage_deinit\n");
 
 	if (!sd_avalible)
@@ -160,6 +159,7 @@ void storage_deinit()
 
 	assert(f_mount(NULL, "", 1) == FR_OK); //unmount
 
+#ifndef STM32
 	sd_spi_usart.Stop();
 
 	sd_avalible = false;
@@ -170,10 +170,10 @@ void storage_deinit()
 	//power spi & sdcard
 	SD_EN_OFF;
 	SD_SPI_PWR_OFF;
+#endif
 
 	//let it cool down :)
 	_delay_ms(100);
-#endif
 }
 
 void storage_step()

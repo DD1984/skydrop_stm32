@@ -25,7 +25,7 @@ void SystemClock_Config(void)
 	oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV1;
 	oscinitstruct.PLL.PLLState    = RCC_PLL_ON;
 	oscinitstruct.PLL.PLLSource   = RCC_PLLSOURCE_HSE;
-	oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL9;
+	oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL6;
 	if (HAL_RCC_OscConfig(&oscinitstruct)!= HAL_OK)
 	{
 		/* Initialization Error */
@@ -34,7 +34,7 @@ void SystemClock_Config(void)
 
 	  /* USB clock selection */
 	rccperiphclkinit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	rccperiphclkinit.UsbClockSelection = RCC_USBPLLCLK_DIV1_5;
+	rccperiphclkinit.UsbClockSelection = RCC_USBPLLCLK_DIV1;
 	HAL_RCCEx_PeriphCLKConfig(&rccperiphclkinit);
 
 
