@@ -376,23 +376,27 @@ void gps_normal()
 {
 	gps_detail_enabled = false;
 	DEBUG("set_nmea_output - normal\n");
+#ifndef STM32
 	//enable RMC, GGA
 	fprintf_P(gps_out, PSTR("$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*78\r\n"));
+#endif
 }
 
 void gps_detail()
 {
 	gps_detail_enabled = true;
 	DEBUG("set_nmea_output - detail\n");
+#ifndef STM32
 	//enable RMC, GGA, GSA, GSV
 	fprintf_P(gps_out, PSTR("$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"));
+#endif
 }
 
 void gps_set_baudrate()
 {
 	DEBUG("set_baudrate\n");
-	fprintf_P(gps_out, PSTR("$PMTK251,115200*1F\r\n"));
 #ifndef STM32
+	fprintf_P(gps_out, PSTR("$PMTK251,115200*1F\r\n"));
 	gps_uart.FlushTxBuffer();
 #endif
 	_delay_ms(1);

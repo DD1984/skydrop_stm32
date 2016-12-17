@@ -50,11 +50,13 @@ void buttons_init()
 	GpioSetInterrupt(SWITCH2, gpio_interrupt0, gpio_bothedges);
 	GpioSetInterrupt(SWITCH3, gpio_interrupt0, gpio_bothedges);
 #else
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
 	GPIO_InitTypeDef  GPIO_InitStruct;
 	GPIO_InitStruct.Pin       = SWITCH1 | SWITCH2 | SWITCH3;
 	GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
-	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+	GPIO_InitStruct.Speed     = GPIO_SPEED_LOW;
 
 	HAL_GPIO_Init(SWITCH_GPIO_PORT, &GPIO_InitStruct);
 

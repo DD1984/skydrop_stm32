@@ -129,13 +129,12 @@ uint32_t old_tick = 0;
 
 uint32_t task_get_ms_tick_once()
 {
+#ifndef STM32
 	uint32_t res;
 
-#ifndef STM32
 	cli();
 	res = (task_timer_high) + (uint32_t)(task_timer.GetValue() / 125);
 	sei();
-#endif	
 
 	if (res < old_tick)
 	{
@@ -147,6 +146,9 @@ uint32_t task_get_ms_tick_once()
 	old_tick = res;
 
 	return res;
+#else
+	return 0;
+#endif
 }
 
 uint32_t task_get_ms_tick()
@@ -170,7 +172,7 @@ uint32_t fine_timer_get()
 
 	return res;
 #else
-	return HAL_GetTick();
+	return 0;
 #endif
 }
 
