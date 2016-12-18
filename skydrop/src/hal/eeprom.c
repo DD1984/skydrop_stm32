@@ -41,6 +41,11 @@ void update_eeprom(void *addr, void *src, uint16_t size, char *src_func, uint32_
 
 	HAL_FLASH_Unlock();
 
+	//стирание флагов после программирования основной памяти отладчиком
+	//иначе следующая операция стирания страницы и как следсвтие программирование
+	//неудачно
+	CLEAR_BIT(FLASH->CR, (FLASH_CR_PG | FLASH_CR_PER | FLASH_CR_MER));
+
 	EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
 	EraseInitStruct.PageAddress = (uint32_t)&_eeprom_start;
 	EraseInitStruct.NbPages     = 1;

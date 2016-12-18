@@ -4,7 +4,7 @@
 #ifndef STM32
 cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));
 #else
-cfg_ro_t config_ro;
+EEMEM cfg_ro_t config_ro;
 #endif
 
 #define log_default_text	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
