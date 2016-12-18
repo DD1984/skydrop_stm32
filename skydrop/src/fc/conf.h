@@ -265,7 +265,11 @@ extern volatile cfg_t config;
 //configuration in EE
 extern cfg_t config_ee;
 
+#ifndef STM32
 extern cfg_ro_t config_ro __attribute__ ((section(".cfg_ro")));
+#else
+extern cfg_ro_t config_ro;
+#endif
 
 #define CheckRange(MIN, MAX, DEFAULT, VAL) \
 	if (VAL < MIN || VAL > MAX) VAL = DEFUALT;

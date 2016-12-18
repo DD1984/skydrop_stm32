@@ -91,9 +91,10 @@ C_SOURCES += src/dump.c
 C_SOURCES += src/tasks/task_usb/usbd_conf.c
 C_SOURCES += src/tasks/task_usb/usbd_desc.c
 
+C_SOURCES += src/hal/eeprom.c
+
 #cpp
 CPP_SOURCES += src/hal/timers_irq_handlers.cpp
-CPP_SOURCES += src/hal/eeprom.cpp
 
 CPP_SOURCES += src/skydrop.cpp
 CPP_SOURCES += src/common.cpp

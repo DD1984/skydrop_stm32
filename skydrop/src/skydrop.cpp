@@ -27,7 +27,8 @@ void Setup()
 	HAL_Init();
 	SystemClock_Config();
 	uart_init();
-	printf("SystemCoreClock: %dHz\n", SystemCoreClock);
+	DEBUG("\n\n***************************\n");
+	DEBUG("SystemCoreClock: %dHz\n", SystemCoreClock);
 #endif
 
 	//load device id
