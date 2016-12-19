@@ -220,7 +220,14 @@ void fc_init()
 	fc_meas_timer.Init.CounterMode = TIM_COUNTERMODE_UP;
 	fc_meas_timer.Init.RepetitionCounter = 0;
 	fc_meas_timer.Init.Period = MEAS_TEMP_TIME;
+
+	HAL_TIM_Base_Stop_IT(&fc_meas_timer);
+
 	HAL_TIM_Base_Init(&fc_meas_timer);
+
+	ms5611.StartTemperature();
+	_delay_ms(2);
+
 	HAL_TIM_Base_Start_IT(&fc_meas_timer);
 #endif
 
