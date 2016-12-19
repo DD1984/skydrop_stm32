@@ -52,9 +52,9 @@ int16_t	vario_get_altitude(uint8_t flags, uint8_t index)
 	return 0;
 }
 
-//drop few first measurements (5s)
+//drop few first measurements (12s)
 uint16_t vario_drop = 0;
-#define VARIO_DROP	500ul
+#define VARIO_DROP	1200ul
 
 void vario_calc(float pressure)
 {
