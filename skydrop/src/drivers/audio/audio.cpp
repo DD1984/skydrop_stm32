@@ -8,7 +8,6 @@
 #ifndef STM32
 Timer audio_timer;
 #else
-#include "audio_c.h"
 TIM_HandleTypeDef audio_timer;
 #endif
 
@@ -81,11 +80,3 @@ void audio_off()
 	//silence!
 	buzzer_set_vol(0);
 }
-
-
-#ifdef STM32
-#include "audio_c.h"
-void audio_step_c(void) {
-	audio_step();
-}
-#endif
