@@ -60,8 +60,7 @@ volatile uint8_t task_sleep_lock = 0;
 volatile uint32_t fine_timer_high;
 
 volatile uint8_t actual_task = NO_TASK;
-//volatile uint8_t new_task = TASK_POWERDOWN;
-volatile uint8_t new_task = TASK_ACTIVE;
+volatile uint8_t new_task = TASK_POWERDOWN;
 
 #ifdef USB_SUPPORT
 uint8_t usb_state;
@@ -260,6 +259,9 @@ void task_system_loop()
 			//XXX: this will guarantee that task switched from the powerdown task will be vanilla
 			if (new_task == TASK_POWERDOWN)
 			{
+#ifdef STM32
+				HAL_RTCEx_BKUPWrite(&RtcHandle, 1, PD_MAGIC);
+#endif
 				SystemReset();
 			}
 
@@ -269,8 +271,16 @@ void task_system_loop()
 			{
 				SystemReset();
 			}
-#endif				
+#endif
 		}
+#ifdef STM32
+		else {
+			if (new_task == TASK_POWERDOWN) {
+				if (HAL_RTCEx_BKUPRead(&RtcHandle, 1) != PD_MAGIC)
+					new_task = TASK_ACTIVE;
+			}
+		}
+#endif
 
 		actual_task = new_task;
 
