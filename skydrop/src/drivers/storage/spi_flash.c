@@ -84,6 +84,8 @@ uint8_t BSP_SERIAL_FLASH_Init(void)
 		return FLASH_ERROR;
 	}
 
+	FLASH_SPI_IO_RDP();
+
 	uint32_t id = FLASH_SPI_IO_ReadID();
 	printf("Detected flash, id: 0x%06x\n", id & 0xffffff);
 
@@ -333,6 +335,12 @@ uint8_t BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint3
   {
     return FLASH_OK;
   }
+}
+
+uint8_t BSP_SERIAL_FLASH_DP(void)
+{
+	FLASH_SPI_IO_DP();
+	return FLASH_OK;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

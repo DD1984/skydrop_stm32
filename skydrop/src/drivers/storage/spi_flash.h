@@ -59,6 +59,7 @@ uint8_t  BSP_SERIAL_FLASH_EraseBulk(void);
 uint8_t  BSP_SERIAL_FLASH_WritePage(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
 uint8_t  BSP_SERIAL_FLASH_WriteData(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
 uint8_t  BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint32_t uwDataSize);
+uint8_t  BSP_SERIAL_FLASH_DP(void);
 
 extern uint32_t spi_flash_capacity;
 

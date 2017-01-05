@@ -170,6 +170,8 @@ void storage_deinit()
 	//power spi & sdcard
 	SD_EN_OFF;
 	SD_SPI_PWR_OFF;
+#else
+	BSP_SERIAL_FLASH_DP();
 #endif
 
 	//let it cool down :)

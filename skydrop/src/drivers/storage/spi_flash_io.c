@@ -177,3 +177,27 @@ uint32_t FLASH_SPI_IO_ReadID(void)
 
   return Temp;
 }
+
+void FLASH_SPI_IO_DP(void)
+{
+  /*!< Select the FLASH: Chip Select low */
+  FLASH_SPI_CS_LOW();
+
+  SPIx_Write(FLASH_SPI_CMD_DP);
+
+  /*!< Deselect the FLASH: Chip Select high */
+  FLASH_SPI_CS_HIGH();
+}
+
+void FLASH_SPI_IO_RDP(void)
+{
+  /*!< Select the FLASH: Chip Select low */
+  FLASH_SPI_CS_LOW();
+
+  SPIx_Write(FLASH_SPI_CMD_RDP);
+
+  /*!< Deselect the FLASH: Chip Select high */
+  FLASH_SPI_CS_HIGH();
+
+  HAL_Delay(1);
+}

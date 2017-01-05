@@ -12,6 +12,8 @@
 #define FLASH_SPI_CMD_SE             0x20  /*!< Sector Erase instruction */
 #define FLASH_SPI_CMD_BE             0xD8  /*!< Block Erase instruction */
 #define FLASH_SPI_CMD_CE             0xC7  /*!< Chip Erase instruction */
+#define FLASH_SPI_CMD_DP             0xB9  /*!< Deep power down */
+#define FLASH_SPI_CMD_RDP            0xAB  /*!< Release from deep power down */
 
 #define FLASH_SPI_WIP_FLAG           0x01  /*!< Write In Progress (WIP) flag */
 

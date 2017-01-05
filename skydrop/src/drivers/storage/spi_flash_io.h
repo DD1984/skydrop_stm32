@@ -20,6 +20,8 @@ HAL_StatusTypeDef         FLASH_SPI_IO_ReadData(uint32_t MemAddress, uint8_t* pB
 void                      FLASH_SPI_IO_WriteEnable(void);
 HAL_StatusTypeDef         FLASH_SPI_IO_WaitForWriteEnd(void);
 uint32_t                  FLASH_SPI_IO_ReadID(void);
+void                      FLASH_SPI_IO_DP(void);
+void                      FLASH_SPI_IO_RDP(void);
 /**
   * @}
   */
