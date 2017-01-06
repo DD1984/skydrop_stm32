@@ -306,8 +306,9 @@ HAL_StatusTypeDef HAL_PCD_Start(PCD_HandleTypeDef *hpcd)
   * @retval HAL status
   */
 HAL_StatusTypeDef HAL_PCD_Stop(PCD_HandleTypeDef *hpcd)
-{  
+{
   __HAL_LOCK(hpcd);
+  HAL_PCDEx_SetConnectionState (hpcd, 0);
   __HAL_PCD_DISABLE(hpcd);
   USB_StopDevice(hpcd->Instance);
   USB_DevDisconnect (hpcd->Instance);

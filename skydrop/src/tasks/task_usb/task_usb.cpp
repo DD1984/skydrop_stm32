@@ -38,6 +38,9 @@ void USB_Init(void)
 void USB_Disable(void)
 {
 	DEBUG("%s\n", __func__);
+	USBD_DeInit(&USBD_Device);
+
+	BSP_SERIAL_FLASH_DP();
 }
 #endif
 
