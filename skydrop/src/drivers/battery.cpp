@@ -72,7 +72,6 @@ void battery_reset_calibration()
 
 void battery_init()
 {
-#ifndef STM32
 	eeprom_busy_wait();
 	bat_adc_max = eeprom_read_word(&config_ro.bat_adc_max);
 
@@ -81,6 +80,7 @@ void battery_init()
 
 	bat_adc_dif = bat_adc_max - BAT_ADC_MIN;
 
+#ifndef STM32
 	BATTERY_ADC_PWR_ON;
 	BATTERY_ADC_ENABLE;
 

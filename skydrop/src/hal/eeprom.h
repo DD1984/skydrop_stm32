@@ -14,6 +14,7 @@ extern "C" {
 #define eeprom_busy_wait() {}
 
 #define eeprom_read_byte(addr) *(uint8_t *)addr
+#define eeprom_read_word(addr) *(uint16_t *)addr
 #define eeprom_read_block(dst, src, size) memcpy(dst, src, size)
 
 
