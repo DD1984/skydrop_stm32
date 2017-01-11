@@ -384,6 +384,7 @@ void gps_normal()
 	const char s[] = "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*78\r\n";
 
 	if (HAL_UART_Transmit(&gps_uart, (uint8_t*)s, sizeof(s), 1000) != HAL_OK) {
+		assert(0);
 		while (1);
 	}
 #endif
@@ -398,7 +399,9 @@ void gps_detail()
 	fprintf_P(gps_out, PSTR("$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"));
 #else
 	const char s[] = "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n";
-	if (HAL_UART_Transmit_DMA(&gps_uart, (uint8_t*)s, sizeof(s) - 1)!= HAL_OK) {
+
+	if (HAL_UART_Transmit(&gps_uart, (uint8_t*)s, sizeof(s), 1000) != HAL_OK) {
+		assert(0);
 		while (1);
 	}
 #endif
@@ -410,6 +413,13 @@ void gps_set_baudrate()
 #ifndef STM32
 	fprintf_P(gps_out, PSTR("$PMTK251,115200*1F\r\n"));
 	gps_uart.FlushTxBuffer();
+#else
+	const char s[] = "$PMTK251,115200*1F\r\n";
+
+	if (HAL_UART_Transmit(&gps_uart, (uint8_t*)s, sizeof(s), 1000) != HAL_OK) {
+		assert(0);
+		while (1);
+	}
 #endif
 	_delay_ms(1);
 }
@@ -614,7 +624,6 @@ void gps_start()
 		while(1);
 	}
 
-
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
 	//gps power
@@ -691,15 +700,11 @@ void gps_step()
 	while (!gps_uart.isRxBufferEmpty())
 		gps_parse(&gps_uart);
 #else
-#if 1
-	//printf("%s:%d - 0x%x\n", __func__, __LINE__, gps_uart.hdmarx->Instance);
-
 
 	while (GPS_UART_RX_SIZE - gps_uart.hdmarx->Instance->CNDTR != rx_buf_ind) {
 		gps_parse(gps_uart_rx_buffer[rx_buf_ind]);
 		if (++rx_buf_ind == GPS_UART_RX_SIZE)
 			rx_buf_ind = 0;
 	}
-#endif
 #endif
 }
