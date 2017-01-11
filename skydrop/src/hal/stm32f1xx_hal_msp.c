@@ -37,54 +37,95 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-/* Definition for USARTx clock resources */
-#define USARTx_CLK_ENABLE()              __HAL_RCC_USART3_CLK_ENABLE();
-#define USARTx_RX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOB_CLK_ENABLE()
-#define USARTx_TX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOB_CLK_ENABLE()
 
-#define USARTx_FORCE_RESET()             __HAL_RCC_USART1_FORCE_RESET()
-#define USARTx_RELEASE_RESET()           __HAL_RCC_USART1_RELEASE_RESET()
 
-/* Definition for USARTx Pins */
-#define USARTx_TX_PIN                    GPIO_PIN_10
-#define USARTx_TX_GPIO_PORT              GPIOB
-#define USARTx_RX_PIN                    GPIO_PIN_11
-#define USARTx_RX_GPIO_PORT              GPIOB
+static DMA_HandleTypeDef hdma_tx;
+static DMA_HandleTypeDef hdma_rx;
 
-/**
-  * @brief UART MSP Initialization
-  *        This function configures the hardware resources used in this example:
-  *           - Peripheral's clock enable
-  *           - Peripheral's GPIO Configuration
-  * @param huart: UART handle pointer
-  * @retval None
-  */
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
 	GPIO_InitTypeDef  GPIO_InitStruct;
 
-	/*##-1- Enable peripherals and GPIO Clocks #################################*/
-	/* Enable GPIO TX/RX clock */
-	USARTx_TX_GPIO_CLK_ENABLE();
-	USARTx_RX_GPIO_CLK_ENABLE();
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 
+	if (huart->Instance == USART3) {
+		__HAL_RCC_GPIOB_CLK_ENABLE();
+		__HAL_RCC_USART3_CLK_ENABLE();
 
-	/* Enable USARTx clock */
-	USARTx_CLK_ENABLE();
+		//tx
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pin = GPIO_PIN_10;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/*##-2- Configure peripheral GPIO ##########################################*/
-	/* UART TX GPIO pin configuration  */
-	GPIO_InitStruct.Pin       = USARTx_TX_PIN;
-	GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull      = GPIO_PULLUP;
-	GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+		//rx
+		GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		GPIO_InitStruct.Pin = GPIO_PIN_11;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
 
-	HAL_GPIO_Init(USARTx_TX_GPIO_PORT, &GPIO_InitStruct);
+	if (huart->Instance == USART2) {
 
-	/* UART RX GPIO pin configuration  */
-	GPIO_InitStruct.Pin = USARTx_RX_PIN;
+		__HAL_RCC_GPIOA_CLK_ENABLE();
+		__HAL_RCC_USART2_CLK_ENABLE();
+		__HAL_RCC_DMA1_CLK_ENABLE();
 
-	HAL_GPIO_Init(USARTx_RX_GPIO_PORT, &GPIO_InitStruct);
+		//tx
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pin = GPIO_PIN_2;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		//rx
+		GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		GPIO_InitStruct.Pin = GPIO_PIN_3;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+#if 0
+		/*##-3- Configure the DMA ##################################################*/
+		/* Configure the DMA handler for Transmission process */
+		hdma_tx.Instance                 = DMA1_Channel7;
+		hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+		hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
+		hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
+		hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+		hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+		hdma_tx.Init.Mode                = DMA_NORMAL;
+		hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
+
+		HAL_DMA_Init(&hdma_tx);
+
+		/* Associate the initialized DMA handle to the UART handle */
+		__HAL_LINKDMA(huart, hdmatx, hdma_tx);
+#endif
+
+		/* Configure the DMA handler for reception process */
+		hdma_rx.Instance                 = DMA1_Channel6;
+		hdma_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+		hdma_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
+		hdma_rx.Init.MemInc              = DMA_MINC_ENABLE;
+		hdma_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+		hdma_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+		hdma_rx.Init.Mode                = DMA_CIRCULAR;
+		hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
+
+		HAL_DMA_Init(&hdma_rx);
+
+		/* Associate the initialized DMA handle to the the UART handle */
+		__HAL_LINKDMA(huart, hdmarx, hdma_rx);
+
+#if 0
+		/*##-4- Configure the NVIC for DMA #########################################*/
+		/* NVIC configuration for DMA transfer complete interrupt (USARTx_TX) */
+		HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 1);
+		HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+		/* NVIC configuration for DMA transfer complete interrupt (USARTx_RX) */
+		HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+
+		/* NVIC for USART, to catch the TX complete */
+		HAL_NVIC_SetPriority(USART1_IRQn, 0, 1);
+		HAL_NVIC_EnableIRQ(USART1_IRQn);
+#endif
+	}
 }
 
 /**
@@ -97,15 +138,31 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
   */
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
-	/*##-1- Reset peripherals ##################################################*/
-	USARTx_FORCE_RESET();
-	USARTx_RELEASE_RESET();
+	if (huart->Instance == USART3) {
+		__HAL_RCC_USART3_FORCE_RESET();
+		__HAL_RCC_USART3_RELEASE_RESET();
 
-	/*##-2- Disable peripherals and GPIO Clocks #################################*/
-	/* Configure UART Tx as alternate function  */
-	HAL_GPIO_DeInit(USARTx_TX_GPIO_PORT, USARTx_TX_PIN);
-	/* Configure UART Rx as alternate function  */
-	HAL_GPIO_DeInit(USARTx_RX_GPIO_PORT, USARTx_RX_PIN);
+		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10 | GPIO_PIN_11);
+	}
+
+	if (huart->Instance == USART2) {
+		__HAL_RCC_USART2_FORCE_RESET();
+		__HAL_RCC_USART2_RELEASE_RESET();
+
+		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2 | GPIO_PIN_3);
+
+		/*##-3- Disable the DMA Channels ###########################################*/
+		/* De-Initialize the DMA Channel associated to transmission process */
+		HAL_DMA_DeInit(&hdma_tx);
+		/* De-Initialize the DMA Channel associated to reception process */
+		HAL_DMA_DeInit(&hdma_rx);
+
+#if 0
+		/*##-4- Disable the NVIC for DMA ###########################################*/
+		HAL_NVIC_DisableIRQ(DMA1_Channel4_IRQn);
+		HAL_NVIC_DisableIRQ(DMA1_Channel5_IRQn);
+#endif
+	}
 }
 
 /**

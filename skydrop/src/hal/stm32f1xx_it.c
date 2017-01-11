@@ -200,4 +200,20 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
   HAL_PCD_IRQHandler(&hpcd);
 }
 
+extern UART_HandleTypeDef gps_uart;
+//void USARTx_DMA_RX_IRQHandler(void)
+//{
+//  HAL_DMA_IRQHandler(gps_uart.hdmarx);
+//}
+
+void DMA1_Channel7_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(gps_uart.hdmatx);
+}
+
+//void USARTx_IRQHandler(void)
+//{
+//  HAL_UART_IRQHandler(&gps_uart);
+//}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

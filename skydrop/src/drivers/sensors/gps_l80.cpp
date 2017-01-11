@@ -20,6 +20,7 @@ ISR(GPS_TIMER_INT)
 }
 #else
 FILE *gps_out;
+UART_HandleTypeDef gps_uart;
 #endif
 
 #define GPS_IDLE	0
@@ -376,9 +377,15 @@ void gps_normal()
 {
 	gps_detail_enabled = false;
 	DEBUG("set_nmea_output - normal\n");
-#ifndef STM32
 	//enable RMC, GGA
+#ifndef STM32
 	fprintf_P(gps_out, PSTR("$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*78\r\n"));
+#else
+	const char s[] = "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*78\r\n";
+
+	if (HAL_UART_Transmit(&gps_uart, (uint8_t*)s, sizeof(s), 1000) != HAL_OK) {
+		while (1);
+	}
 #endif
 }
 
@@ -386,9 +393,14 @@ void gps_detail()
 {
 	gps_detail_enabled = true;
 	DEBUG("set_nmea_output - detail\n");
-#ifndef STM32
 	//enable RMC, GGA, GSA, GSV
+#ifndef STM32
 	fprintf_P(gps_out, PSTR("$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"));
+#else
+	const char s[] = "$PMTK314,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n";
+	if (HAL_UART_Transmit_DMA(&gps_uart, (uint8_t*)s, sizeof(s) - 1)!= HAL_OK) {
+		while (1);
+	}
 #endif
 }
 
@@ -408,6 +420,12 @@ void gps_change_uart_baudrate()
 #ifndef STM32
 	gps_uart.Stop();
 	gps_uart.Init(GPS_UART, 115200);
+#else
+	HAL_UART_DeInit(&gps_uart);
+
+	gps_uart.Init.BaudRate = 115200;
+
+	HAL_UART_Init(&gps_uart);
 #endif
 }
 
@@ -419,7 +437,7 @@ void gps_parse_hello()
 
 void gps_parse_sys()
 {
-	DEBUG("GPS SYS RESP");
+	DEBUG("GPS SYS RESP\n");
 
 	if (gps_detail_enabled)
 		gps_detail();
@@ -430,12 +448,12 @@ void gps_parse_sys()
 #ifndef STM32
 void gps_parse(Usart * c_uart)
 #else
-void gps_parse(void)
+void gps_parse(uint8_t c)
 #endif
 {
+#ifndef STM32
 	uint8_t c;
 
-#ifndef STM32
 	c = c_uart->Read();
 #endif
 
@@ -550,6 +568,10 @@ void gps_parse(void)
 	}
 }
 
+#ifdef STM32
+uint32_t rx_buf_ind;
+#endif
+
 void gps_start()
 {
 #ifndef STM32
@@ -574,6 +596,38 @@ void gps_start()
 	GpioWrite(GPS_RESET, LOW);
 	_delay_ms(20);
 	GpioWrite(GPS_RESET, HIGH);
+#else
+
+	gps_uart.Instance        = USART2;
+
+	gps_uart.Init.BaudRate   = 9600;
+	gps_uart.Init.WordLength = UART_WORDLENGTH_8B;
+	gps_uart.Init.StopBits   = UART_STOPBITS_1;
+	gps_uart.Init.Parity     = UART_PARITY_NONE;
+	gps_uart.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+	gps_uart.Init.Mode       = UART_MODE_TX_RX;
+
+	HAL_UART_Init(&gps_uart);
+
+	rx_buf_ind = 0;
+	if (HAL_UART_Receive_DMA(&gps_uart, (uint8_t *)gps_uart_rx_buffer, GPS_UART_RX_SIZE) != HAL_OK) {
+		while(1);
+	}
+
+
+	GPIO_InitTypeDef  GPIO_InitStruct;
+
+	//gps power
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin  = GPIO_PIN_3;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, (GPIO_PinState)0);
 #endif
 
 	gps_parser_state = GPS_IDLE;
@@ -623,6 +677,9 @@ void gps_stop()
 #ifndef STM32
 	gps_uart.Stop();
 	GPS_UART_PWR_OFF;
+#else
+	HAL_UART_DeInit(&gps_uart);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, (GPIO_PinState)1);
 #endif
 }
 
@@ -633,5 +690,16 @@ void gps_step()
 
 	while (!gps_uart.isRxBufferEmpty())
 		gps_parse(&gps_uart);
+#else
+#if 1
+	//printf("%s:%d - 0x%x\n", __func__, __LINE__, gps_uart.hdmarx->Instance);
+
+
+	while (GPS_UART_RX_SIZE - gps_uart.hdmarx->Instance->CNDTR != rx_buf_ind) {
+		gps_parse(gps_uart_rx_buffer[rx_buf_ind]);
+		if (++rx_buf_ind == GPS_UART_RX_SIZE)
+			rx_buf_ind = 0;
+	}
+#endif
 #endif
 }
