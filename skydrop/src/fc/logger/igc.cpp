@@ -77,7 +77,7 @@ bool igc_start(char * path)
 
 	//A record
 	GetID_str(id);
-	sprintf_P(line, PSTR("A%S%s:%s"), LOG_MID_P, device_uid, id);
+	sprintf_P(line, PSTR("A%s%s:%s"), LOG_MID_P, device_uid, id);
 	igc_writeline(line);
 
 	//H records
@@ -212,7 +212,7 @@ void igc_comment(char * text)
 {
 	char line[79];
 
-	sprintf_P(line, PSTR("L%S %s"), LOG_MID_P, text);
+	sprintf_P(line, PSTR("L%s %s"), LOG_MID_P, text);
 	igc_writeline(line, false);
 }
 

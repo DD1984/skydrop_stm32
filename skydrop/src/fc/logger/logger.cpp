@@ -175,16 +175,16 @@ void logger_start()
 
 #ifdef LOGGER_SUPPORT
 	//base dir
-	sprintf_P(path, PSTR("%S"), LOG_DIR);
+	sprintf_P(path, PSTR("%s"), LOG_DIR);
 	f_mkdir(path);
 	//year
-	sprintf_P(path, PSTR("%S/%04d"), LOG_DIR, year);
+	sprintf_P(path, PSTR("%s/%04d"), LOG_DIR, year);
 	f_mkdir(path);
 	//month
-	sprintf_P(path, PSTR("%S/%04d/%02d"), LOG_DIR, year, month);
+	sprintf_P(path, PSTR("%s/%04d/%02d"), LOG_DIR, year, month);
 	f_mkdir(path);
 	//day
-	sprintf_P(path, PSTR("%S/%04d/%02d/%02d"), LOG_DIR, year, month, day);
+	sprintf_P(path, PSTR("%s/%04d/%02d/%02d"), LOG_DIR, year, month, day);
 	f_mkdir(path);
 #endif	
 
