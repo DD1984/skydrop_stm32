@@ -90,13 +90,11 @@ void logger_step()
 	//RAW is running as fast as it can!
 	if (config.logger.format != LOGGER_RAW && config.logger.format != LOGGER_AERO)
 	{
-#ifdef LOGGER_SUPPORT
 		if (fc.gps_data.new_sample & FC_GPS_NEW_SAMPLE_LOGGER)
 		{
 			logger_next = task_get_ms_tick() + 1000;
 			fc.gps_data.new_sample &= ~FC_GPS_NEW_SAMPLE_LOGGER;
 		}
-#endif		
 	}
 
 	switch (config.logger.format)
@@ -173,7 +171,6 @@ void logger_start()
 
 	char path[128];
 
-#ifdef LOGGER_SUPPORT
 	//base dir
 	sprintf_P(path, PSTR("%s"), LOG_DIR);
 	f_mkdir(path);
@@ -186,9 +183,7 @@ void logger_start()
 	//day
 	sprintf_P(path, PSTR("%s/%04d/%02d/%02d"), LOG_DIR, year, month, day);
 	f_mkdir(path);
-#endif	
 
-#ifdef LOGGER_SUPPORT
 	switch (config.logger.format)
 	{
 		case(LOGGER_IGC):
@@ -207,7 +202,6 @@ void logger_start()
 			fc.logger_state = aero_start(path);
 		break;
 	}
-#endif
 }
 
 //logger is active or it is waiting for gps
@@ -236,7 +230,6 @@ void logger_stop()
 
 	fc.logger_state = LOGGER_IDLE;
 
-#ifdef LOGGER_SUPPORT
 	switch (config.logger.format)
 	{
 		case(LOGGER_IGC):
@@ -255,5 +248,4 @@ void logger_stop()
 			aero_stop();
 		break;
 	}
-#endif	
 }

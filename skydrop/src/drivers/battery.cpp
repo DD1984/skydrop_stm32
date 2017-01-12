@@ -10,7 +10,7 @@
 #define BATTERY_MEAS_PERIOD 	10000
 #define BATTERY_STABILISE 		100
 
-#define BAT_ADC_MIN				(3200)
+#define BAT_ADC_MIN				(3200) //2850
 
 uint32_t battery_next_meas = 0;
 uint8_t  battery_meas_state = BATTERY_STATE_PREPARE;
