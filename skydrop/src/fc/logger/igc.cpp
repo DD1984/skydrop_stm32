@@ -28,7 +28,11 @@ void igc_writeline(char * line, bool sign = true)
 
 	assert(f_write(&log_file, line, l, &wl) == FR_OK);
 	assert(wl == l);
+
+#ifndef STM32
+	//this is very slowly on spi flash
 	assert(f_sync(&log_file) == FR_OK);
+#endif
 
 #ifndef IGC_NO_PRIVATE_KEY
 	if (sign)
