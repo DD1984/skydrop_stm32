@@ -93,7 +93,7 @@ void audio_timer_ovf(void)
 #ifndef STM32
 			audio_timer.SetTop(audio_vario_length);
 #else
-			audio_timer.Instance->ARR = audio_vario_pause;
+			audio_timer.Instance->ARR = audio_vario_length;
 #endif
 			audio_vario_mode = VARIO_BEEP;
 		}
@@ -121,8 +121,7 @@ void audio_vario_apply()
 				audio_timer.Start();
 #else
 				audio_timer.Instance->CNT = 0;
-				audio_timer.Init.Period = audio_vario_length;
-				HAL_TIM_Base_Init(&audio_timer);
+				audio_timer.Instance->ARR = audio_vario_length;
 				HAL_TIM_Base_Start_IT(&audio_timer);
 #endif
 				audio_vario_mode = VARIO_BEEP;
@@ -175,8 +174,7 @@ void audio_vario_apply()
 				audio_timer.Start();
 #else
 				audio_timer.Instance->CNT = 0;
-				audio_timer.Init.Period = audio_vario_length;
-				HAL_TIM_Base_Init(&audio_timer);
+				audio_timer.Instance->ARR = audio_vario_length;
 				HAL_TIM_Base_Start_IT(&audio_timer);
 #endif
 				audio_vario_mode = VARIO_BEEP;
