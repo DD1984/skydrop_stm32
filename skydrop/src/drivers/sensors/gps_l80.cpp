@@ -701,10 +701,12 @@ void gps_step()
 		gps_parse(&gps_uart);
 #else
 
-	while (GPS_UART_RX_SIZE - gps_uart.hdmarx->Instance->CNDTR != rx_buf_ind) {
-		gps_parse(gps_uart_rx_buffer[rx_buf_ind]);
-		if (++rx_buf_ind == GPS_UART_RX_SIZE)
-			rx_buf_ind = 0;
+	if (gps_uart.State != HAL_UART_STATE_RESET) {
+		while (GPS_UART_RX_SIZE - gps_uart.hdmarx->Instance->CNDTR != rx_buf_ind) {
+			gps_parse(gps_uart_rx_buffer[rx_buf_ind]);
+			if (++rx_buf_ind == GPS_UART_RX_SIZE)
+				rx_buf_ind = 0;
+		}
 	}
 #endif
 }
