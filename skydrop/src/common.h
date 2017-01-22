@@ -32,6 +32,7 @@
 #include "stm32f1xx_hal.h"
 #include "drivers/uart.h"
 #include "eeprom.h"
+#include "debug_c.h"
 
 #define HIGH	1
 #define LOW		0
@@ -41,7 +42,7 @@
 #define SystemReset() system_reset()
 inline void system_reset(void)
 {
-	printf("---------> %s\n", __func__);
+	DEBUG("---------> %s\n", __func__);
 	HAL_NVIC_SystemReset();
 }
 
@@ -50,7 +51,7 @@ inline void system_reset(void)
 #define SystemPowerSave() system_power_save()
 inline void system_power_save(void)
 {
-	printf("---------> %s\n", __func__);
+	DEBUG("---------> %s\n", __func__);
 }
 
 #define wdt_init(x)
@@ -341,10 +342,10 @@ inline uint8_t usb_connected(void)
 	uint8_t cur_con_stat = (uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
 
 	if (cur_con_stat && cur_con_stat ^ con_stat)
-			printf("USB connected\n");
+			DEBUG("USB connected\n");
 
 	if (!cur_con_stat && cur_con_stat ^ con_stat)
-			printf("USB disconnected\n");
+			DEBUG("USB disconnected\n");
 
 	con_stat = cur_con_stat;
 

@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "eeprom.h"
-
-#define DEBUG printf
+#include "debug_c.h"
 
 static FLASH_EraseInitTypeDef EraseInitStruct;
 uint32_t PAGEError = 0;

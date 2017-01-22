@@ -2,24 +2,24 @@ void dump_line(void *addr, int len, int line_len)
 {
 	if (len <= 0)
 		return;
-	printf(" %04x  ", addr);
+	DEBUG(" %04x  ", addr);
 	char *ptr = (char *)addr;
 	while (ptr - (char *)addr < len) {
-		printf("%02x ", (unsigned char)*ptr);
+		DEBUG("%02x ", (unsigned char)*ptr);
 		ptr++;
 	}
 
 	int i;
 	for (i = 0; i < line_len - len; i++)
-		printf("   ");
+		DEBUG("   ");
 
 	ptr = (char *)addr;
 	while (ptr - (char *)addr < len) {
-		printf("%c", ((unsigned char)*ptr < 0x20 || (unsigned char)*ptr > 0x7e) ? '.' : (unsigned char)*ptr);
+		DEBUG("%c", ((unsigned char)*ptr < 0x20 || (unsigned char)*ptr > 0x7e) ? '.' : (unsigned char)*ptr);
 		ptr++;
 	}
 
-	printf("\n");
+	DEBUG("\n");
 }
 
 void _hex_dump(void *addr, int len, int line_len)

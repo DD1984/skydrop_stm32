@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#ifdef STM32
+#include "debug_c.h"
+#endif
+
 #define DEBUG_FILE	"debug.log"
 
 #define DEBUG_LOG_BUFFER_CHUNK	512
@@ -10,6 +14,7 @@
 
 void debug_log(char * msg);
 
+#ifndef STM32
 //DEBUG
 #define DEBUG(format, ...) \
 	do { \
@@ -21,7 +26,7 @@ void debug_log(char * msg);
 		debug_uart_send(msg_buff);\
 		debug_log(msg_buff);\
 	} while(0)
-
+#endif
 
 //assert
 #define assert(cond) \

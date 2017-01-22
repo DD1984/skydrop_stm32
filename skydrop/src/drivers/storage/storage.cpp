@@ -103,46 +103,23 @@ bool storage_init()
 	ret = f_mount(&FatFs, "", 1);
 
 	if (ret != RES_OK) {
-		//TOD: add gui dialog
-		printf("Mounting err: %d - formating...", ret);
+		//TODO: add gui dialog
+		DEBUG("Mounting err: %d - formating...", ret);
 		ret = f_mkfs("", FM_EXFAT | FM_SFD, STORAGE_BLK_SIZ, ff_work_buf, sizeof(ff_work_buf));
 		if (ret == RES_OK) {
-			printf("OK\n");
+			DEBUG("OK\n");
 			ret = f_mount(&FatFs, "", 1);
 		}
 		else {
-			printf("FAIL err:%d\n", ret);
+			DEBUG("FAIL err:%d\n", ret);
 		}
 	}
 
-	printf("Mounting ");
+	DEBUG("Mounting ");
 	if (ret == RES_OK)
-		printf("OK\n");
+		DEBUG("OK\n");
 	else
-		printf("FAIL\n");
-
-#if 0
-	FIL fp;
-
-	//for (i = 0; i < strlen(file); i++)
-	//	path[i] = file[i];
-	//path[i] = 0;
-
-	//hex_dump(path_p, 32);
-
-	//memset(&fp, 0, sizeof(fp));
-
-	ret = f_open(&fp, "/flash1.txt", FA_READ | FA_CREATE_ALWAYS | FA_WRITE);
-	f_puts("flash work\n", &fp);
-
-	f_close(&fp);
-
-	//char buf[32];
-	//f_gets(buf, 32, &fp);
-	//hex_dump(buf, 32);
-
-	printf("ret: %d\n", ret);
-#endif
+		DEBUG("FAIL\n");
 #endif
 	sd_avalible = true;
 	sd_error = false;

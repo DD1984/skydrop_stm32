@@ -44,8 +44,6 @@ void debug_uart_send(char * msg)
 		uart_send(msg);
 		uart.FlushTxBuffer();
 	}
-#else
-	printf("%s", msg);
 #endif	
 }
 
@@ -203,6 +201,13 @@ void debug_log(char * msg)
 	if (config.system.debug_log == DEBUG_MAGIC_ON && storage_ready())
 		debug_log_storage.Write(strlen(msg), (uint8_t *)msg);
 }
+
+#ifdef STM32
+extern "C" void debug_log_c(char * msg)
+{
+	debug_log(msg);
+}
+#endif
 
 void debug_end()
 {

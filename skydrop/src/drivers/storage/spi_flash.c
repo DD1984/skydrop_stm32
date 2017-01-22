@@ -62,6 +62,7 @@
 #include <stdio.h>
 #include "spi_flash.h"
 #include "spi_flash_io.h"
+#include "debug_c.h"
 
 #define SIZE2N_01MB     0x14
 #define SIZE2N_02MB     0x15
@@ -87,7 +88,7 @@ uint8_t BSP_SERIAL_FLASH_Init(void)
 	FLASH_SPI_IO_RDP();
 
 	uint32_t id = FLASH_SPI_IO_ReadID();
-	printf("Detected flash, id: 0x%06x\n", id & 0xffffff);
+	DEBUG("Detected flash, id: 0x%06x\n", id & 0xffffff);
 
 	spi_flash_capacity = 0;
 
@@ -117,11 +118,11 @@ uint8_t BSP_SERIAL_FLASH_Init(void)
 		spi_flash_capacity = 128 * 1024 * 1024;
 		break;
 	default:
-		printf("Unknown flash capacity!!!\n");
+		DEBUG("Unknown flash capacity!!!\n");
 		return FLASH_ERROR;
 	}
 
-	printf("Capacity: %dMB\n", spi_flash_capacity / 1024 / 1024);
+	DEBUG("Capacity: %dMB\n", spi_flash_capacity / 1024 / 1024);
 	return FLASH_OK;
 }
 

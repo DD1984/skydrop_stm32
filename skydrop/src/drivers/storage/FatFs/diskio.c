@@ -53,8 +53,6 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	//printf("%s[%d] buff: 0x%x, sector: 0x%x, count: 0x%x\n", __func__, __LINE__, buff, sector, count);
-
 	if (STORAGE_Read(buff, sector, count) == 0)
 		return RES_OK;
 
@@ -74,8 +72,6 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	//printf("%s[%d] buff: 0x%x, sector: 0x%x, count: 0x%x\n", __func__, __LINE__, buff, sector, count);
-
 	if (STORAGE_Write(buff, sector, count) == 0)
 		return RES_OK;
 
@@ -96,8 +92,6 @@ DRESULT disk_ioctl (
 {
 	uint32_t block_num;
 	uint16_t block_size;
-
-	//printf("%s[%d] buff: 0x%x, cmd: 0x%x\n", __func__, __LINE__, buff, cmd);
 
 	switch (cmd) {
 	case GET_SECTOR_COUNT:
