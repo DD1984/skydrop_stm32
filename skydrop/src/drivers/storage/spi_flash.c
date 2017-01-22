@@ -74,6 +74,7 @@
 #define SIZE2N_128M     0x21
 
 uint32_t spi_flash_capacity = 0;
+uint32_t flash_inited = 0;
 /**
   * @brief  Initializes peripherals used by the Serial FLASH device.
   * @retval FLASH_OK (0x00) if operation is correctly performed, else 
@@ -123,6 +124,8 @@ uint8_t BSP_SERIAL_FLASH_Init(void)
 	}
 
 	DEBUG("Capacity: %dMB\n", spi_flash_capacity / 1024 / 1024);
+
+	flash_inited = 1;
 	return FLASH_OK;
 }
 
@@ -340,7 +343,8 @@ uint8_t BSP_SERIAL_FLASH_ReadData(uint32_t uwStartAddress, uint8_t* pData, uint3
 
 uint8_t BSP_SERIAL_FLASH_DP(void)
 {
-	FLASH_SPI_IO_DP();
+	if (flash_inited)
+		FLASH_SPI_IO_DP();
 	return FLASH_OK;
 }
 
