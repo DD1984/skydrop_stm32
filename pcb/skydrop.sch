@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -1908,37 +1908,37 @@ body 6.00 x 5.00 mm</description>
 <wire x1="24.15" y1="57.5" x2="47.4" y2="57.5" width="0.1" layer="21"/>
 <wire x1="47.4" y1="57.5" x2="47.4" y2="9.3" width="0.1" layer="21"/>
 <wire x1="47.4" y1="9.3" x2="47.4" y2="2.3" width="0.1" layer="21"/>
-<smd name="2" x="17.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="3" x="17.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="4" x="18.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="5" x="18.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="6" x="19.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="7" x="19.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="8" x="20.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="9" x="20.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="10" x="21.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="11" x="21.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="12" x="22.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="13" x="22.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="14" x="23.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="15" x="23.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="16" x="24.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="17" x="24.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="18" x="25.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="19" x="25.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="20" x="26.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="21" x="26.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="22" x="27.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="23" x="27.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="24" x="28.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="25" x="28.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="26" x="29.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="27" x="29.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="28" x="30.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="29" x="30.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="30" x="31.15" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="31" x="31.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
-<smd name="1" x="16.65" y="15.7" dx="5" dy="0.3" layer="16" rot="R90"/>
+<smd name="2" x="17.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="3" x="17.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="4" x="18.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="5" x="18.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="6" x="19.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="7" x="19.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="8" x="20.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="9" x="20.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="10" x="21.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="11" x="21.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="12" x="22.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="13" x="22.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="14" x="23.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="15" x="23.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="16" x="24.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="17" x="24.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="18" x="25.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="19" x="25.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="20" x="26.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="21" x="26.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="22" x="27.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="23" x="27.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="24" x="28.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="25" x="28.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="26" x="29.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="27" x="29.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="28" x="30.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="29" x="30.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="30" x="31.15" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="31" x="31.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
+<smd name="1" x="16.65" y="13" dx="1.25" dy="0.3" layer="16" rot="R90"/>
 <wire x1="0.9" y1="57.5" x2="0.9" y2="9.3" width="0.1" layer="21"/>
 <wire x1="0.9" y1="9.3" x2="0.9" y2="2.3" width="0.1" layer="21"/>
 <wire x1="2.4" y1="0.8" x2="24.15" y2="0.8" width="0.1" layer="21"/>
@@ -1956,6 +1956,12 @@ body 6.00 x 5.00 mm</description>
 <wire x1="47.4" y1="2.3" x2="0.9" y2="2.3" width="0.1" layer="21"/>
 <wire x1="47.4" y1="2.3" x2="45.9" y2="0.8" width="0.1" layer="21"/>
 <wire x1="0.9" y1="2.3" x2="2.4" y2="0.8" width="0.1" layer="21"/>
+<smd name="P$1" x="33.19" y="10.68" dx="3" dy="2" layer="16" rot="R90"/>
+<smd name="P$2" x="15.11" y="10.68" dx="3" dy="2" layer="16" rot="R90"/>
+<smd name="P$3" x="42.1" y="17.45" dx="2.85" dy="1" layer="16" rot="R270"/>
+<smd name="P$4" x="40.1" y="17.45" dx="2.85" dy="1" layer="16" rot="R270"/>
+<smd name="P$5" x="44.3" y="11.1" dx="3.8" dy="1.4" layer="16" rot="R270"/>
+<smd name="P$6" x="37.8" y="11.1" dx="3.8" dy="1.4" layer="16" rot="R270"/>
 </package>
 <package name="SW4-6.2X6.2X5.0MM">
 <wire x1="-3.1" y1="3.1" x2="3.1" y2="3.1" width="0.127" layer="51"/>
@@ -4517,14 +4523,14 @@ Source: www.st.com, BAT60J.pdf</description>
 <part name="VCC6" library="supply1" deviceset="VCC" device=""/>
 <part name="IC2" library="skydrop" deviceset="MCP73831" device="/OT"/>
 <part name="R1" library="skydrop" deviceset="R_" device="0805" value="6.8k"/>
-<part name="C1" library="skydrop" deviceset="C_" device="1210"/>
-<part name="C2" library="skydrop" deviceset="C_" device="1210"/>
+<part name="C1" library="skydrop" deviceset="C_" device="0805"/>
+<part name="C2" library="skydrop" deviceset="C_" device="0805"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
 <part name="SUPPLY1" library="supply2" deviceset="+UB" device=""/>
 <part name="SUPPLY2" library="supply2" deviceset="+UB" device=""/>
 <part name="IC3" library="skydrop" deviceset="TCM809" device="" value="STM809SWX6F"/>
 <part name="C3" library="skydrop" deviceset="C_" device="0805"/>
-<part name="C4" library="skydrop" deviceset="C_" device="1210"/>
+<part name="C4" library="skydrop" deviceset="C_" device="0805"/>
 <part name="C5" library="skydrop" deviceset="C_" device="0805" value="22nf"/>
 <part name="Q1" library="transistor-small-signal" deviceset="BSS84" device=""/>
 <part name="Q2" library="transistor-small-signal" deviceset="BSS123" device=""/>
@@ -4616,7 +4622,7 @@ Source: www.st.com, BAT60J.pdf</description>
 <part name="GND30" library="SparkFun" deviceset="GND" device=""/>
 <part name="J1" library="skydrop" deviceset="USB-AB" device=""/>
 <part name="C11" library="skydrop" deviceset="C_" device="0805"/>
-<part name="C15" library="skydrop" deviceset="C_" device="1210"/>
+<part name="C15" library="skydrop" deviceset="C_" device="0805"/>
 <part name="GND28" library="supply1" deviceset="GND" device=""/>
 <part name="R2" library="skydrop" deviceset="R_" device="1206" value="0"/>
 <part name="R3" library="skydrop" deviceset="R_" device="1206" value="0"/>
