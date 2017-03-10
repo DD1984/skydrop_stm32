@@ -5,6 +5,10 @@
 #include "gui/gui.h"
 #include "fc/conf.h"
 
+#ifdef STM32
+#include "tasks/task_powerdown.h"
+#endif
+
 
 struct app_info ee_fw_info __attribute__ ((section(".fw_info")));
 struct app_info fw_info;
@@ -36,14 +40,24 @@ void print_reset_reason()
 	else
 		DEBUG("Unknown: %02X", system_rst);
 #else
+
+	uint32_t flag = 1;
+
 	DEBUG("RCC:\n");
 	if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST))
 		DEBUG("\tPIN reset\n");
-	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST))
+
+	if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)) {
+		flag = 0;
 		DEBUG("\tSoftware Reset\n");
+	}
+
 	if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
 		DEBUG("\tIndependent Watchdog reset\n");
 	 __HAL_RCC_CLEAR_RESET_FLAGS();
+
+	 if (flag)
+		 pd_mode_unset();
 
 	DEBUG("PWR:\n");
 	if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB)) {

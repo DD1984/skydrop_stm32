@@ -216,4 +216,11 @@ void DMA1_Channel7_IRQHandler(void)
 //  HAL_UART_IRQHandler(&gps_uart);
 //}
 
+extern TIM_HandleTypeDef  TimInputCaptureHandle;
+void TIM5_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TimInputCaptureHandle);
+}
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

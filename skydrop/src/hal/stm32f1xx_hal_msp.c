@@ -368,5 +368,39 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
 	}
 }
 
+/**
+  * @brief TIM MSP Initialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  * @param htim: TIM handle pointer
+  * @retval None
+  */
+void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
+{
+  /* TIMx Peripheral clock enable */
+  __HAL_RCC_TIM5_CLK_ENABLE();
+
+  /* Configure the NVIC for TIMx */
+  HAL_NVIC_SetPriority(TIM5_IRQn, 0, 0);
+
+  /* Enable the TIMx global Interrupt */
+  HAL_NVIC_EnableIRQ(TIM5_IRQn);
+}
+
+/**
+  * @brief  DeInitializes TIM Input Capture MSP.
+  * @param  htim: TIM handle
+  * @retval None
+  */
+void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef *htim)
+{
+   /* Enable the TIMx global Interrupt */
+  HAL_NVIC_DisableIRQ(TIM5_IRQn);
+
+  /* TIMx Peripheral clock disable */
+  __HAL_RCC_TIM5_CLK_DISABLE();
+
+}
+
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

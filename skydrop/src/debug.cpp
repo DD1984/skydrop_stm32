@@ -2,6 +2,8 @@
 
 #ifndef STM32
 #include <xlib/core/watchdog.h>
+#else
+#include "iwdg_stm32.h"
 #endif
 
 #include "drivers/storage/storage.h"
@@ -311,7 +313,9 @@ void debug_step()
 void ewdt_init()
 {
 	wdt_init(wdt_2s);
+#ifndef STM32
 	debug_timer_init();
+#endif
 }
 
 void ewdt_reset()

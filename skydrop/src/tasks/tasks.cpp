@@ -227,7 +227,10 @@ void task_init()
 		task_set(TASK_USB);
 #endif		
 
+#ifndef STM32 //wdg init only in active mode
 	ewdt_init();
+#endif
+
 }
 
 void task_set(uint8_t task)
@@ -260,7 +263,7 @@ void task_system_loop()
 			if (new_task == TASK_POWERDOWN)
 			{
 #ifdef STM32
-				HAL_RTCEx_BKUPWrite(&RtcHandle, 1, PD_MAGIC);
+				pd_mode_set();
 #endif
 				SystemReset();
 			}
@@ -276,8 +279,10 @@ void task_system_loop()
 #ifdef STM32
 		else {
 			if (new_task == TASK_POWERDOWN) {
-				if (HAL_RTCEx_BKUPRead(&RtcHandle, 1) != PD_MAGIC)
+				if (!check_pd_mode()) {
 					new_task = TASK_ACTIVE;
+					ewdt_init();
+				}
 			}
 		}
 #endif

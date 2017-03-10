@@ -133,3 +133,26 @@ void task_powerdown_irqh(uint8_t type, uint8_t * buff)
 #endif
 	}
 }
+
+#ifdef STM32
+#define PD_MAGIC 0xA55A
+extern RTC_HandleTypeDef RtcHandle;
+
+uint32_t check_pd_mode(void)
+{
+	if (HAL_RTCEx_BKUPRead(&RtcHandle, 1) == PD_MAGIC) {
+		printf("pd mode !!!!");
+		return 1;
+	}
+	printf("NOT pd mode !!!!");
+	return 0;
+}
+
+void change_pd_mode(uint32_t set)
+{
+	if (set)
+		HAL_RTCEx_BKUPWrite(&RtcHandle, 1, PD_MAGIC);
+	else
+		HAL_RTCEx_BKUPWrite(&RtcHandle, 1, 0);
+}
+#endif

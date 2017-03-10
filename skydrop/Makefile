@@ -58,6 +58,9 @@ C_SOURCES += src/hal/Src/stm32f1xx_hal_pwr.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_adc.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_adc_ex.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_dma.c
+C_SOURCES += src/hal/Src/stm32f1xx_hal_iwdg.c
+
+C_SOURCES += src/iwdg_stm32.c
 
 C_SOURCES += src/hal/Src/stm32f1xx_ll_usb.c
 C_SOURCES += src/hal/Src/stm32f1xx_hal_pcd.c

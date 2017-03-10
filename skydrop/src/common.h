@@ -54,9 +54,6 @@ inline void system_power_save(void)
 	DEBUG("---------> %s\n", __func__);
 }
 
-#define wdt_init(x)
-#define wdt_reset()
-
 #define PROGMEM
 #define pgm_read_byte(addr) (*(addr))
 #define pgm_read_word(addr) (*(addr))
