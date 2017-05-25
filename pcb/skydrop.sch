@@ -5128,6 +5128,7 @@ Source: www.st.com, BAT60J.pdf</description>
 <part name="BTN_C" library="skydrop" deviceset="DIP-BUTTON-TOP-BLACK(4P-D6.2MM)" device="" value="TS-1109-7"/>
 <part name="BTN_R" library="skydrop" deviceset="DIP-BUTTON-TOP-BLACK(4P-D6.2MM)" device="" value="TS-1109-7"/>
 <part name="IC5" library="skydrop" deviceset="MCP23S17" device="SO"/>
+<part name="R20" library="skydrop" deviceset="R_" device="1206" value="0"/>
 </parts>
 <sheets>
 <sheet>
@@ -5341,6 +5342,7 @@ connector</text>
 <instance part="BTN_C" gate="G$1" x="-116.84" y="45.72" rot="R270"/>
 <instance part="BTN_R" gate="G$1" x="-101.6" y="45.72" rot="R270"/>
 <instance part="IC5" gate="G$1" x="-210.82" y="-12.7" rot="R180"/>
+<instance part="R20" gate="G$1" x="-264.16" y="53.34" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -5462,39 +5464,16 @@ connector</text>
 <wire x1="127" y1="60.96" x2="127" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="LCD_DIN_T" class="0">
-<segment>
-<pinref part="JP1" gate="G$1" pin="6"/>
-<wire x1="-134.62" y1="-33.02" x2="-134.62" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-134.62" y="-22.86" size="1.778" layer="95" rot="R90"/>
-</segment>
-</net>
-<net name="LCD_CLK_T" class="0">
-<segment>
-<pinref part="JP1" gate="G$1" pin="7"/>
-<wire x1="-132.08" y1="-33.02" x2="-132.08" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-132.08" y="-22.86" size="1.778" layer="95" rot="R90"/>
-</segment>
-</net>
-<net name="LCD_RST_T" class="0">
-<segment>
-<pinref part="JP1" gate="G$1" pin="8"/>
-<wire x1="-129.54" y1="-33.02" x2="-129.54" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-129.54" y="-22.86" size="1.778" layer="95" rot="R90"/>
-</segment>
-</net>
 <net name="LCD_CE_T" class="0">
 <segment>
-<pinref part="JP1" gate="G$1" pin="3"/>
-<wire x1="-142.24" y1="-33.02" x2="-142.24" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-142.24" y="-22.86" size="1.778" layer="95" rot="R90"/>
+<pinref part="JP1" gate="G$1" pin="5"/>
+<wire x1="-137.16" y1="-33.02" x2="-137.16" y2="-25.4" width="0.1524" layer="91"/>
+<label x="-137.16" y="-22.86" size="1.778" layer="95" rot="R90"/>
 </segment>
-</net>
-<net name="LCD_DC_T" class="0">
 <segment>
-<pinref part="JP1" gate="G$1" pin="4"/>
-<wire x1="-139.7" y1="-33.02" x2="-139.7" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-139.7" y="-22.86" size="1.778" layer="95" rot="R90"/>
+<pinref part="IC5" gate="G$1" pin="\!CS"/>
+<wire x1="-198.12" y1="-15.24" x2="-193.04" y2="-15.24" width="0.1524" layer="91"/>
+<label x="-190.5" y="-15.24" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="MS5611_VCC" class="0">
@@ -5663,76 +5642,61 @@ connector</text>
 <junction x="-220.98" y="53.34"/>
 <pinref part="C28" gate="G$1" pin="1"/>
 <junction x="-220.98" y="48.26"/>
-<junction x="-223.52" y="60.96"/>
-<wire x1="-266.7" y1="60.96" x2="-264.16" y2="60.96" width="0.1524" layer="91"/>
-<wire x1="-264.16" y1="60.96" x2="-223.52" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="-223.52" y1="60.96" x2="-220.98" y2="60.96" width="0.1524" layer="91"/>
 <wire x1="-220.98" y1="60.96" x2="-220.98" y2="53.34" width="0.1524" layer="91"/>
-<pinref part="U$1" gate="G$1" pin="PS1"/>
-<wire x1="-266.7" y1="66.04" x2="-266.7" y2="60.96" width="0.1524" layer="91"/>
-<pinref part="U$1" gate="G$1" pin="PS2"/>
-<wire x1="-264.16" y1="66.04" x2="-264.16" y2="60.96" width="0.1524" layer="91"/>
-<junction x="-264.16" y="60.96"/>
+</segment>
+<segment>
+<pinref part="IC5" gate="G$1" pin="VSS"/>
+<wire x1="-198.12" y1="7.62" x2="-195.58" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="IC5" gate="G$1" pin="A2"/>
+<wire x1="-198.12" y1="2.54" x2="-195.58" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="-195.58" y1="2.54" x2="-195.58" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="IC5" gate="G$1" pin="A1"/>
+<wire x1="-198.12" y1="0" x2="-195.58" y2="0" width="0.1524" layer="91"/>
+<wire x1="-195.58" y1="0" x2="-195.58" y2="2.54" width="0.1524" layer="91"/>
+<pinref part="IC5" gate="G$1" pin="A0"/>
+<wire x1="-198.12" y1="-2.54" x2="-195.58" y2="-2.54" width="0.1524" layer="91"/>
+<wire x1="-195.58" y1="-2.54" x2="-195.58" y2="0" width="0.1524" layer="91"/>
+<junction x="-195.58" y="2.54"/>
+<junction x="-195.58" y="0"/>
+<wire x1="-195.58" y1="7.62" x2="-193.04" y2="7.62" width="0.1524" layer="91"/>
+<junction x="-195.58" y="7.62"/>
+<label x="-190.5" y="7.62" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCD_CLK_B" class="0">
 <segment>
 <pinref part="UC1" gate="G$1" pin="PA5/SPI1_SCK/ADC5"/>
 <wire x1="15.24" y1="-162.56" x2="10.16" y2="-162.56" width="0.1524" layer="91"/>
-<label x="-5.08" y="-162.56" size="1.778" layer="95"/>
+<label x="-7.62" y="-162.56" size="1.778" layer="95"/>
 </segment>
 <segment>
-<label x="-132.08" y="-71.12" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="A" pin="6"/>
-<wire x1="-132.08" y1="-55.88" x2="-132.08" y2="-43.18" width="0.1524" layer="91"/>
+<pinref part="JP2" gate="A" pin="7"/>
+<wire x1="-129.54" y1="-45.72" x2="-129.54" y2="-55.88" width="0.1524" layer="91"/>
+<label x="-129.54" y="-73.66" size="1.778" layer="95" rot="R90"/>
 </segment>
 </net>
 <net name="LCD_DIN_B" class="0">
 <segment>
 <pinref part="UC1" gate="G$1" pin="PA7/SPI1_MOSI/ADC7/TIM3_CH2"/>
 <wire x1="15.24" y1="-167.64" x2="10.16" y2="-167.64" width="0.1524" layer="91"/>
-<label x="-5.08" y="-167.64" size="1.778" layer="95"/>
+<label x="-7.62" y="-167.64" size="1.778" layer="95"/>
 </segment>
 <segment>
-<label x="-134.62" y="-71.12" size="1.778" layer="95" rot="R90"/>
+<label x="-134.62" y="-73.66" size="1.778" layer="95" rot="R90"/>
 <pinref part="JP2" gate="A" pin="5"/>
 <wire x1="-134.62" y1="-55.88" x2="-134.62" y2="-45.72" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="LCD_DC_B" class="0">
-<segment>
-<label x="-139.7" y="-71.12" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="A" pin="3"/>
-<wire x1="-139.7" y1="-55.88" x2="-139.7" y2="-45.72" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="UC1" gate="G$1" pin="PC5/ADC15"/>
-<wire x1="104.14" y1="-152.4" x2="109.22" y2="-152.4" width="0.1524" layer="91"/>
-<label x="111.76" y="-152.4" size="1.778" layer="95"/>
-</segment>
-</net>
 <net name="LCD_CE_B" class="0">
 <segment>
-<label x="-142.24" y="-71.12" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="A" pin="2"/>
-<wire x1="-142.24" y1="-55.88" x2="-142.24" y2="-43.18" width="0.1524" layer="91"/>
+<pinref part="UC1" gate="G$1" pin="PC4/ADC14"/>
+<wire x1="104.14" y1="-149.86" x2="109.22" y2="-149.86" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="UC1" gate="G$1" pin="PB0/ADC8/TIM3_CH3"/>
-<wire x1="104.14" y1="-96.52" x2="109.22" y2="-96.52" width="0.1524" layer="91"/>
-<label x="111.76" y="-96.52" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="LCD_RST_B" class="0">
-<segment>
-<pinref part="UC1" gate="G$1" pin="PA4/SPI1_NSS/USART2_CK/ADC4"/>
-<wire x1="15.24" y1="-160.02" x2="10.16" y2="-160.02" width="0.1524" layer="91"/>
-<label x="-5.08" y="-160.02" size="1.778" layer="95"/>
-</segment>
-<segment>
-<label x="-129.54" y="-71.12" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="A" pin="7"/>
-<wire x1="-129.54" y1="-55.88" x2="-129.54" y2="-45.72" width="0.1524" layer="91"/>
+<pinref part="JP2" gate="A" pin="4"/>
+<wire x1="-137.16" y1="-43.18" x2="-137.16" y2="-55.88" width="0.1524" layer="91"/>
+<label x="-137.16" y="-73.66" size="1.778" layer="95" rot="R90"/>
 </segment>
 </net>
 <net name="BTN_L_T" class="0">
@@ -6231,24 +6195,10 @@ connector</text>
 <wire x1="-226.06" y1="35.56" x2="-226.06" y2="33.02" width="0.1524" layer="91"/>
 <label x="-226.06" y="22.86" size="1.778" layer="95" rot="R90"/>
 </segment>
-</net>
-<net name="LCD_PWR_T" class="0">
 <segment>
-<pinref part="JP1" gate="G$1" pin="5"/>
-<wire x1="-137.16" y1="-33.02" x2="-137.16" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-137.16" y="-22.86" size="1.778" layer="95" rot="R90"/>
-</segment>
-</net>
-<net name="LCD_PWR_B" class="0">
-<segment>
-<label x="-137.16" y="-71.12" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="A" pin="4"/>
-<wire x1="-137.16" y1="-55.88" x2="-137.16" y2="-43.18" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="UC1" gate="G$1" pin="PC4/ADC14"/>
-<wire x1="104.14" y1="-149.86" x2="109.22" y2="-149.86" width="0.1524" layer="91"/>
-<label x="111.76" y="-149.86" size="1.778" layer="95"/>
+<pinref part="IC5" gate="G$1" pin="VDD"/>
+<wire x1="-198.12" y1="-33.02" x2="-193.04" y2="-33.02" width="0.1524" layer="91"/>
+<label x="-190.5" y="-33.02" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$31" class="0">
@@ -6982,6 +6932,88 @@ connector</text>
 <pinref part="IC5" gate="G$1" pin="GPB4"/>
 <wire x1="-251.46" y1="66.04" x2="-251.46" y2="0" width="0.1524" layer="91"/>
 <wire x1="-251.46" y1="0" x2="-223.52" y2="0" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$65" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="PS1"/>
+<wire x1="-266.7" y1="66.04" x2="-266.7" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="-266.7" y1="60.96" x2="-264.16" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="U$1" gate="G$1" pin="PS2"/>
+<wire x1="-264.16" y1="66.04" x2="-264.16" y2="60.96" width="0.1524" layer="91"/>
+<pinref part="R20" gate="G$1" pin="2"/>
+<wire x1="-264.16" y1="58.42" x2="-264.16" y2="60.96" width="0.1524" layer="91"/>
+<junction x="-264.16" y="60.96"/>
+</segment>
+</net>
+<net name="LCD_DOUT_B" class="0">
+<segment>
+<pinref part="UC1" gate="G$1" pin="PA6/SPI1_MISO/ADC6/TIM3_CH1"/>
+<wire x1="15.24" y1="-165.1" x2="10.16" y2="-165.1" width="0.1524" layer="91"/>
+<label x="-7.62" y="-165.1" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="JP2" gate="A" pin="6"/>
+<wire x1="-132.08" y1="-43.18" x2="-132.08" y2="-55.88" width="0.1524" layer="91"/>
+<label x="-132.08" y="-73.66" size="1.778" layer="95" rot="R90"/>
+</segment>
+</net>
+<net name="LCD_DIN_T" class="0">
+<segment>
+<pinref part="JP1" gate="G$1" pin="6"/>
+<wire x1="-134.62" y1="-33.02" x2="-134.62" y2="-25.4" width="0.1524" layer="91"/>
+<label x="-134.62" y="-22.86" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="IC5" gate="G$1" pin="SI"/>
+<wire x1="-198.12" y1="-10.16" x2="-193.04" y2="-10.16" width="0.1524" layer="91"/>
+<label x="-190.5" y="-10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LCD_DOUT_T" class="0">
+<segment>
+<pinref part="JP1" gate="G$1" pin="7"/>
+<wire x1="-132.08" y1="-33.02" x2="-132.08" y2="-25.4" width="0.1524" layer="91"/>
+<label x="-132.08" y="-22.86" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="IC5" gate="G$1" pin="SO"/>
+<wire x1="-198.12" y1="-7.62" x2="-193.04" y2="-7.62" width="0.1524" layer="91"/>
+<label x="-190.5" y="-7.62" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LCD_CLK_T" class="0">
+<segment>
+<pinref part="JP1" gate="G$1" pin="8"/>
+<wire x1="-129.54" y1="-33.02" x2="-129.54" y2="-25.4" width="0.1524" layer="91"/>
+<label x="-129.54" y="-22.86" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="IC5" gate="G$1" pin="SCK"/>
+<wire x1="-198.12" y1="-12.7" x2="-193.04" y2="-12.7" width="0.1524" layer="91"/>
+<label x="-190.5" y="-12.7" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LCD_RST_B" class="0">
+<segment>
+<pinref part="JP2" gate="A" pin="3"/>
+<wire x1="-139.7" y1="-45.72" x2="-139.7" y2="-55.88" width="0.1524" layer="91"/>
+<label x="-139.7" y="-73.66" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="UC1" gate="G$1" pin="PC5/ADC15"/>
+<wire x1="104.14" y1="-152.4" x2="109.22" y2="-152.4" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="LCD_RST_T" class="0">
+<segment>
+<pinref part="JP1" gate="G$1" pin="4"/>
+<wire x1="-139.7" y1="-33.02" x2="-139.7" y2="-25.4" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="IC5" gate="G$1" pin="\!RESET"/>
+<wire x1="-198.12" y1="-27.94" x2="-193.04" y2="-27.94" width="0.1524" layer="91"/>
+<label x="-190.5" y="-27.94" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
