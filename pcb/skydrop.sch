@@ -5138,7 +5138,7 @@ connector</text>
 <attribute name="NAME" x="-34.417" y="-127.254" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="-31.623" y="-128.27" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="OSC2" gate="G$1" x="147.32" y="-177.8" rot="R90"/>
+<instance part="OSC2" gate="G$1" x="147.32" y="-177.8" rot="R270"/>
 <instance part="JP1" gate="G$1" x="-157.48" y="-17.78" rot="MR270"/>
 <instance part="GND1" gate="1" x="-180.34" y="-45.72"/>
 <instance part="VCC5" gate="VCC" x="-119.38" y="-33.02"/>
@@ -6988,25 +6988,15 @@ connector</text>
 <wire x1="-220.98" y1="127" x2="-220.98" y2="124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$25" class="0">
-<segment>
-<pinref part="UC1" gate="G$1" pin="PC14/OSC32_IN"/>
-<pinref part="OSC2" gate="G$1" pin="2"/>
-<wire x1="104.14" y1="-175.26" x2="147.32" y2="-175.26" width="0.1524" layer="91"/>
-<pinref part="C19" gate="G$1" pin="2"/>
-<wire x1="147.32" y1="-175.26" x2="152.4" y2="-175.26" width="0.1524" layer="91"/>
-<junction x="147.32" y="-175.26"/>
-</segment>
-</net>
 <net name="N$36" class="0">
 <segment>
-<pinref part="C20" gate="G$1" pin="2"/>
-<pinref part="OSC2" gate="G$1" pin="1"/>
-<wire x1="152.4" y1="-180.34" x2="147.32" y2="-180.34" width="0.1524" layer="91"/>
-<wire x1="147.32" y1="-180.34" x2="142.24" y2="-180.34" width="0.1524" layer="91"/>
 <wire x1="142.24" y1="-180.34" x2="142.24" y2="-177.8" width="0.1524" layer="91"/>
 <pinref part="UC1" gate="G$1" pin="PC15/OSC_OUT"/>
 <wire x1="142.24" y1="-177.8" x2="104.14" y2="-177.8" width="0.1524" layer="91"/>
+<pinref part="OSC2" gate="G$1" pin="2"/>
+<wire x1="142.24" y1="-180.34" x2="147.32" y2="-180.34" width="0.1524" layer="91"/>
+<pinref part="C20" gate="G$1" pin="2"/>
+<wire x1="147.32" y1="-180.34" x2="152.4" y2="-180.34" width="0.1524" layer="91"/>
 <junction x="147.32" y="-180.34"/>
 </segment>
 </net>
@@ -7122,6 +7112,16 @@ connector</text>
 <pinref part="UC1" gate="G$1" pin="PB5/I2C1_SMBA"/>
 <wire x1="104.14" y1="-109.22" x2="109.22" y2="-109.22" width="0.1524" layer="91"/>
 <label x="111.76" y="-109.22" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$25" class="0">
+<segment>
+<pinref part="C19" gate="G$1" pin="2"/>
+<pinref part="OSC2" gate="G$1" pin="1"/>
+<wire x1="152.4" y1="-175.26" x2="147.32" y2="-175.26" width="0.1524" layer="91"/>
+<pinref part="UC1" gate="G$1" pin="PC14/OSC32_IN"/>
+<wire x1="147.32" y1="-175.26" x2="104.14" y2="-175.26" width="0.1524" layer="91"/>
+<junction x="147.32" y="-175.26"/>
 </segment>
 </net>
 </nets>
